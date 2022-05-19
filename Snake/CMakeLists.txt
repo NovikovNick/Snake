@@ -4,7 +4,7 @@
 cmake_minimum_required (VERSION 3.8)
 
 # Add source to this project's executable.
-add_executable (Snake WIN32 "Snake.cpp" "Snake.h")
+add_executable (Snake WIN32 "Snake.cpp" "Snake.h" "MyCanvas.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Snake PROPERTY CXX_STANDARD 20)

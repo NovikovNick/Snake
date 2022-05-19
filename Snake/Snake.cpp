@@ -2,7 +2,14 @@
 #define UNICODE
 #endif 
 
+#include "Snake.h"
+#include "MyCanvas.cpp"
 #include <windows.h>
+
+
+bool flag = true;
+
+int __stdcall wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow);
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -44,10 +51,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 
     ShowWindow(hwnd, nCmdShow);
 
+    MyCanvas myCanvas(hwnd);
+
+
     // Run the message loop.
     MSG msg = { };
-    while (GetMessage(&msg, NULL, 0, 0))
-    {
+    while (GetMessage(&msg, NULL, 0, 0)) {
+        
+        myCanvas.flag = flag;
+        myCanvas.render();
+
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
@@ -59,6 +72,44 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
+    case WM_LBUTTONDOWN:
+        flag = !flag;
+        break;
+    case WM_KEYUP:
+        switch (wParam)
+        {
+        case VK_LEFT:
+
+            // Process the LEFT ARROW key. 
+
+            break;
+
+        case VK_RIGHT:
+
+            // Process the RIGHT ARROW key. 
+
+            break;
+
+        case VK_UP:
+
+            // Process the UP ARROW key. 
+
+            break;
+
+        case VK_DOWN:
+
+            // Process the DOWN ARROW key. 
+
+            break;
+
+        case VK_ESCAPE:
+            PostQuitMessage(0);
+            return 0;
+
+        default:
+            break;
+        }
+        break;
     case WM_DESTROY:
         PostQuitMessage(0);
         return 0;
