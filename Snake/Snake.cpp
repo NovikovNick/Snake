@@ -52,18 +52,20 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
     ShowWindow(hwnd, nCmdShow);
 
     MyCanvas myCanvas(hwnd);
+    myCanvas.startRender();
 
 
     // Run the message loop.
     MSG msg = { };
     while (GetMessage(&msg, NULL, 0, 0)) {
-        
+       
         myCanvas.flag = flag;
-        myCanvas.render();
 
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+
+    myCanvas.stopRender();
 
     return 0;
 }
@@ -76,36 +78,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         flag = !flag;
         break;
     case WM_KEYUP:
-        switch (wParam)
+        switch (wParam)  
         {
+
         case VK_LEFT:
-
-            // Process the LEFT ARROW key. 
-
             break;
-
         case VK_RIGHT:
-
-            // Process the RIGHT ARROW key. 
-
             break;
-
         case VK_UP:
-
-            // Process the UP ARROW key. 
-
             break;
-
         case VK_DOWN:
-
-            // Process the DOWN ARROW key. 
-
             break;
-
         case VK_ESCAPE:
             PostQuitMessage(0);
             return 0;
-
         default:
             break;
         }
