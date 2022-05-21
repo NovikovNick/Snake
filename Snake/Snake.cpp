@@ -5,9 +5,11 @@
 #include "Snake.h"
 #include "MyCanvas.cpp"
 #include <windows.h>
+#include <deque>
 
 
 bool flag = true;
+std::deque<Input> inputQueue = std::deque<Input, std::allocator<Input>>();
 
 int __stdcall wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow);
 
@@ -58,8 +60,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
     // Run the message loop.
     MSG msg = { };
     while (GetMessage(&msg, NULL, 0, 0)) {
-       
-        myCanvas.flag = flag;
+
+        for (;!inputQueue.empty();inputQueue.pop_back()) {
+            myCanvas.inputQueue.push_back(inputQueue.back());
+        }
 
         TranslateMessage(&msg);
         DispatchMessage(&msg);
@@ -77,17 +81,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONDOWN:
         flag = !flag;
         break;
-    case WM_KEYUP:
+    case WM_KEYDOWN:
         switch (wParam)  
         {
-
         case VK_LEFT:
+            inputQueue.push_back({false, false, true, false});
             break;
         case VK_RIGHT:
+            inputQueue.push_back({ false, false, false, true });
             break;
         case VK_UP:
+            inputQueue.push_back({ true, false, false, false });
             break;
         case VK_DOWN:
+            inputQueue.push_back({ false, true, false, false });
             break;
         case VK_ESCAPE:
             PostQuitMessage(0);

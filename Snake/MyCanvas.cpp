@@ -2,18 +2,22 @@
 #include <d2d1.h>
 #include <thread>
 #include <iostream>
+#include <deque>
 #pragma comment(lib, "d2d1") // This line of code is equivalent to adding d2d1.lib in the additional dependency linker options.
 
+struct Input {
+    bool up = false;
+    bool down = false;
+    bool left = false;
+    bool right = false;
+};
 
 class MyCanvas {
 public:
-    bool flag = true;
-    bool prevFlag = true;
 
-
+    std::deque<Input> inputQueue = std::deque<Input, std::allocator<Input>>();
     int x = 0;
-
-    std::thread t1;
+    int y = 0;
 
 	MyCanvas (HWND hwnd) {
 		_hwnd = hwnd;
@@ -49,20 +53,6 @@ public:
             _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Crimson), &_pBlackBrush);
             _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Aqua), &_pLightSlateGrayBrush);
         }
-
-        // 5. --------------------------
-        _pRT->BeginDraw();
-
-        _pRT->DrawRectangle(
-            D2D1::RectF(
-                _rc.left + 100.0f,
-                _rc.top + 100.0f,
-                _rc.right - 100.0f,
-                _rc.bottom - 100.0f),
-            flag ? _pBlackBrush : _pLightSlateGrayBrush);
-
-        hr = _pRT->EndDraw();
-
 	}
 
     ~MyCanvas() {
@@ -75,13 +65,13 @@ public:
 
     void startRender() {
         _running = true;
-        t1 =  std::thread(&MyCanvas::_render, this);
+        _renderThread =  std::thread(&MyCanvas::_render, this);
     }
 
 
     void stopRender() {
         _running = false;
-        t1.join();
+        _renderThread.join();
     }
 
     
@@ -94,7 +84,8 @@ private:
     ID2D1SolidColorBrush* _pLightSlateGrayBrush = NULL;
 
     RECT _rc;
-    
+
+    std::thread _renderThread;
     bool _running = false;
     std::chrono::duration<double, std::milli> _nanos_60fps = std::chrono::duration<double, std::milli>(16);
 
@@ -111,28 +102,25 @@ private:
             elapsed = t1 - t0;
 
             _pRT->BeginDraw();
-            
             _pRT->Clear();
 
-            /*D2D1::RectF(
-                _rc.left + 100.0f,
-                _rc.top + 100.0f,
-                _rc.right - 100.0f,
-                _rc.bottom - 100.0f);*/
+            for (; !inputQueue.empty(); inputQueue.pop_back()) {
 
-            if (flag != prevFlag) {
-                x += 50;
+                Input input = inputQueue.back();
+
+                if (input.left) x -= 50;
+                if (input.right) x += 50;
+                if (input.up) y -= 50;
+                if (input.down) y += 50;
             }
 
             _pRT->DrawRectangle(
                 D2D1::RectF(
-                    x + 50.0f,
-                    50.0f,
-                    x + 0.0f,
-                    0.0f),
-                flag ? _pBlackBrush : _pLightSlateGrayBrush);
-
-            prevFlag = flag;
+                    x + 50.0f,      //left
+                    y + 50.0f,      //top
+                    x + 0.0f,       //right
+                    y + 0.0f),      //bottom
+                _pBlackBrush);
 
             _pRT->EndDraw();
 
