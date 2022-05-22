@@ -1,9 +1,14 @@
-﻿#ifndef UNICODE
+﻿#pragma once
+
+
+#ifndef UNICODE
 #define UNICODE
 #endif 
 
-#include "Snake.h"
-#include "MyCanvas.cpp"
+
+#include "GameLoopService.h"
+
+#include <iostream>
 #include <windows.h>
 #include <deque>
 
@@ -53,8 +58,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 
     ShowWindow(hwnd, nCmdShow);
 
-    MyCanvas myCanvas(hwnd);
-    myCanvas.startRender();
+
+    // init services
+    InputService *inputService = new InputService();
+    RenderService* renderService = new RenderService(hwnd);
+    GameLoopService *gameLoopService = new GameLoopService(inputService, renderService);
+
+
+    // start the game
+    gameLoopService->start();
 
 
     // Run the message loop.
@@ -62,14 +74,17 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
     while (GetMessage(&msg, NULL, 0, 0)) {
 
         for (;!inputQueue.empty();inputQueue.pop_back()) {
-            myCanvas.inputQueue.push_back(inputQueue.back());
+            inputService->addInput(inputQueue.back());
         }
 
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
 
-    myCanvas.stopRender();
+    gameLoopService->stop();
+
+    delete gameLoopService;
+    delete inputService;
 
     return 0;
 }
@@ -85,16 +100,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         switch (wParam)  
         {
         case VK_LEFT:
-            inputQueue.push_back({false, false, true, false});
+            inputQueue.push_back({ LEFT });
             break;
         case VK_RIGHT:
-            inputQueue.push_back({ false, false, false, true });
+            inputQueue.push_back({ RIGHT });
             break;
         case VK_UP:
-            inputQueue.push_back({ true, false, false, false });
+            inputQueue.push_back({ UP });
             break;
         case VK_DOWN:
-            inputQueue.push_back({ false, true, false, false });
+            inputQueue.push_back({ DOWN });
             break;
         case VK_ESCAPE:
             PostQuitMessage(0);
