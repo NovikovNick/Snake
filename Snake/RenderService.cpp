@@ -32,8 +32,11 @@ RenderService::RenderService(HWND hwnd) {
     if (SUCCEEDED(hr))
     {
 
-        _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Crimson), &_pBlackBrush);
+        _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &_pBlackBrush);
         _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Aqua), &_pLightSlateGrayBrush);
+        _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Crimson), &_pRedBrush);
+        _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Green), &_pGreenBrush);
+        _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::LightGray), &_pGrayBrush);
     }
 }
 
@@ -42,38 +45,90 @@ RenderService::~RenderService() {
     SafeRelease(&_pRT);
     SafeRelease(&_pBlackBrush);
     SafeRelease(&_pLightSlateGrayBrush);
+    SafeRelease(&_pRedBrush);
+    SafeRelease(&_pGreenBrush);
+    SafeRelease(&_pGrayBrush);
     SafeRelease(&_pD2DFactory);
 }
     
-void RenderService::render(GameState gameState) {
+void RenderService::render(GameState gameState, GameSettigs settings) {
 
     float size = 40.0f;
 
     _pRT->BeginDraw();
     _pRT->Clear();
-
-    Coord* food = &(gameState.food);
-
-    if (food != NULL) {
-        _pRT->DrawRectangle(
-            D2D1::RectF(
-                size * (food->x + 1),
-                size * (food->y + 1),
-                size * food->x,
-                size * food->y
-            ),
-            _pLightSlateGrayBrush);
+    
+    for (size_t x = settings.leftBoundaries; x < settings.rightBoundaries; x++)
+    {
+        for (size_t y = settings.topBoundaries; y < settings.bottomBoundaries; y++)
+        {
+            _pRT->DrawRectangle(
+                D2D1::RectF(
+                    size * (x + 1),
+                    size * (y + 1),
+                    size * x,
+                    size * y
+                ),
+                _pGrayBrush);
+        }
     }
 
-    for (auto it = gameState.snake_head; it != NULL; it = it->next) {
-        _pRT->DrawRectangle(
+    
+
+    switch (gameState.gamePhase)
+    {
+    case IN_PROCESS:
+    {
+        Coord* food = &(gameState.food);
+        if (food != NULL) {
+
+            _pRT->FillRectangle(
+                D2D1::RectF(
+                    size * (food->x + 1) - settings.foodSize,
+                    size * (food->y + 1) - settings.foodSize,
+                    size * food->x  + settings.foodSize,
+                    size * food->y + settings.foodSize
+                ),
+                _pLightSlateGrayBrush);
+        }
+
+        for (auto it = gameState.snake_head; it != NULL; it = it->next) {
+            _pRT->FillRectangle(
+                D2D1::RectF(
+                    size * (it->coord.x + 1) - settings.snakeSize,
+                    size * (it->coord.y + 1) - settings.snakeSize,
+                    size * it->coord.x + settings.snakeSize,
+                    size * it->coord.y + settings.snakeSize
+                ),
+                _pRedBrush);
+        }
+        break;
+    }
+    case WIN:
+    {
+        _pRT->FillRectangle(
             D2D1::RectF(
-                size * (it->coord.x + 1),
-                size * (it->coord.y + 1),
-                size * it->coord.x,
-                size * it->coord.y
+                _rc.right,
+                _rc.bottom,
+                0,
+                0
             ),
-            _pBlackBrush);
+            _pGreenBrush);
+        break;
+    }
+    case LOSE:
+    default:
+    {
+        _pRT->FillRectangle(
+            D2D1::RectF(
+                _rc.right,
+                _rc.bottom,
+                0,
+                0
+            ),
+            _pRedBrush);
+        break;
+    }
     }
 
     _pRT->EndDraw();

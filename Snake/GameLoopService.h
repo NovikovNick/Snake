@@ -3,6 +3,7 @@
 #include "GameModels.h"
 #include "RenderService.h"
 #include "InputService.h"
+#include "GameLogicService.h"
 
 #include <thread>
 #include <iostream>
@@ -12,16 +13,19 @@ public:
 	void start();
 	void stop();
 	GameLoopService(InputService* inputService,
-					RenderService* renderService) {
+					RenderService* renderService,
+					GameLogicService* gameLogicService) {
 
 		_inputService = inputService;
 		_renderService = renderService;
+		_gameLogicService = gameLogicService;
 	}
 
 private:
 	
 	InputService* _inputService;
 	RenderService* _renderService;
+	GameLogicService* _gameLogicService;
 
 	std::thread _renderThread;
 	bool _running = false;

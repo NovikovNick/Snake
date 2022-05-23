@@ -14,7 +14,7 @@ class RenderService {
 public:
     RenderService(HWND hwnd);
     ~RenderService();
-    void render(GameState gameState);
+    void render(GameState gameState, GameSettigs settings);
 private:
 	
     HWND _hwnd;
@@ -22,6 +22,9 @@ private:
     ID2D1HwndRenderTarget* _pRT = NULL;
     ID2D1SolidColorBrush* _pBlackBrush = NULL;
     ID2D1SolidColorBrush* _pLightSlateGrayBrush = NULL;
+    ID2D1SolidColorBrush* _pRedBrush = NULL;
+    ID2D1SolidColorBrush* _pGreenBrush = NULL;
+    ID2D1SolidColorBrush* _pGrayBrush = NULL;
     RECT _rc;
 
     template <class T> void SafeRelease(T** ppT)

@@ -62,7 +62,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
     // init services
     InputService *inputService = new InputService();
     RenderService* renderService = new RenderService(hwnd);
-    GameLoopService *gameLoopService = new GameLoopService(inputService, renderService);
+    GameLogicService* gameLogicService = new GameLogicService();
+    GameLoopService *gameLoopService = new GameLoopService(inputService, renderService, gameLogicService);
 
 
     // start the game
