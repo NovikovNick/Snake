@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SNAKE_SNAKE_GAME_LOOP_SERVICE_H_
+#define SNAKE_SNAKE_GAME_LOOP_SERVICE_H_
 
 #include "GameModels.h"
 #include "RenderService.h"
@@ -13,8 +14,8 @@ public:
 	void start();
 	void stop();
 	GameLoopService(InputService* inputService,
-					RenderService* renderService,
-					GameLogicService* gameLogicService) {
+		RenderService* renderService,
+		GameLogicService* gameLogicService) {
 
 		_inputService = inputService;
 		_renderService = renderService;
@@ -22,7 +23,7 @@ public:
 	}
 
 private:
-	
+
 	InputService* _inputService;
 	RenderService* _renderService;
 	GameLogicService* _gameLogicService;
@@ -34,3 +35,5 @@ private:
 
 	void _startGameLoop();
 };
+
+#endif // SNAKE_SNAKE_GAME_LOOP_SERVICE_H_

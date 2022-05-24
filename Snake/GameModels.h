@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SNAKE_SNAKE_GAME_MODEL_H_
+#define SNAKE_SNAKE_GAME_MODEL_H_
+
 
 enum GamePhase {
     IN_PROCESS, WIN, LOSE
@@ -60,3 +62,5 @@ struct GameSettigs {
     int foodSize = 5;
     int snakeSize = 1;
 };
+
+#endif // !SNAKE_SNAKE_GAME_MODEL_H_

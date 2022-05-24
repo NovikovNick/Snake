@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SNAKE_SNAKE_RENDER_SERVICE_H_
+#define SNAKE_SNAKE_RENDER_SERVICE_H_
 
 #include "GameModels.h"
 
@@ -16,7 +17,7 @@ public:
     ~RenderService();
     void render(GameState gameState, GameSettigs settings);
 private:
-	
+
     HWND _hwnd;
     ID2D1Factory* _pD2DFactory = NULL;
     ID2D1HwndRenderTarget* _pRT = NULL;
@@ -36,3 +37,4 @@ private:
         }
     }
 };
+#endif // !SNAKE_SNAKE_RENDER_SERVICE_H_

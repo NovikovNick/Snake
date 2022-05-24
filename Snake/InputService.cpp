@@ -11,8 +11,8 @@ std::vector<Input> InputService::popInputs()
 	std::vector<Input>res = std::vector<Input>();
 
 	if (!_inputQueue.empty()) {
-		for (; !_inputQueue.empty(); _inputQueue.pop_front()) {
-			res.push_back(_inputQueue.front());
+		for (; !_inputQueue.empty(); _inputQueue.pop_back()) {
+			res.push_back(_inputQueue.back());
 		}
 	}
 	return res;

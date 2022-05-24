@@ -1,7 +1,4 @@
-﻿#pragma once
-
-
-#ifndef UNICODE
+﻿#ifndef UNICODE
 #define UNICODE
 #endif 
 
@@ -13,7 +10,7 @@
 #include <deque>
 
 
-bool flag = true;
+
 std::deque<Input> inputQueue = std::deque<Input, std::allocator<Input>>();
 
 int __stdcall wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow);
@@ -39,7 +36,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
     HWND hwnd = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
-        L"Learn to Program Windows",    // Window text
+        L"Snake The Game",              // Window text
         WS_OVERLAPPEDWINDOW,            // Window style
 
         // Size and position
@@ -74,8 +71,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
     MSG msg = { };
     while (GetMessage(&msg, NULL, 0, 0)) {
 
-        for (;!inputQueue.empty();inputQueue.pop_back()) {
-            inputService->addInput(inputQueue.back());
+        for (;!inputQueue.empty();inputQueue.pop_front()) {
+            inputService->addInput(inputQueue.front());
         }
 
         TranslateMessage(&msg);
@@ -84,8 +81,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 
     gameLoopService->stop();
 
-    delete gameLoopService;
     delete inputService;
+    delete renderService;
+    delete gameLoopService;
+    delete gameLogicService;
 
     return 0;
 }
@@ -94,9 +93,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
-    case WM_LBUTTONDOWN:
-        flag = !flag;
-        break;
     case WM_KEYDOWN:
         switch (wParam)  
         {
@@ -122,7 +118,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         PostQuitMessage(0);
         return 0;
-
+    //case WM_CLOSE:
+    //    if (MessageBox(hwnd, L"Really quit?", L"Snake The Game", MB_OKCANCEL) == IDOK)
+    //    {
+    //        DestroyWindow(hwnd);
+    //    }
+    //    // Else: User canceled. Do nothing.
+    //    return 0;
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
