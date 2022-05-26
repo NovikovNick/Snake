@@ -14,7 +14,7 @@
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow)
 {
-    MainWindow win;
+    snake::MainWindow win;
 
     if (!win.Create(L"Learn to Program Windows", WS_OVERLAPPEDWINDOW))
     {
@@ -24,24 +24,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
     ShowWindow(win.Window(), nCmdShow);
 
     // init services
-    InputService *inputService = new InputService();
-    RenderService* renderService = new RenderService(win.Window());
-    GameLogicService* gameLogicService = new GameLogicService();
-    GameLoopService *gameLoopService = new GameLoopService(inputService, renderService, gameLogicService);
+    snake::InputService *inputService = new snake::InputService();
+    win.SetInputService(inputService);
 
+    snake::RenderService* renderService = new snake::RenderService(win.Window());
+    snake::GameLogicService* gameLogicService = new snake::GameLogicService();
+    snake::GameLoopService *gameLoopService = new snake::GameLoopService(inputService, renderService, gameLogicService);
 
     // start the game
     gameLoopService->start();
 
-
     // Run the message loop.
     MSG msg = { };
     while (GetMessage(&msg, NULL, 0, 0)) {
-
-        for (;!win.inputQueue.empty(); win.inputQueue.pop_front()) {
-            inputService->addInput(win.inputQueue.front());
-        }
-
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }

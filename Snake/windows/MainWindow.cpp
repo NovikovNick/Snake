@@ -1,5 +1,7 @@
 #include "MainWindow.h"
 
+namespace snake {
+
 
 LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -9,16 +11,16 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         switch (wParam)
         {
         case VK_LEFT:
-            inputQueue.push_back({ LEFT });
+            _inputService->addInput({ LEFT });
             break;
         case VK_RIGHT:
-            inputQueue.push_back({ RIGHT });
+            _inputService->addInput({ RIGHT });
             break;
         case VK_UP:
-            inputQueue.push_back({ UP });
+            _inputService->addInput({ UP });
             break;
         case VK_DOWN:
-            inputQueue.push_back({ DOWN });
+            _inputService->addInput({ DOWN });
             break;
         case VK_ESCAPE:
             PostQuitMessage(0);
@@ -46,3 +48,5 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     return TRUE;
 }
+
+} // namespace snake

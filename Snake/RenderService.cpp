@@ -1,6 +1,9 @@
 #include "RenderService.h"
 
 
+namespace snake {
+
+
 RenderService::RenderService(HWND hwnd) {
 	_hwnd = hwnd;
 
@@ -133,3 +136,5 @@ void RenderService::render(GameState gameState, GameSettigs settings) {
 
     _pRT->EndDraw();
 }
+
+} // namespace snake

@@ -9,6 +9,10 @@
 #include <thread>
 #include <iostream>
 
+
+namespace snake {
+
+
 class GameLoopService {
 public:
 	void start();
@@ -35,5 +39,7 @@ private:
 
 	void _startGameLoop();
 };
+
+} // namespace snake
 
 #endif // SNAKE_SNAKE_GAME_LOOP_SERVICE_H_

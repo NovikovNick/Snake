@@ -3,11 +3,20 @@
 #include <deque>
 
 #include "../GameModels.h"
+#include "../InputService.h"
+
+namespace snake {
 
 class MainWindow : public BaseWindow<MainWindow>
 {
 public:
     PCWSTR  ClassName() const { return L"Sample Window Class"; }
     LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
-    std::deque<Input> inputQueue = std::deque<Input, std::allocator<Input>>();
+
+    inline void SetInputService(InputService* inputService) { _inputService =  inputService; };
+
+private:
+    InputService* _inputService;
 };
+
+} // namespace snake

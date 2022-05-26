@@ -1,5 +1,7 @@
 #include "InputService.h"
 
+namespace snake {
+
 void InputService::addInput(Input input)
 {
 	_inputQueue.push_front(input);
@@ -17,3 +19,5 @@ std::vector<Input> InputService::popInputs()
 	}
 	return res;
 }
+
+} // namespace snake

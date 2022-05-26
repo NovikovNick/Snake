@@ -10,6 +10,7 @@
 #include <deque>
 #pragma comment(lib, "d2d1") // This line of code is equivalent to adding d2d1.lib in the additional dependency linker options.
 
+namespace snake {
 
 class RenderService {
 public:
@@ -37,4 +38,7 @@ private:
         }
     }
 };
+
+} // namespace snake
+
 #endif // !SNAKE_SNAKE_RENDER_SERVICE_H_

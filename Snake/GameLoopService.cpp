@@ -1,5 +1,7 @@
 #include "GameLoopService.h"
 
+namespace snake {
+
 
 void GameLoopService::start() {
 	_running = true;
@@ -54,3 +56,5 @@ void GameLoopService::_startGameLoop() {
 
     } while (_running);
 }
+
+} // namespace snake

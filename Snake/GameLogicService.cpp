@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+namespace snake {
+
 
 void GameLogicService::applyForcesAndCheck(GameState* gameState, std::vector<Input> inputs, GameSettigs settings) {
 
@@ -110,3 +112,5 @@ void GameLogicService::applyForcesAndCheck(GameState* gameState, std::vector<Inp
 		gameState->gamePhase = WIN;
 	}
 }
+
+} // namespace snake

@@ -1,5 +1,6 @@
 ﻿#include <windows.h>
 
+namespace snake {
 
 template <class DERIVED_TYPE>
 class BaseWindow
@@ -70,3 +71,5 @@ protected:
 
     HWND m_hwnd;
 };
+
+} // namespace snake
