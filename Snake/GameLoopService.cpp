@@ -43,7 +43,7 @@ void GameLoopService::_startGameLoop() {
 		snakePart = snakePart->next;
 	}
 
-	GameState gameState = { snakeHead, {13, 6} };
+	GameState gameState = { snakeHead, {settings.startFoodXCoord, settings.startFoodYCoord } };
 
     do {
 

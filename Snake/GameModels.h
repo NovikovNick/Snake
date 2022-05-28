@@ -42,9 +42,9 @@ struct GameState {
 
 
 struct GameSettigs {
-    int scoreToWin = 10;
-    int initialSpeedMs = 300;
-    int maxSpeedMs = 100;
+    int scoreToWin = 20;
+    int initialSpeedMs = 400;
+    int maxSpeedMs = 200;
     
     int leftBoundaries = 5;
     int rightBoundaries = 30;
@@ -58,7 +58,7 @@ struct GameSettigs {
     Direction startPlayedDirection = RIGHT;
 
     int startFoodXCoord = 16;
-    int startFoodYCoord = 6;
+    int startFoodYCoord = 10;
 
 
     int foodSize = 5;

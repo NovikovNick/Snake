@@ -1,6 +1,5 @@
 #include "RenderService.h"
 
-
 namespace snake {
 
 
@@ -53,7 +52,7 @@ RenderService::~RenderService() {
     SafeRelease(&_pGrayBrush);
     SafeRelease(&_pD2DFactory);
 }
-    
+
 void RenderService::render(GameState gameState, GameSettigs settings) {
 
     float size = 40.0f;
@@ -105,6 +104,10 @@ void RenderService::render(GameState gameState, GameSettigs settings) {
                 ),
                 _pRedBrush);
         }
+        float margin = 15.0f;
+        drawInput(200, 660, gameState.snake_head->direction, size - margin);
+       
+
         break;
     }
     case WIN:
@@ -130,11 +133,71 @@ void RenderService::render(GameState gameState, GameSettigs settings) {
                 0
             ),
             _pRedBrush);
+
+
+        RECT tRect;
+        GetClientRect(_hwnd, &tRect);
+        tRect.right = 300;
+        tRect.top = 600;
+
+        HDC dc = GetDC(_hwnd);
+        DrawText(dc, "->", -1, &tRect, DT_CENTER);
+        ReleaseDC(_hwnd, dc);
+
+
         break;
     }
     }
 
     _pRT->EndDraw();
+}
+
+void RenderService::drawInput(float x, float y, Direction dir, float arrowBlockSize) {
+
+    ID2D1PathGeometry* pPathGeometry = NULL;
+    ID2D1GeometrySink* pSink = NULL;
+
+    HRESULT hr = _pD2DFactory->CreatePathGeometry(&pPathGeometry);
+    if (SUCCEEDED(hr))
+    {
+        hr = pPathGeometry->Open(&pSink);
+    }
+    if (SUCCEEDED(hr))
+    {
+        pSink->SetFillMode(D2D1_FILL_MODE_ALTERNATE);
+
+        switch (dir)
+        {
+        case snake::UP:
+            pSink->BeginFigure(D2D1::Point2F(x, y + arrowBlockSize), D2D1_FIGURE_BEGIN_FILLED);
+            pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y + arrowBlockSize));
+            pSink->AddLine(D2D1::Point2F(x + arrowBlockSize / 2, y ));
+            break;
+        case snake::DOWN:
+            pSink->BeginFigure(D2D1::Point2F(x, y), D2D1_FIGURE_BEGIN_FILLED);
+            pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y));
+            pSink->AddLine(D2D1::Point2F(x + arrowBlockSize / 2, y + arrowBlockSize));
+            break;
+        case snake::LEFT:
+            pSink->BeginFigure(D2D1::Point2F(x + arrowBlockSize, y), D2D1_FIGURE_BEGIN_FILLED);
+            pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y + arrowBlockSize));
+            pSink->AddLine(D2D1::Point2F(x, y + arrowBlockSize / 2));
+            break;
+        case snake::RIGHT:
+            pSink->BeginFigure(D2D1::Point2F(x, y), D2D1_FIGURE_BEGIN_FILLED);
+            pSink->AddLine(D2D1::Point2F(x, y + arrowBlockSize));
+            pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y + arrowBlockSize / 2));
+            break;
+        default:
+            pSink->BeginFigure(D2D1::Point2F(x, y), D2D1_FIGURE_BEGIN_FILLED);
+            break;
+        }
+
+        pSink->EndFigure(D2D1_FIGURE_END_CLOSED);
+        hr = pSink->Close();
+
+        _pRT->DrawGeometry(pPathGeometry, _pGrayBrush);
+    }
 }
 
 } // namespace snake

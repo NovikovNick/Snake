@@ -16,13 +16,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 {
     snake::MainWindow win;
 
-    if (!win.Create(L"Learn to Program Windows", WS_OVERLAPPEDWINDOW))
+    if (!win.Create(L"Snake The Game", WS_OVERLAPPEDWINDOW))
     {
         return 0;
     }
 
     ShowWindow(win.Window(), nCmdShow);
 
+   
     // init services
     snake::InputService *inputService = new snake::InputService();
     win.SetInputService(inputService);

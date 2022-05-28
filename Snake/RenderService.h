@@ -16,6 +16,7 @@ class RenderService {
 public:
     RenderService(HWND hwnd);
     ~RenderService();
+    void drawInput(float x, float y, Direction dir, float size);
     void render(GameState gameState, GameSettigs settings);
 private:
 
