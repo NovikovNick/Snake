@@ -1,5 +1,6 @@
 #include "RenderService.h"
 
+
 namespace snake {
 
 
@@ -53,7 +54,9 @@ RenderService::~RenderService() {
     SafeRelease(&_pD2DFactory);
 }
 
-void RenderService::render(GameState gameState, GameSettigs settings) {
+void RenderService::render(GameStateHolder* holder, GameSettigs settings) {
+
+    GameState gameState = *holder->GetState(holder->GetFrame());
 
     float size = 40.0f;
 
@@ -74,8 +77,6 @@ void RenderService::render(GameState gameState, GameSettigs settings) {
                 _pGrayBrush);
         }
     }
-
-    
 
     switch (gameState.gamePhase)
     {
@@ -104,9 +105,22 @@ void RenderService::render(GameState gameState, GameSettigs settings) {
                 ),
                 _pRedBrush);
         }
-        float margin = 15.0f;
-        drawInput(200, 660, gameState.snake_head->direction, size - margin);
-       
+        
+        
+        int frame = holder->GetFrame();
+        int capacity = settings.rightBoundaries - settings.leftBoundaries;
+        for (int i = 0; i < capacity && frame >= 0; i++) {
+           
+           drawInput(
+               size * -0.8 + size * settings.leftBoundaries  + size * capacity - size * i,
+               size * 0.2 + settings.bottomBoundaries * size,
+                holder->GetState(frame)->input.direction,
+                size * 0.7, 
+                frame == holder->GetFrame());
+
+           frame--;
+        }
+
 
         break;
     }
@@ -152,7 +166,7 @@ void RenderService::render(GameState gameState, GameSettigs settings) {
     _pRT->EndDraw();
 }
 
-void RenderService::drawInput(float x, float y, Direction dir, float arrowBlockSize) {
+void RenderService::drawInput(float x, float y, Direction dir, float arrowBlockSize, bool focused) {
 
     ID2D1PathGeometry* pPathGeometry = NULL;
     ID2D1GeometrySink* pSink = NULL;
@@ -196,7 +210,11 @@ void RenderService::drawInput(float x, float y, Direction dir, float arrowBlockS
         pSink->EndFigure(D2D1_FIGURE_END_CLOSED);
         hr = pSink->Close();
 
-        _pRT->DrawGeometry(pPathGeometry, _pGrayBrush);
+        if (focused) {
+            _pRT->FillGeometry(pPathGeometry, _pGreenBrush);
+        } else {
+            _pRT->DrawGeometry(pPathGeometry, _pGrayBrush);
+        }
     }
 }
 

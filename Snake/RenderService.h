@@ -10,14 +10,17 @@
 #include <deque>
 #pragma comment(lib, "d2d1") // This line of code is equivalent to adding d2d1.lib in the additional dependency linker options.
 
+#include "GameStateHolder.h"
+
+
 namespace snake {
 
 class RenderService {
 public:
     RenderService(HWND hwnd);
     ~RenderService();
-    void drawInput(float x, float y, Direction dir, float size);
-    void render(GameState gameState, GameSettigs settings);
+    void drawInput(float x, float y, Direction dir, float size, bool focused);
+    void render(GameStateHolder* gameStateHolder, GameSettigs settings);
 private:
 
     HWND _hwnd;

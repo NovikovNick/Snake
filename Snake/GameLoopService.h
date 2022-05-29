@@ -1,13 +1,15 @@
 #ifndef SNAKE_SNAKE_GAME_LOOP_SERVICE_H_
 #define SNAKE_SNAKE_GAME_LOOP_SERVICE_H_
 
+
+#include <thread>
+#include <iostream>
+
 #include "GameModels.h"
 #include "RenderService.h"
 #include "InputService.h"
 #include "GameLogicService.h"
-
-#include <thread>
-#include <iostream>
+#include "GameStateHolder.h"
 
 
 namespace snake {

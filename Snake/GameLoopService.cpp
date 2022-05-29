@@ -15,6 +15,8 @@ void GameLoopService::stop() {
 
 void GameLoopService::_startGameLoop() {
 
+
+
 	GameSettigs settings = {};
 
 	SnakePart* snakeHead = new SnakePart
@@ -45,13 +47,18 @@ void GameLoopService::_startGameLoop() {
 
 	GameState gameState = { snakeHead, {settings.startFoodXCoord, settings.startFoodYCoord } };
 
+	GameStateHolder gameStateHolder = GameStateHolder(&gameState);
+
     do {
 
 		std::vector<Input> inputs = _inputService->popInputs();
-		_gameLogicService->applyForcesAndCheck(&gameState, inputs, settings);
-		_renderService->render(gameState, settings);
 
-		int64_t delay = (settings.initialSpeedMs - settings.maxSpeedMs) / settings.scoreToWin * (settings.scoreToWin - gameState.score + 1);
+		GameState* nextGameState = gameStateHolder.ApplyForces(inputs, settings);
+		_gameLogicService->applyForcesAndCheck(nextGameState, inputs, settings);
+		_renderService->render(&gameStateHolder, settings);
+
+		// int64_t delay = (settings.initialSpeedMs - settings.maxSpeedMs) / settings.scoreToWin * (settings.scoreToWin - gameState.score + 1);
+		int64_t delay = settings.initialSpeedMs;
 		std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(delay));
 
     } while (_running);

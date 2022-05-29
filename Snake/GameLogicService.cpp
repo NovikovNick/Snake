@@ -14,66 +14,6 @@ void GameLogicService::applyForcesAndCheck(GameState* gameState, std::vector<Inp
 
 	SnakePart* snakeHead = gameState->snake_head;
 
-	if (!inputs.empty()) {
-
-		Direction inputDirection = inputs.front().direction;
-		Direction oppositeDirection;
-
-		switch (snakeHead->direction)
-		{
-		case LEFT:
-			oppositeDirection = RIGHT;
-			break;
-		case RIGHT:
-			oppositeDirection = LEFT;
-			break;
-		case UP:
-			oppositeDirection = DOWN;
-			break;
-		case DOWN:
-			oppositeDirection = UP;
-			break;
-		default:
-			break;
-		}
-
-		if (inputDirection != oppositeDirection)
-		{
-			snakeHead->direction = inputDirection;
-		}
-	}
-
-	Direction prevDir;
-	bool isFirst = true;
-	for (auto it = snakeHead; it != NULL; it = it->next) {
-
-		Direction dir = it->direction;
-
-		if (!isFirst)
-		{
-			it->direction = prevDir;
-		}
-		isFirst = false;
-
-		prevDir = dir;
-
-		switch (dir) {
-		case LEFT:
-			it->coord.x--;
-			break;
-		case RIGHT:
-			it->coord.x++;
-			break;
-		case UP:
-			it->coord.y--;
-			break;
-		case DOWN:
-			it->coord.y++;
-			break;
-		default:
-			break;
-		}
-	}
 
 	if (snakeHead->coord.x <= settings.leftBoundaries - 1
 		|| snakeHead->coord.x >= settings.rightBoundaries
