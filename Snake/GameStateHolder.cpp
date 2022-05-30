@@ -30,12 +30,42 @@ namespace snake {
 			}
 			return res;
 		}
+	
+		inline Direction GetOpposite(const Direction* dir) {
+			switch (*dir)
+			{
+			case LEFT:
+				return RIGHT;
+			case RIGHT:
+				return LEFT;
+			case UP:
+				return DOWN;
+			case DOWN:
+				return UP;
+			default:
+				return NONE;
+			}
+		}
+
+		inline Coord To(const Coord coord, const Direction dir) {
+
+			switch (dir) {
+			case LEFT:
+				return { coord.x - 1, coord.y };
+			case RIGHT:
+				return { coord.x + 1, coord.y };
+			case UP:
+				return { coord.x, coord.y - 1 };
+			case DOWN:
+				return { coord.x, coord.y + 1 };
+			default:
+				return { coord.x, coord.y };
+			}
+		}
 	}
 
 	//* contains game state and return final presentation of it
     GameState* GameStateHolder::ApplyForces(std::vector<Input> inputs, GameSettigs settings) {
-        
-        // todo: implement
 
 		int currentIndex = _frame++ % _capacity;
 		int nextIndex = _frame % _capacity;
@@ -50,28 +80,8 @@ namespace snake {
 		if (!inputs.empty()) {
 
 			Direction inputDirection = inputs.front().direction;
-			Direction oppositeDirection;
-
-			switch (snakeHead->direction)
-			{
-			case LEFT:
-				oppositeDirection = RIGHT;
-				break;
-			case RIGHT:
-				oppositeDirection = LEFT;
-				break;
-			case UP:
-				oppositeDirection = DOWN;
-				break;
-			case DOWN:
-				oppositeDirection = UP;
-				break;
-			default:
-				break;
-			}
-
-			if (inputDirection != oppositeDirection)
-			{
+			
+			if (inputDirection != GetOpposite(&inputDirection)) {
 				snakeHead->direction = inputDirection;
 				nextGameState->input = { inputDirection };
 			}
@@ -83,30 +93,14 @@ namespace snake {
 
 			Direction dir = it->direction;
 
-			if (!isFirst)
-			{
+			if (!isFirst) {
 				it->direction = prevDir;
 			}
 			isFirst = false;
-
+			
 			prevDir = dir;
 
-			switch (dir) {
-			case LEFT:
-				it->coord.x--;
-				break;
-			case RIGHT:
-				it->coord.x++;
-				break;
-			case UP:
-				it->coord.y--;
-				break;
-			case DOWN:
-				it->coord.y++;
-				break;
-			default:
-				break;
-			}
+			it->coord = To(it->coord, dir);
 		}
         
         return nextGameState;

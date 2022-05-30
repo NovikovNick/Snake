@@ -5,15 +5,20 @@
 namespace snake {
 
 enum GamePhase {
-    IN_PROCESS, WIN, LOSE, PAUSE
+    IN_PROCESS, WIN, LOSE, PAUSED
 };
 
 enum Direction {
     UP, DOWN, LEFT, RIGHT, NONE
 };
 
+enum SystemCommand {
+    PAUSE, STEP_FORWARD, STEP_BACKWARD, NON
+};
+
 struct Input {
-    Direction direction;
+    Direction direction = Direction::NONE;
+    SystemCommand command = SystemCommand::NON;
 };
 
 struct Coord {
@@ -55,7 +60,7 @@ struct GameSettigs {
 
     int startPlayedXCoord = 9;
     int startPlayedYCoord = 9;
-    int startLenght = 6;
+    int startLenght = 5;
     Direction startPlayedDirection = RIGHT;
 
     int startFoodXCoord = 16;

@@ -33,6 +33,7 @@ private:
     int const _capacity = 32;
     std::vector<Input> _inputs;
 
+    Input* _stateInputs[32];// todo: implement
     GameState* _ringBuffer[32];
 };
 

@@ -22,6 +22,15 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         case VK_DOWN:
             _inputService->addInput({ DOWN });
             break;
+        case VK_SPACE:
+            _inputService->addInput({ NONE, PAUSE });
+            break;
+        case VK_F1:
+            _inputService->addInput({ NONE, STEP_BACKWARD });
+            break;
+        case VK_F2:
+            _inputService->addInput({ NONE, STEP_FORWARD });
+            break;
         case VK_ESCAPE:
             PostQuitMessage(0);
             return 0;

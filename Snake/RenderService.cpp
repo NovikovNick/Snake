@@ -54,9 +54,7 @@ RenderService::~RenderService() {
     SafeRelease(&_pD2DFactory);
 }
 
-void RenderService::render(GameStateHolder* holder, GameSettigs settings) {
-
-    GameState gameState = *holder->GetState(holder->GetFrame());
+void RenderService::render(GameState gameState, GameStateHolder* holder, GameSettigs settings) {
 
     float size = 40.0f;
 
@@ -120,7 +118,6 @@ void RenderService::render(GameStateHolder* holder, GameSettigs settings) {
 
            frame--;
         }
-
 
         break;
     }

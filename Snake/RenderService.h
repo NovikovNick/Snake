@@ -20,7 +20,7 @@ public:
     RenderService(HWND hwnd);
     ~RenderService();
     void drawInput(float x, float y, Direction dir, float size, bool focused);
-    void render(GameStateHolder* gameStateHolder, GameSettigs settings);
+    void render(GameState gameState, GameStateHolder* gameStateHolder, GameSettigs settings);
 private:
 
     HWND _hwnd;
