@@ -15,8 +15,6 @@ void GameLoopService::stop() {
 
 void GameLoopService::_startGameLoop() {
 
-
-
 	GameSettigs settings = {};
 
 	SnakePart* snakeHead = new SnakePart
@@ -45,10 +43,9 @@ void GameLoopService::_startGameLoop() {
 		snakePart = snakePart->next;
 	}
 
-	GameState gameState = { snakeHead, {settings.startFoodXCoord, settings.startFoodYCoord } };
+	GameState gameState = { 0, snakeHead, {settings.startFoodXCoord, settings.startFoodYCoord } };
 
 	GameStateHolder gameStateHolder = GameStateHolder(&gameState);
-
 
 	bool paused = false;
 	int frameOffset = 0;
@@ -65,7 +62,6 @@ void GameLoopService::_startGameLoop() {
 			case PAUSE:
 				paused = !paused;
 				frameOffset = 0;
-				delay = paused ? 15 : settings.initialSpeedMs;
 				break;
 			case STEP_FORWARD:
 				if (++frameOffset > 0) {
@@ -88,14 +84,25 @@ void GameLoopService::_startGameLoop() {
 			}
 		}
 
+
+		GamePhase gamePhase = gameStateHolder.GetState(gameStateHolder.GetFrame())->gamePhase;
+
+		if (gamePhase == WIN || gamePhase == LOSE) {
+			paused = true;
+		}
+
 		GameState* nextGameState = paused 
 			? gameStateHolder.GetState(gameStateHolder.GetFrame() + frameOffset)
 			: gameStateHolder.ApplyForces(inputs, settings);
 
+		// todo backward and insert new inputs
+
 		_gameLogicService->applyForcesAndCheck(nextGameState, inputs, settings);
 		_renderService->render(*nextGameState, &gameStateHolder, settings);
 
-		// int64_t delay = (settings.initialSpeedMs - settings.maxSpeedMs) / settings.scoreToWin * (settings.scoreToWin - gameState.score + 1);
+		float progress = (nextGameState->score / (settings.scoreToWin / 100.0f)) / 100.0f;
+		delay = paused ? 15 : settings.maxSpeedMs + (settings.initialSpeedMs - settings.maxSpeedMs) * (1 - progress);
+
 		std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(delay));
 
     } while (_running);

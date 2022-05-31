@@ -112,9 +112,9 @@ void RenderService::render(GameState gameState, GameStateHolder* holder, GameSet
            drawInput(
                size * -0.8 + size * settings.leftBoundaries  + size * capacity - size * i,
                size * 0.2 + settings.bottomBoundaries * size,
-                holder->GetState(frame)->input.direction,
+                holder->GetInput(frame).direction,
                 size * 0.7, 
-                frame == holder->GetFrame());
+                frame == gameState.frame);
 
            frame--;
         }
@@ -200,7 +200,10 @@ void RenderService::drawInput(float x, float y, Direction dir, float arrowBlockS
             pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y + arrowBlockSize / 2));
             break;
         default:
-            pSink->BeginFigure(D2D1::Point2F(x, y), D2D1_FIGURE_BEGIN_FILLED);
+            pSink->BeginFigure(D2D1::Point2F(x, y + arrowBlockSize), D2D1_FIGURE_BEGIN_FILLED);
+            pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y + arrowBlockSize));
+            pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y + arrowBlockSize * 0.9));
+            pSink->AddLine(D2D1::Point2F(x, y + arrowBlockSize * 0.9));
             break;
         }
 

@@ -39,6 +39,7 @@ struct Food {
 };
 
 struct GameState {
+    int frame;
     SnakePart* snake_head;
     Coord food;
     int score = 0;
@@ -50,10 +51,10 @@ struct GameState {
 struct GameSettigs {
     int scoreToWin = 20;
     int initialSpeedMs = 200;
-    int maxSpeedMs = 200;
+    int maxSpeedMs = 100;
     
-    int leftBoundaries = 5;
-    int rightBoundaries = 30;
+    int leftBoundaries = 1;
+    int rightBoundaries = 33;
     int topBoundaries = 2;
     int bottomBoundaries = 15;
 

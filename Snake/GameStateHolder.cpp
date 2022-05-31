@@ -7,6 +7,7 @@ namespace snake {
 	namespace {
 		GameState* clone(const GameState* state) {
 			GameState* res = new GameState({
+				state->frame,
 				new SnakePart({
 					{state->snake_head->coord.x, state->snake_head->coord.y},
 					state->snake_head->direction,
@@ -73,8 +74,10 @@ namespace snake {
 		GameState* gameState = _ringBuffer[currentIndex];
 
 		GameState* nextGameState = clone(gameState);
+		nextGameState->frame = _frame;
 
 		_ringBuffer[nextIndex] = nextGameState;
+		_stateInputs[nextIndex] = {};
 
 		SnakePart* snakeHead = nextGameState->snake_head;
 		if (!inputs.empty()) {
@@ -84,6 +87,7 @@ namespace snake {
 			if (inputDirection != GetOpposite(&inputDirection)) {
 				snakeHead->direction = inputDirection;
 				nextGameState->input = { inputDirection };
+				_stateInputs[nextIndex] = { inputDirection };
 			}
 		}
 
@@ -109,9 +113,9 @@ namespace snake {
 	GameState* GameStateHolder::GetState(int frame) {
 		return _ringBuffer[frame % _capacity];
 	}
-	
-	
-	
+
+	Input GameStateHolder::GetInput(int frame) {
+		return _stateInputs[frame % _capacity];
+	}	
 
 } // namespace snake
-

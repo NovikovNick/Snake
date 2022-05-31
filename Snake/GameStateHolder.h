@@ -13,6 +13,7 @@ public:
     GameStateHolder(GameState* initialGameState) {
         _frame = 0;
         _ringBuffer[0] = initialGameState;
+        _stateInputs[0] = initialGameState->input;
     }
 
     ~GameStateHolder() {
@@ -25,15 +26,16 @@ public:
 
     inline int GetFrame() const { return _frame; }
     inline int GetCapacity() const { return _capacity; }
-    
+
     GameState* GetState(int frame);
+    Input GetInput(int frame);
 
 private:
     int _frame;
     int const _capacity = 32;
     std::vector<Input> _inputs;
 
-    Input* _stateInputs[32];// todo: implement
+    Input _stateInputs[32];
     GameState* _ringBuffer[32];
 };
 
