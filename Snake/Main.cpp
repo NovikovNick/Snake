@@ -14,15 +14,16 @@
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow)
 {
+
+    snake::log("Main loop started");
+
     snake::MainWindow win;
 
-    if (!win.Create(L"Snake The Game", WS_OVERLAPPEDWINDOW))
-    {
+    if (!win.Create(L"Snake The Game", WS_OVERLAPPEDWINDOW)) {
         return 0;
     }
 
     ShowWindow(win.Window(), nCmdShow);
-
    
     // init services
     snake::InputService *inputService = new snake::InputService();
@@ -30,19 +31,17 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 
     snake::RenderService* renderService = new snake::RenderService(win.Window());
     snake::GameLogicService* gameLogicService = new snake::GameLogicService();
-    snake::GameLoopService *gameLoopService = new snake::GameLoopService(inputService, renderService, gameLogicService);
+    snake::GameLoopService* gameLoopService = new snake::GameLoopService(inputService, renderService, gameLogicService);
 
     // start the game
     gameLoopService->start();
 
     // Run the message loop.
-    MSG msg = { };
-    while (GetMessage(&msg, NULL, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
+    win.RunMessageLoop();
 
     gameLoopService->stop();
+
+    snake::log("Main loop ended. Deleting...");
 
     delete inputService;
     delete renderService;

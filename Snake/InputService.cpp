@@ -10,7 +10,7 @@ void InputService::addInput(Input input)
 std::vector<Input> InputService::popInputs()
 {
 
-	std::vector<Input>res = std::vector<Input>();
+	std::vector<Input> res = std::vector<Input>();
 
 	if (!_inputQueue.empty()) {
 		for (; !_inputQueue.empty(); _inputQueue.pop_back()) {

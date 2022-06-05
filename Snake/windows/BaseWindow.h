@@ -64,6 +64,15 @@ public:
 
     HWND Window() const { return m_hwnd; }
 
+    void RunMessageLoop() {
+        // Run the message loop.
+        MSG msg = { };
+        while (GetMessage(&msg, NULL, 0, 0)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    };
+
 protected:
 
     virtual PCWSTR  ClassName() const = 0;

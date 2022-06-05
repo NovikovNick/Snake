@@ -45,7 +45,10 @@ void GameLogicService::applyForcesAndCheck(GameState* gameState, std::vector<Inp
 		SnakePart* tail = snakeHead;
 		for (; tail->next != NULL; tail = tail->next);
 
-		tail->next = new SnakePart{ {tail->coord.x - 1, tail->coord.y}, RIGHT, NULL };
+		tail->next = new SnakePart();
+		tail->next->coord = { tail->coord.x - 1, tail->coord.y };
+		tail->next->direction = RIGHT;
+		tail->next->next = nullptr;
 	}
 
 	if (gameState->score >= settings.scoreToWin) {

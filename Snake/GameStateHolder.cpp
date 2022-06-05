@@ -6,27 +6,27 @@
 namespace snake {
 	namespace {
 		GameState* clone(const GameState* state) {
-			GameState* res = new GameState({
-				state->frame,
-				new SnakePart({
-					{state->snake_head->coord.x, state->snake_head->coord.y},
-					state->snake_head->direction,
-					NULL
-				}),
-				{state->food.x, state->food.y},
-				state->score,
-				state->gamePhase,
-				{ NONE }
-			});
+
+			GameState* res = new GameState();
+			res->frame = state->frame;
+			res->snake_head = new SnakePart();
+			res->snake_head->coord = { state->snake_head->coord.x, state->snake_head->coord.y };
+			res->snake_head->direction = state->snake_head->direction;
+
+			res->food = { state->food.x, state->food.y };
+			res->score = state->score;
+			res->gamePhase = state->gamePhase;
+			res->input = { NONE };
 
 
 			SnakePart* cursor = res->snake_head;
-			for (SnakePart* it = state->snake_head->next; it != NULL; it = it->next) {
-				cursor->next = new SnakePart({
-					{it->coord.x, it->coord.y},
-					it->direction,
-					NULL
-					});
+			for (SnakePart* it = state->snake_head->next; it != nullptr; it = it->next) {
+
+				cursor->next = new SnakePart();
+				cursor->next->coord = { it->coord.x, it->coord.y };
+				cursor->next->direction = it->direction;
+				cursor->next->next = nullptr;
+				
 				cursor = cursor->next;
 			}
 			return res;
@@ -68,6 +68,8 @@ namespace snake {
 	//* contains game state and return final presentation of it
     GameState* GameStateHolder::ApplyForces(std::vector<Input> inputs, GameSettigs settings) {
 
+		// todo release memory for last element in ring buffer
+
 		int currentIndex = _frame++ % _capacity;
 		int nextIndex = _frame % _capacity;
 
@@ -76,14 +78,18 @@ namespace snake {
 		GameState* nextGameState = clone(gameState);
 		nextGameState->frame = _frame;
 
+		if (_frame > _capacity) {
+			delete _ringBuffer[nextIndex];
+		}
+
 		_ringBuffer[nextIndex] = nextGameState;
-		_stateInputs[nextIndex] = {};
+		_stateInputs[nextIndex] = {};		
 
 		SnakePart* snakeHead = nextGameState->snake_head;
 		if (!inputs.empty()) {
 
 			Direction inputDirection = inputs.front().direction;
-			
+
 			if (inputDirection != GetOpposite(&inputDirection)) {
 				snakeHead->direction = inputDirection;
 				nextGameState->input = { inputDirection };
@@ -93,7 +99,7 @@ namespace snake {
 
 		Direction prevDir;
 		bool isFirst = true;
-		for (auto it = snakeHead; it != NULL; it = it->next) {
+		for (auto it = snakeHead; it != nullptr; it = it->next) {
 
 			Direction dir = it->direction;
 

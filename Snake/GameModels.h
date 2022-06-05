@@ -1,6 +1,6 @@
 #ifndef SNAKE_SNAKE_GAME_MODEL_H_
 #define SNAKE_SNAKE_GAME_MODEL_H_
-
+#include "util/log.h"
 
 namespace snake {
 
@@ -30,8 +30,28 @@ struct Coord {
 struct SnakePart {
     Coord coord;
     Direction direction;
-    
-    SnakePart *next;
+    SnakePart* next = nullptr;
+
+    SnakePart() {
+        log("        SnakePart created");
+        next = nullptr;
+    }
+
+    SnakePart(SnakePart& src) {
+        coord = src.coord;
+        direction = src.direction;
+        next = src.next;
+        log("        SnakePart copied");
+    }
+
+    ~SnakePart() {
+        log("        SnakePart start destoying");
+        SnakePart* current = next;
+        if (current != nullptr) {
+            delete current;
+        }
+        log("        SnakePart destoyed");
+    }
 };
 
 struct Food {
@@ -44,14 +64,38 @@ struct GameState {
     Coord food;
     int score = 0;
     GamePhase gamePhase = IN_PROCESS;
-    Input input = { NONE };
+    Input input = { NONE }; // ???
+
+    GameState() {
+        log("    GameState created");
+    }
+
+    GameState(GameState& state) {
+        frame = state.frame;
+        snake_head = state.snake_head;
+        food = state.food;
+        score = state.score;
+        gamePhase = state.gamePhase;
+        input = state.input;
+        log("    GameState copyied");
+    }
+
+    ~GameState() {
+
+        log("    GameState start destoying");
+        if (snake_head != nullptr) {
+            delete snake_head;
+        }
+        log("    GameState destoyed");
+
+    }
 };
 
 
 struct GameSettigs {
-    int scoreToWin = 20;
-    int initialSpeedMs = 200;
-    int maxSpeedMs = 100;
+    int scoreToWin = 50;
+    int initialSpeedMs = 50;
+    int maxSpeedMs = 50;
     
     int leftBoundaries = 1;
     int rightBoundaries = 33;

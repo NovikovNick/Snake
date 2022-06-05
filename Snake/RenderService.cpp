@@ -54,7 +54,7 @@ RenderService::~RenderService() {
     SafeRelease(&_pD2DFactory);
 }
 
-void RenderService::render(GameState gameState, GameStateHolder* holder, GameSettigs settings) {
+void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSettigs settings) {
 
     float size = 40.0f;
 
@@ -76,11 +76,11 @@ void RenderService::render(GameState gameState, GameStateHolder* holder, GameSet
         }
     }
 
-    switch (gameState.gamePhase)
+    switch (gameState->gamePhase)
     {
     case IN_PROCESS:
     {
-        Coord* food = &(gameState.food);
+        Coord* food = &(gameState->food);
         if (food != NULL) {
 
             _pRT->FillRectangle(
@@ -93,7 +93,7 @@ void RenderService::render(GameState gameState, GameStateHolder* holder, GameSet
                 _pLightSlateGrayBrush);
         }
 
-        for (auto it = gameState.snake_head; it != NULL; it = it->next) {
+        for (auto it = gameState->snake_head; it != NULL; it = it->next) {
             _pRT->FillRectangle(
                 D2D1::RectF(
                     size * (it->coord.x + 1) - settings.snakeSize,
@@ -114,7 +114,7 @@ void RenderService::render(GameState gameState, GameStateHolder* holder, GameSet
                size * 0.2 + settings.bottomBoundaries * size,
                 holder->GetInput(frame).direction,
                 size * 0.7, 
-                frame == gameState.frame);
+                frame == gameState->frame);
 
            frame--;
         }
@@ -215,6 +215,9 @@ void RenderService::drawInput(float x, float y, Direction dir, float arrowBlockS
         } else {
             _pRT->DrawGeometry(pPathGeometry, _pGrayBrush);
         }
+
+        pPathGeometry->Release();
+        pSink->Release();
     }
 }
 
