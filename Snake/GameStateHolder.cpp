@@ -7,57 +7,71 @@ namespace snake {
 	namespace {
 		GameState* clone(const GameState* state) {
 
+			int playerCount = 2; // todo: it should got from settings
+
 			GameState* res = new GameState();
 			res->frame = state->frame;
-			res->snake_head = new SnakePart();
-			res->snake_head->coord = { state->snake_head->coord.x, state->snake_head->coord.y };
-			res->snake_head->direction = state->snake_head->direction;
+			
+			for (int i = 0; i < playerCount; i++) {
+
+				if (state->snake_head[i] == nullptr) {
+					continue;
+				}
+
+				SnakePart* prevSnakePart = state->snake_head[i];
+				SnakePart* nextSnakePart = new SnakePart();
+
+				nextSnakePart->coord = { prevSnakePart->coord.x, prevSnakePart->coord.y };
+				nextSnakePart->direction = prevSnakePart->direction;
+				nextSnakePart->next = nullptr;
+
+				res->snake_head[i] = nextSnakePart;
+
+				for (SnakePart* it = prevSnakePart->next; it != nullptr; it = it->next) {
+
+					nextSnakePart->next = new SnakePart();
+					nextSnakePart->next->coord = { it->coord.x, it->coord.y };
+					nextSnakePart->next->direction = it->direction;
+					nextSnakePart->next->next = nullptr;
+
+					nextSnakePart = nextSnakePart->next;
+				}
+			}
 
 			res->food = { state->food.x, state->food.y };
 			res->score = state->score;
 			res->gamePhase = state->gamePhase;
-			res->input = { NONE };
+			res->input = { Direction::NONE, SystemCommand::NONE };
 
-
-			SnakePart* cursor = res->snake_head;
-			for (SnakePart* it = state->snake_head->next; it != nullptr; it = it->next) {
-
-				cursor->next = new SnakePart();
-				cursor->next->coord = { it->coord.x, it->coord.y };
-				cursor->next->direction = it->direction;
-				cursor->next->next = nullptr;
-				
-				cursor = cursor->next;
-			}
 			return res;
 		}
 	
 		inline Direction GetOpposite(const Direction* dir) {
 			switch (*dir)
 			{
-			case LEFT:
-				return RIGHT;
-			case RIGHT:
-				return LEFT;
-			case UP:
-				return DOWN;
-			case DOWN:
-				return UP;
+			case Direction::LEFT:
+				return Direction::RIGHT;
+			case Direction::RIGHT:
+				return Direction::LEFT;
+			case Direction::UP:
+				return Direction::DOWN;
+			case Direction::DOWN:
+				return Direction::UP;
 			default:
-				return NONE;
+				return Direction::NONE;
 			}
 		}
 
 		inline Coord To(const Coord coord, const Direction dir) {
 
 			switch (dir) {
-			case LEFT:
+			case Direction::LEFT:
 				return { coord.x - 1, coord.y };
-			case RIGHT:
+			case Direction::RIGHT:
 				return { coord.x + 1, coord.y };
-			case UP:
+			case Direction::UP:
 				return { coord.x, coord.y - 1 };
-			case DOWN:
+			case Direction::DOWN:
 				return { coord.x, coord.y + 1 };
 			default:
 				return { coord.x, coord.y };
@@ -85,7 +99,7 @@ namespace snake {
 		_ringBuffer[nextIndex] = nextGameState;
 		_stateInputs[nextIndex] = {};		
 
-		SnakePart* snakeHead = nextGameState->snake_head;
+		SnakePart* snakeHead = nextGameState->snake_head[0];
 		if (!inputs.empty()) {
 
 			Direction inputDirection = inputs.front().direction;

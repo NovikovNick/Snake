@@ -12,7 +12,7 @@ void GameLogicService::applyForcesAndCheck(GameState* gameState, std::vector<Inp
 		return;
 	};
 
-	SnakePart* snakeHead = gameState->snake_head;
+	SnakePart* snakeHead = gameState->snake_head[0];
 
 
 	if (snakeHead->coord.x <= settings.leftBoundaries - 1
@@ -47,7 +47,7 @@ void GameLogicService::applyForcesAndCheck(GameState* gameState, std::vector<Inp
 
 		tail->next = new SnakePart();
 		tail->next->coord = { tail->coord.x - 1, tail->coord.y };
-		tail->next->direction = RIGHT;
+		tail->next->direction = Direction::RIGHT;
 		tail->next->next = nullptr;
 	}
 

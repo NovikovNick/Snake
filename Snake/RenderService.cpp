@@ -93,7 +93,7 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
                 _pLightSlateGrayBrush);
         }
 
-        for (auto it = gameState->snake_head; it != NULL; it = it->next) {
+        for (auto it = gameState->snake_head[0]; it != NULL; it = it->next) {
             _pRT->FillRectangle(
                 D2D1::RectF(
                     size * (it->coord.x + 1) - settings.snakeSize,
@@ -144,18 +144,6 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
                 0
             ),
             _pRedBrush);
-
-
-        RECT tRect;
-        GetClientRect(_hwnd, &tRect);
-        tRect.right = 300;
-        tRect.top = 600;
-
-        HDC dc = GetDC(_hwnd);
-        DrawText(dc, "->", -1, &tRect, DT_CENTER);
-        ReleaseDC(_hwnd, dc);
-
-
         break;
     }
     }
@@ -179,22 +167,22 @@ void RenderService::drawInput(float x, float y, Direction dir, float arrowBlockS
 
         switch (dir)
         {
-        case snake::UP:
+        case Direction::UP:
             pSink->BeginFigure(D2D1::Point2F(x, y + arrowBlockSize), D2D1_FIGURE_BEGIN_FILLED);
             pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y + arrowBlockSize));
             pSink->AddLine(D2D1::Point2F(x + arrowBlockSize / 2, y ));
             break;
-        case snake::DOWN:
+        case Direction::DOWN:
             pSink->BeginFigure(D2D1::Point2F(x, y), D2D1_FIGURE_BEGIN_FILLED);
             pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y));
             pSink->AddLine(D2D1::Point2F(x + arrowBlockSize / 2, y + arrowBlockSize));
             break;
-        case snake::LEFT:
+        case Direction::LEFT:
             pSink->BeginFigure(D2D1::Point2F(x + arrowBlockSize, y), D2D1_FIGURE_BEGIN_FILLED);
             pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y + arrowBlockSize));
             pSink->AddLine(D2D1::Point2F(x, y + arrowBlockSize / 2));
             break;
-        case snake::RIGHT:
+        case Direction::RIGHT:
             pSink->BeginFigure(D2D1::Point2F(x, y), D2D1_FIGURE_BEGIN_FILLED);
             pSink->AddLine(D2D1::Point2F(x, y + arrowBlockSize));
             pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y + arrowBlockSize / 2));

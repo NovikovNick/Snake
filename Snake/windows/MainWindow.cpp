@@ -11,25 +11,25 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         switch (wParam)
         {
         case VK_LEFT:
-            _inputService->addInput({ LEFT });
+            _inputService->addInput({ Direction::LEFT, SystemCommand::NONE});
             break;
         case VK_RIGHT:
-            _inputService->addInput({ RIGHT });
+            _inputService->addInput({ Direction::RIGHT, SystemCommand::NONE });
             break;
         case VK_UP:
-            _inputService->addInput({ UP });
+            _inputService->addInput({ Direction::UP, SystemCommand::NONE });
             break;
         case VK_DOWN:
-            _inputService->addInput({ DOWN });
+            _inputService->addInput({ Direction::DOWN, SystemCommand::NONE });
             break;
         case VK_SPACE:
-            _inputService->addInput({ NONE, PAUSE });
+            _inputService->addInput({ Direction::NONE, SystemCommand::PAUSE });
             break;
         case VK_F1:
-            _inputService->addInput({ NONE, STEP_BACKWARD });
+            _inputService->addInput({ Direction::NONE, SystemCommand::STEP_BACKWARD });
             break;
         case VK_F2:
-            _inputService->addInput({ NONE, STEP_FORWARD });
+            _inputService->addInput({ Direction::NONE, SystemCommand::STEP_FORWARD });
             break;
         case VK_ESCAPE:
             PostQuitMessage(0);

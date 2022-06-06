@@ -8,17 +8,17 @@ enum GamePhase {
     IN_PROCESS, WIN, LOSE, PAUSED
 };
 
-enum Direction {
+enum class Direction {
     UP, DOWN, LEFT, RIGHT, NONE
 };
 
-enum SystemCommand {
-    PAUSE, STEP_FORWARD, STEP_BACKWARD, NON
+enum class SystemCommand {
+    PAUSE, STEP_FORWARD, STEP_BACKWARD, NONE
 };
 
 struct Input {
     Direction direction = Direction::NONE;
-    SystemCommand command = SystemCommand::NON;
+    SystemCommand command = SystemCommand::NONE;
 };
 
 struct Coord {
@@ -60,19 +60,25 @@ struct Food {
 
 struct GameState {
     int frame;
-    SnakePart* snake_head;
+    SnakePart* snake_head[2];
     Coord food;
     int score = 0;
     GamePhase gamePhase = IN_PROCESS;
-    Input input = { NONE }; // ???
+    Input input = { Direction::NONE }; // todo: is it should be like list or something?
 
     GameState() {
+        snake_head[0] = nullptr;
+        snake_head[1] = nullptr;
         log("    GameState created");
     }
 
     GameState(GameState& state) {
         frame = state.frame;
-        snake_head = state.snake_head;
+
+        for (int i = 0; i < 2; i++) {
+            snake_head[i] = state.snake_head[i];
+        }
+
         food = state.food;
         score = state.score;
         gamePhase = state.gamePhase;
@@ -83,9 +89,15 @@ struct GameState {
     ~GameState() {
 
         log("    GameState start destoying");
-        if (snake_head != nullptr) {
-            delete snake_head;
+
+
+        // todo: it can be simplefyed
+        for (int i = 0; i < 2; i++) {
+            if (snake_head[i] != nullptr) {
+                delete snake_head[i];
+            }
         }
+        
         log("    GameState destoyed");
 
     }
@@ -94,8 +106,8 @@ struct GameState {
 
 struct GameSettigs {
     int scoreToWin = 50;
-    int initialSpeedMs = 50;
-    int maxSpeedMs = 50;
+    int initialSpeedMs = 100;
+    int maxSpeedMs = 100;
     
     int leftBoundaries = 1;
     int rightBoundaries = 33;
@@ -106,7 +118,7 @@ struct GameSettigs {
     int startPlayedXCoord = 9;
     int startPlayedYCoord = 9;
     int startLenght = 5;
-    Direction startPlayedDirection = RIGHT;
+    Direction startPlayedDirection = Direction::RIGHT;
 
     int startFoodXCoord = 16;
     int startFoodYCoord = 10;

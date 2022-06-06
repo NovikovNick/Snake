@@ -17,7 +17,10 @@ namespace {
 				snakePart->next = new SnakePart();
 
 				snakePart->next->coord = {
-					settings.startPlayedDirection == RIGHT ? settings.startPlayedXCoord - i : settings.startPlayedXCoord + i,
+					settings.startPlayedDirection == Direction::RIGHT 
+					? settings.startPlayedXCoord - i 
+					: settings.startPlayedXCoord + i,
+
 					settings.startPlayedYCoord
 				};
 				snakePart->next->direction = settings.startPlayedDirection;
@@ -49,7 +52,7 @@ void GameLoopService::_startGameLoop() {
 
 	GameState* gameState = new GameState();
 	gameState->frame = 0;
-	gameState->snake_head = snakeHead;
+	gameState->snake_head[0] = snakeHead;
 	gameState->food = { settings.startFoodXCoord, settings.startFoodYCoord };
 
 	//GameState gameState = { 0, &snakeHead, };
@@ -71,16 +74,16 @@ void GameLoopService::_startGameLoop() {
 		if (!inputs.empty()) {
 
 			switch (inputs.front().command) {
-			case PAUSE:
+			case SystemCommand::PAUSE:
 				paused = !paused;
 				frameOffset = 0;
 				break;
-			case STEP_FORWARD:
+			case SystemCommand::STEP_FORWARD:
 				if (++frameOffset > 0) {
 					frameOffset = 0;
 				}
 				break;
-			case STEP_BACKWARD:
+			case SystemCommand::STEP_BACKWARD:
 			{
 				threshold = gameStateHolder.GetFrame() <= gameStateHolder.GetCapacity()
 					? gameStateHolder.GetFrame()

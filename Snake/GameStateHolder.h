@@ -26,6 +26,7 @@ public:
 
     inline int GetFrame() const { return _frame; }
     inline int GetCapacity() const { return _capacity; }
+    inline int GetPlayerCount() const { return _playerCount; }
 
     GameState* GetState(int frame);
     Input GetInput(int frame);
@@ -33,8 +34,13 @@ public:
 private:
     int _frame;
     int const _capacity = 32;
-    std::vector<Input> _inputs;
+    int const _playerCount = 2;
 
+    /*std::vector<Input> _inputs[2];
+    Input _stateInputs[2][32];
+    GameState* _ringBuffer[2][32];*/
+
+    std::vector<Input> _inputs;
     Input _stateInputs[32];
     GameState* _ringBuffer[32];
 };
