@@ -30,6 +30,38 @@ namespace {
 		}
 	}
 
+	void InitEnemy(SnakePart* snakeHead, GameSettigs settings) {
+
+
+		int enemyStartPlayedXCoord = 10;
+		int enemyStartPlayedYCoord = 13;
+		int enemyLenght = 3;
+		Direction startEnemyDirection = Direction::RIGHT;
+
+		snakeHead->coord = { enemyStartPlayedXCoord, enemyStartPlayedYCoord };
+		snakeHead->direction = startEnemyDirection;
+		snakeHead->next = nullptr;
+
+		SnakePart* snakePart = snakeHead;
+		for (int i = 1; i < enemyLenght; i++)
+		{
+
+			snakePart->next = new SnakePart();
+
+			snakePart->next->coord = {
+				startEnemyDirection == Direction::RIGHT
+				? enemyStartPlayedXCoord - i
+				: enemyStartPlayedXCoord + i,
+
+				enemyStartPlayedYCoord
+			};
+			snakePart->next->direction = startEnemyDirection;
+			snakePart->next->next = nullptr;
+
+			snakePart = snakePart->next;
+		}
+	}
+
 }
 
 void GameLoopService::start() {
@@ -52,7 +84,12 @@ void GameLoopService::_startGameLoop() {
 
 	GameState* gameState = new GameState();
 	gameState->frame = 0;
-	gameState->snake_head[0] = snakeHead;
+	gameState->snake_head[0] = new SnakePart();
+	gameState->snake_head[1] = new SnakePart();
+
+	InitPlayer(gameState->snake_head[0], settings);
+	InitEnemy(gameState->snake_head[1], settings);
+
 	gameState->food = { settings.startFoodXCoord, settings.startFoodYCoord };
 
 	//GameState gameState = { 0, &snakeHead, };
@@ -63,17 +100,19 @@ void GameLoopService::_startGameLoop() {
 	int frameOffset = 0;
 	int64_t delay = settings.initialSpeedMs;
 	float progress = 0;
-	std::vector<Input> inputs;
+	std::vector<Input> inputs[2];
 	GameState* nextGameState;
 	int threshold;
 
     do {
 		log("Start loop");
-		inputs = _inputService->popInputs();
+		inputs[0] = _inputService->popInputs();
+		inputs[1] = _aiService->getInputs(gameStateHolder.GetState(gameStateHolder.GetFrame()), settings);
+		
 
-		if (!inputs.empty()) {
+		if (!inputs[0].empty()) {
 
-			switch (inputs.front().command) {
+			switch (inputs[0].front().command) {
 			case SystemCommand::PAUSE:
 				paused = !paused;
 				frameOffset = 0;
@@ -116,7 +155,7 @@ void GameLoopService::_startGameLoop() {
 		// todo backward and insert new inputs
 
 		log("Checking...");
-		_gameLogicService->applyForcesAndCheck(nextGameState, inputs, settings);
+		_gameLogicService->applyForcesAndCheck(nextGameState, inputs[0], settings);
 		
 
 		log("Rendering...");

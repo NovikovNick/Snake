@@ -4,19 +4,19 @@
 namespace snake {
 
 void Logger::log(std::string str) {
-    myfile.open("E:\\WORKSPACE\\LOG\\log.txt", std::ios_base::app);
-    myfile << str << "\n";
+    /*myfile.open("E:\\WORKSPACE\\LOG\\log.txt", std::ios_base::app);
+    myfile << str << "\n";*/
 }
 void Logger::closeLog() {
-   myfile.close();
+   //myfile.close();
 }
 
 
 void log(std::string str) {
-    std::ofstream myfile;
+    /*std::ofstream myfile;
     myfile.open("E:\\WORKSPACE\\LOG\\log.txt", std::ios_base::app);
     myfile << str << "\n";
-    myfile.close();
+    myfile.close();*/
 }
 
 } // namespace snake

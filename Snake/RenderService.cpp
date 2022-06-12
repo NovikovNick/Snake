@@ -103,6 +103,17 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
                 ),
                 _pRedBrush);
         }
+
+        for (auto it = gameState->snake_head[1]; it != NULL; it = it->next) {
+            _pRT->FillRectangle(
+                D2D1::RectF(
+                    size * (it->coord.x + 1) - settings.snakeSize,
+                    size * (it->coord.y + 1) - settings.snakeSize,
+                    size * it->coord.x + settings.snakeSize,
+                    size * it->coord.y + settings.snakeSize
+                ),
+                _pRedBrush);
+        }
         
         
         int frame = holder->GetFrame();
@@ -112,11 +123,24 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
            drawInput(
                size * -0.8 + size * settings.leftBoundaries  + size * capacity - size * i,
                size * 0.2 + settings.bottomBoundaries * size,
-                holder->GetInput(frame).direction,
+                holder->GetInput(frame, 0).direction,
                 size * 0.7, 
                 frame == gameState->frame);
 
            frame--;
+        }
+
+        frame = holder->GetFrame();
+        for (int i = 0; i < capacity && frame >= 0; i++) {
+
+            drawInput(
+                size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
+                size * 0.2 + size,
+                holder->GetInput(frame, 1).direction,
+                size * 0.7,
+                frame == gameState->frame);
+
+            frame--;
         }
 
         break;

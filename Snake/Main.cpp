@@ -31,7 +31,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 
     snake::RenderService* renderService = new snake::RenderService(win.Window());
     snake::GameLogicService* gameLogicService = new snake::GameLogicService();
-    snake::GameLoopService* gameLoopService = new snake::GameLoopService(inputService, renderService, gameLogicService);
+    snake::AIService* aiService = new snake::AIService();
+    snake::GameLoopService* gameLoopService = new snake::GameLoopService(inputService, renderService, gameLogicService, aiService);
 
     // start the game
     gameLoopService->start();

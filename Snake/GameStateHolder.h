@@ -13,7 +13,8 @@ public:
     GameStateHolder(GameState* initialGameState) {
         _frame = 0;
         _ringBuffer[0] = initialGameState;
-        _stateInputs[0] = initialGameState->input;
+        _stateInputs[0][0] = initialGameState->input[0];
+        _stateInputs[1][0] = initialGameState->input[1];
     }
 
     ~GameStateHolder() {
@@ -22,26 +23,22 @@ public:
         }
     }
 
-    GameState* ApplyForces(std::vector<Input> inputs, GameSettigs settings);
+    GameState* ApplyForces(std::vector<Input> inputs[2], GameSettigs settings);
 
     inline int GetFrame() const { return _frame; }
     inline int GetCapacity() const { return _capacity; }
     inline int GetPlayerCount() const { return _playerCount; }
 
     GameState* GetState(int frame);
-    Input GetInput(int frame);
+    Input GetInput(int frame, int index);
 
 private:
     int _frame;
     int const _capacity = 32;
     int const _playerCount = 2;
 
-    /*std::vector<Input> _inputs[2];
+    std::vector<Input> _inputs[2];
     Input _stateInputs[2][32];
-    GameState* _ringBuffer[2][32];*/
-
-    std::vector<Input> _inputs;
-    Input _stateInputs[32];
     GameState* _ringBuffer[32];
 };
 

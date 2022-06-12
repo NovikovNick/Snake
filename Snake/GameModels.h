@@ -64,7 +64,7 @@ struct GameState {
     Coord food;
     int score = 0;
     GamePhase gamePhase = IN_PROCESS;
-    Input input = { Direction::NONE }; // todo: is it should be like list or something?
+    Input input[2];// = { Direction::NONE }; // todo: is it should be like list or something?
 
     GameState() {
         snake_head[0] = nullptr;
@@ -77,19 +77,19 @@ struct GameState {
 
         for (int i = 0; i < 2; i++) {
             snake_head[i] = state.snake_head[i];
+            input[i] = state.input[i];
         }
 
         food = state.food;
         score = state.score;
         gamePhase = state.gamePhase;
-        input = state.input;
+
         log("    GameState copyied");
     }
 
     ~GameState() {
 
         log("    GameState start destoying");
-
 
         // todo: it can be simplefyed
         for (int i = 0; i < 2; i++) {

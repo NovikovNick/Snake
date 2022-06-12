@@ -26,6 +26,7 @@ namespace snake {
 				nextSnakePart->next = nullptr;
 
 				res->snake_head[i] = nextSnakePart;
+				res->input[i] = { Direction::NONE, SystemCommand::NONE };
 
 				for (SnakePart* it = prevSnakePart->next; it != nullptr; it = it->next) {
 
@@ -41,7 +42,6 @@ namespace snake {
 			res->food = { state->food.x, state->food.y };
 			res->score = state->score;
 			res->gamePhase = state->gamePhase;
-			res->input = { Direction::NONE, SystemCommand::NONE };
 
 			return res;
 		}
@@ -80,9 +80,7 @@ namespace snake {
 	}
 
 	//* contains game state and return final presentation of it
-    GameState* GameStateHolder::ApplyForces(std::vector<Input> inputs, GameSettigs settings) {
-
-		// todo release memory for last element in ring buffer
+    GameState* GameStateHolder::ApplyForces(std::vector<Input> inputs[2], GameSettigs settings) {
 
 		int currentIndex = _frame++ % _capacity;
 		int nextIndex = _frame % _capacity;
@@ -97,36 +95,41 @@ namespace snake {
 		}
 
 		_ringBuffer[nextIndex] = nextGameState;
-		_stateInputs[nextIndex] = {};		
 
-		SnakePart* snakeHead = nextGameState->snake_head[0];
-		if (!inputs.empty()) {
+		for (size_t i = 0; i < _playerCount; i++) {
 
-			Direction inputDirection = inputs.front().direction;
 
-			if (inputDirection != GetOpposite(&inputDirection)) {
-				snakeHead->direction = inputDirection;
-				nextGameState->input = { inputDirection };
-				_stateInputs[nextIndex] = { inputDirection };
+			_stateInputs[i][nextIndex] = {};
+			SnakePart* snakeHead = nextGameState->snake_head[i];
+			if (!inputs[i].empty()) {
+
+				Direction inputDirection = inputs[i].front().direction;
+
+				if (inputDirection != GetOpposite(&inputDirection)) {
+					snakeHead->direction = inputDirection;
+					nextGameState->input[i] = { inputDirection };
+					_stateInputs[i][nextIndex] = { inputDirection };
+				}
+			}
+
+
+			Direction prevDir;
+			bool isFirst = true;
+			for (auto it = snakeHead; it != nullptr; it = it->next) {
+
+				Direction dir = it->direction;
+
+				if (!isFirst) {
+					it->direction = prevDir;
+				}
+				isFirst = false;
+
+				prevDir = dir;
+
+				it->coord = To(it->coord, dir);
 			}
 		}
 
-		Direction prevDir;
-		bool isFirst = true;
-		for (auto it = snakeHead; it != nullptr; it = it->next) {
-
-			Direction dir = it->direction;
-
-			if (!isFirst) {
-				it->direction = prevDir;
-			}
-			isFirst = false;
-			
-			prevDir = dir;
-
-			it->coord = To(it->coord, dir);
-		}
-        
         return nextGameState;
     }
 
@@ -134,8 +137,8 @@ namespace snake {
 		return _ringBuffer[frame % _capacity];
 	}
 
-	Input GameStateHolder::GetInput(int frame) {
-		return _stateInputs[frame % _capacity];
+	Input GameStateHolder::GetInput(int frame, int index) {
+		return _stateInputs[index][frame % _capacity];
 	}	
 
 } // namespace snake

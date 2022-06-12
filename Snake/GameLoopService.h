@@ -10,6 +10,7 @@
 #include "InputService.h"
 #include "GameLogicService.h"
 #include "GameStateHolder.h"
+#include "AIService.h"
 
 
 namespace snake {
@@ -21,11 +22,13 @@ public:
 	void stop();
 	GameLoopService(InputService* inputService,
 		RenderService* renderService,
-		GameLogicService* gameLogicService) {
+		GameLogicService* gameLogicService,
+		AIService* aiService) {
 
 		_inputService = inputService;
 		_renderService = renderService;
 		_gameLogicService = gameLogicService;
+		_aiService = aiService;
 	}
 
 private:
@@ -33,6 +36,7 @@ private:
 	InputService* _inputService;
 	RenderService* _renderService;
 	GameLogicService* _gameLogicService;
+	AIService* _aiService;
 
 	std::thread _renderThread;
 	bool _running = false;
