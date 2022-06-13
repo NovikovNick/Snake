@@ -5,35 +5,71 @@
 
 namespace snake {
 
+namespace {
 
-void GameLogicService::applyForcesAndCheck(GameState* gameState, std::vector<Input> inputs, GameSettigs settings) {
+bool isCollide(Coord& a, Coord& b) {
+	return a.x == b.x && a.y == b.y;
+}
 
-	if (gameState->gamePhase == LOSE || gameState->gamePhase == WIN) {
+bool isBorderCollision(SnakePart* snakeHead, GameSettigs& settings) {
+	return snakeHead->coord.x <= settings.leftBoundaries - 1
+		|| snakeHead->coord.x >= settings.rightBoundaries
+		|| snakeHead->coord.y <= settings.topBoundaries - 1
+		|| snakeHead->coord.y >= settings.bottomBoundaries;
+}
+
+
+bool isSelfCollision(SnakePart* snakeHead, GameSettigs& settings) {
+
+	SnakePart* tail = snakeHead->next;
+	for (; tail != NULL; tail = tail->next) {
+		if (isCollide(tail->coord, snakeHead->coord)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+bool isPlayerCollision(SnakePart* player, SnakePart* enemy, GameSettigs& settings) {
+
+	SnakePart* tail = enemy;
+	for (; tail != NULL; tail = tail->next) {
+		if (isCollide(tail->coord, player->coord)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+} // namespace
+
+void GameLogicService::check(GameState* gameState, GameSettigs settings) {
+
+	if (gameState->gamePhase != IN_PROCESS) {
 		return;
 	};
 
-	SnakePart* snakeHead = gameState->snake_head[0];
-
-
-	if (snakeHead->coord.x <= settings.leftBoundaries - 1
-		|| snakeHead->coord.x >= settings.rightBoundaries
-		|| snakeHead->coord.y <= settings.topBoundaries - 1
-		|| snakeHead->coord.y >= settings.bottomBoundaries)
-	{
+	if (isBorderCollision(gameState->snake_head[0], settings)
+		|| isSelfCollision(gameState->snake_head[0], settings)
+		|| isPlayerCollision(gameState->snake_head[0], gameState->snake_head[1], settings)) {
 		gameState->gamePhase = LOSE;
 		return;
 	}
 
-	SnakePart* tail = snakeHead->next;
-	for (; tail != NULL; tail = tail->next) {
-		if (tail->coord.x == snakeHead->coord.x && tail->coord.y == snakeHead->coord.y) {
-			gameState->gamePhase = LOSE;
-			return;
-		}
-	};
+	if (isBorderCollision(gameState->snake_head[1], settings)
+		|| isSelfCollision(gameState->snake_head[1], settings)
+		|| isPlayerCollision(gameState->snake_head[1], gameState->snake_head[0], settings)) {
+		gameState->gamePhase = WIN;
+		return;
+	}
 
-	if (gameState->food.x == snakeHead->coord.x && gameState->food.y == snakeHead->coord.y) {
+	// todo: move to gameStateHolder
 
+	SnakePart* snakeHead = gameState->snake_head[0];
+	if (isCollide(gameState->food, snakeHead->coord)) {
+		
 		gameState->score++;
 
 		srand((unsigned)time(0));

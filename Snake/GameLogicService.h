@@ -9,7 +9,7 @@ namespace snake {
 
     class GameLogicService {
     public:
-        void applyForcesAndCheck(GameState* gameState, std::vector<Input> inputs, GameSettigs settings);
+        void check(GameState* gameState, GameSettigs settings);
     };
 
 } // namespace snake

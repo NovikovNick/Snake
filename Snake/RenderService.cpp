@@ -101,7 +101,7 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
                     size * it->coord.x + settings.snakeSize,
                     size * it->coord.y + settings.snakeSize
                 ),
-                _pRedBrush);
+                _pGreenBrush);
         }
 
         for (auto it = gameState->snake_head[1]; it != NULL; it = it->next) {
@@ -120,12 +120,13 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
         int capacity = settings.rightBoundaries - settings.leftBoundaries;
         for (int i = 0; i < capacity && frame >= 0; i++) {
            
-           drawInput(
+            DrawInput(
                size * -0.8 + size * settings.leftBoundaries  + size * capacity - size * i,
                size * 0.2 + settings.bottomBoundaries * size,
                 holder->GetInput(frame, 0).direction,
                 size * 0.7, 
-                frame == gameState->frame);
+                frame == gameState->frame,
+                _pGreenBrush);
 
            frame--;
         }
@@ -133,12 +134,13 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
         frame = holder->GetFrame();
         for (int i = 0; i < capacity && frame >= 0; i++) {
 
-            drawInput(
+            DrawInput(
                 size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
                 size * 0.2 + size,
                 holder->GetInput(frame, 1).direction,
                 size * 0.7,
-                frame == gameState->frame);
+                frame == gameState->frame,
+                _pRedBrush);
 
             frame--;
         }
@@ -175,7 +177,13 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
     _pRT->EndDraw();
 }
 
-void RenderService::drawInput(float x, float y, Direction dir, float arrowBlockSize, bool focused) {
+void RenderService::DrawInput(
+    float x,
+    float y, 
+    Direction dir, 
+    float arrowBlockSize, 
+    bool focused,
+    ID2D1SolidColorBrush* _pBrush) {
 
     ID2D1PathGeometry* pPathGeometry = NULL;
     ID2D1GeometrySink* pSink = NULL;
@@ -223,7 +231,7 @@ void RenderService::drawInput(float x, float y, Direction dir, float arrowBlockS
         hr = pSink->Close();
 
         if (focused) {
-            _pRT->FillGeometry(pPathGeometry, _pGreenBrush);
+            _pRT->FillGeometry(pPathGeometry, _pBrush);
         } else {
             _pRT->DrawGeometry(pPathGeometry, _pGrayBrush);
         }

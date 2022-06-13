@@ -32,10 +32,18 @@ public:
     GameState* GetState(int frame);
     Input GetInput(int frame, int index);
 
+    void ClearOffset() { _frameOffset = 0; }
+    void StepForward();
+    void StepBackward();
+    GameState* GetStateWithOffset();
+
 private:
     int _frame;
     int const _capacity = 32;
     int const _playerCount = 2;
+
+
+    int _frameOffset = 0;
 
     std::vector<Input> _inputs[2];
     Input _stateInputs[2][32];

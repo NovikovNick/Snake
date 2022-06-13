@@ -97,42 +97,41 @@ void GameLoopService::_startGameLoop() {
 	GameStateHolder gameStateHolder = GameStateHolder(gameState);
 
 	bool paused = false;
-	int frameOffset = 0;
 	int64_t delay = settings.initialSpeedMs;
 	float progress = 0;
 	std::vector<Input> inputs[2];
 	GameState* nextGameState;
-	int threshold;
 
     do {
 		log("Start loop");
 		inputs[0] = _inputService->popInputs();
 		inputs[1] = _aiService->getInputs(gameStateHolder.GetState(gameStateHolder.GetFrame()), settings);
-		
+
+		// 1. get inputs
+		// 2. process command 
+		// 2.1 stop game_state_wrapper if needed
+		// 2.2 backward game_state_wrapper if needed
+		// 2.3 forward game_state_wrapper if needed
+		// 2.4 update game_state_wrapper if needed
+		// 2.5 calculateNextFrame
+		// 3. check game_state
+		// 4. render game_state
 
 		if (!inputs[0].empty()) {
 
 			switch (inputs[0].front().command) {
 			case SystemCommand::PAUSE:
 				paused = !paused;
-				frameOffset = 0;
+				gameStateHolder.ClearOffset();
 				break;
-			case SystemCommand::STEP_FORWARD:
-				if (++frameOffset > 0) {
-					frameOffset = 0;
-				}
-				break;
-			case SystemCommand::STEP_BACKWARD:
-			{
-				threshold = gameStateHolder.GetFrame() <= gameStateHolder.GetCapacity()
-					? gameStateHolder.GetFrame()
-					: gameStateHolder.GetCapacity() - 1;
 
-				if (--frameOffset < -threshold) {
-					frameOffset = -threshold;
-				}
+			case SystemCommand::STEP_FORWARD:
+				gameStateHolder.StepForward();
 				break;
-			}
+
+			case SystemCommand::STEP_BACKWARD:
+				gameStateHolder.StepBackward();
+				break;
 			default:
 				break;
 			}
@@ -146,17 +145,16 @@ void GameLoopService::_startGameLoop() {
 		}
 		
 		log("Calculating...");
-		nextGameState = paused 
-			? gameStateHolder.GetState(gameStateHolder.GetFrame() + frameOffset)
+		nextGameState = paused
+			? gameStateHolder.GetStateWithOffset()
 			: gameStateHolder.ApplyForces(inputs, settings);
 
 		std::cout << nextGameState->frame << std::endl;
 
-		// todo backward and insert new inputs
+		// todo: backward and insert new inputs
 
 		log("Checking...");
-		_gameLogicService->applyForcesAndCheck(nextGameState, inputs[0], settings);
-		
+		_gameLogicService->check(nextGameState, settings);
 
 		log("Rendering...");
 		_renderService->render(nextGameState, &gameStateHolder, settings);

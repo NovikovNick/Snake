@@ -19,7 +19,6 @@ class RenderService {
 public:
     RenderService(HWND hwnd);
     ~RenderService();
-    void drawInput(float x, float y, Direction dir, float size, bool focused);
     void render(GameState* gameState, GameStateHolder* gameStateHolder, GameSettigs settings);
 private:
 
@@ -32,6 +31,8 @@ private:
     ID2D1SolidColorBrush* _pGreenBrush = NULL;
     ID2D1SolidColorBrush* _pGrayBrush = NULL;
     RECT _rc;
+
+    void DrawInput(float x, float y, Direction dir, float size, bool focused, ID2D1SolidColorBrush* _pBrush);
 
     template <class T> void SafeRelease(T** ppT)
     {
