@@ -53,42 +53,18 @@ void GameLogicService::check(GameState* gameState, GameSettigs settings) {
 
 	if (isBorderCollision(gameState->snake_head[0], settings)
 		|| isSelfCollision(gameState->snake_head[0], settings)
-		|| isPlayerCollision(gameState->snake_head[0], gameState->snake_head[1], settings)) {
+		|| isPlayerCollision(gameState->snake_head[0], gameState->snake_head[1], settings)
+		|| gameState->score[1] >= settings.scoreToWin) {
 		gameState->gamePhase = LOSE;
 		return;
 	}
 
 	if (isBorderCollision(gameState->snake_head[1], settings)
 		|| isSelfCollision(gameState->snake_head[1], settings)
-		|| isPlayerCollision(gameState->snake_head[1], gameState->snake_head[0], settings)) {
+		|| isPlayerCollision(gameState->snake_head[1], gameState->snake_head[0], settings)
+		|| gameState->score[0] >= settings.scoreToWin) {
 		gameState->gamePhase = WIN;
 		return;
-	}
-
-	// todo: move to gameStateHolder
-
-	SnakePart* snakeHead = gameState->snake_head[0];
-	if (isCollide(gameState->food, snakeHead->coord)) {
-		
-		gameState->score++;
-
-		srand((unsigned)time(0));
-		gameState->food = {
-			 settings.leftBoundaries + rand() % (settings.rightBoundaries - settings.leftBoundaries),
-			 settings.topBoundaries + rand() % (settings.bottomBoundaries - settings.topBoundaries),
-		};
-
-		SnakePart* tail = snakeHead;
-		for (; tail->next != NULL; tail = tail->next);
-
-		tail->next = new SnakePart();
-		tail->next->coord = { tail->coord.x - 1, tail->coord.y };
-		tail->next->direction = Direction::RIGHT;
-		tail->next->next = nullptr;
-	}
-
-	if (gameState->score >= settings.scoreToWin) {
-		gameState->gamePhase = WIN;
 	}
 }
 

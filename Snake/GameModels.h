@@ -60,15 +60,13 @@ struct Food {
 
 struct GameState {
     int frame;
-    SnakePart* snake_head[2];
+    SnakePart* snake_head[2] = { nullptr, nullptr };
     Coord food;
-    int score = 0;
+    int score[2] = { 0, 0 };
     GamePhase gamePhase = IN_PROCESS;
     Input input[2];// = { Direction::NONE }; // todo: is it should be like list or something?
 
     GameState() {
-        snake_head[0] = nullptr;
-        snake_head[1] = nullptr;
         log("    GameState created");
     }
 
@@ -78,10 +76,10 @@ struct GameState {
         for (int i = 0; i < 2; i++) {
             snake_head[i] = state.snake_head[i];
             input[i] = state.input[i];
+            score[i] = state.score[i];
         }
 
         food = state.food;
-        score = state.score;
         gamePhase = state.gamePhase;
 
         log("    GameState copyied");
@@ -105,9 +103,9 @@ struct GameState {
 
 
 struct GameSettigs {
-    int scoreToWin = 50;
+    int scoreToWin = 20;
     int initialSpeedMs = 100;
-    int maxSpeedMs = 100;
+    int maxSpeedMs = 50;
     
     int leftBoundaries = 1;
     int rightBoundaries = 33;
@@ -120,8 +118,8 @@ struct GameSettigs {
     int startLenght = 5;
     Direction startPlayedDirection = Direction::RIGHT;
 
-    int startFoodXCoord = 16;
-    int startFoodYCoord = 10;
+    int startFoodXCoord = 10;
+    int startFoodYCoord = 14;
 
 
     int foodSize = 5;

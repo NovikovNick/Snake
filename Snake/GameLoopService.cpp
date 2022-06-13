@@ -92,8 +92,6 @@ void GameLoopService::_startGameLoop() {
 
 	gameState->food = { settings.startFoodXCoord, settings.startFoodYCoord };
 
-	//GameState gameState = { 0, &snakeHead, };
-
 	GameStateHolder gameStateHolder = GameStateHolder(gameState);
 
 	bool paused = false;
@@ -106,16 +104,6 @@ void GameLoopService::_startGameLoop() {
 		log("Start loop");
 		inputs[0] = _inputService->popInputs();
 		inputs[1] = _aiService->getInputs(gameStateHolder.GetState(gameStateHolder.GetFrame()), settings);
-
-		// 1. get inputs
-		// 2. process command 
-		// 2.1 stop game_state_wrapper if needed
-		// 2.2 backward game_state_wrapper if needed
-		// 2.3 forward game_state_wrapper if needed
-		// 2.4 update game_state_wrapper if needed
-		// 2.5 calculateNextFrame
-		// 3. check game_state
-		// 4. render game_state
 
 		if (!inputs[0].empty()) {
 
@@ -151,7 +139,6 @@ void GameLoopService::_startGameLoop() {
 
 		std::cout << nextGameState->frame << std::endl;
 
-		// todo: backward and insert new inputs
 
 		log("Checking...");
 		_gameLogicService->check(nextGameState, settings);
@@ -159,7 +146,7 @@ void GameLoopService::_startGameLoop() {
 		log("Rendering...");
 		_renderService->render(nextGameState, &gameStateHolder, settings);
 
-		progress = (nextGameState->score / (settings.scoreToWin / 100.0f)) / 100.0f;
+		progress = (nextGameState->score[0] / (settings.scoreToWin / 100.0f)) / 100.0f;
 		delay = paused ? 15 : settings.maxSpeedMs + (settings.initialSpeedMs - settings.maxSpeedMs) * (1 - progress);
 
 		log("End loop");

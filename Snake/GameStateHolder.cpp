@@ -28,6 +28,7 @@ GameState* clone(const GameState* state) {
 
 		res->snake_head[i] = nextSnakePart;
 		res->input[i] = { Direction::NONE, SystemCommand::NONE };
+		res->score[i] = state->score[i];
 
 		for (SnakePart* it = prevSnakePart->next; it != nullptr; it = it->next) {
 
@@ -41,12 +42,11 @@ GameState* clone(const GameState* state) {
 	}
 
 	res->food = { state->food.x, state->food.y };
-	res->score = state->score;
 	res->gamePhase = state->gamePhase;
 
 	return res;
 }
-	
+
 inline Direction GetOpposite(Direction& dir) {
 	switch (dir)
 	{
@@ -78,6 +78,11 @@ inline Coord To(const Coord coord, const Direction dir) {
 		return { coord.x, coord.y };
 	}
 }
+
+
+inline bool isCollide(Coord& a, Coord& b) {
+	return a.x == b.x && a.y == b.y;
+}
 } // namespace
 
 	//* contains game state and return final presentation of it
@@ -99,8 +104,6 @@ GameState* GameStateHolder::ApplyForces(std::vector<Input> inputs[2], GameSettig
 
 	for (size_t i = 0; i < _playerCount; i++) {
 
-		// todo: check food, increase legnth, add score
-
 		_stateInputs[i][nextIndex] = {};
 		SnakePart* snakeHead = nextGameState->snake_head[i];
 		if (!inputs[i].empty()) {
@@ -116,9 +119,38 @@ GameState* GameStateHolder::ApplyForces(std::vector<Input> inputs[2], GameSettig
 
 		Direction prevDir;
 		bool isFirst = true;
-		for (auto it = snakeHead; it != nullptr; it = it->next) {
+		bool isCollided = false;
+		bool isAdded = true;
+
+		for (auto it = snakeHead; it != nullptr && isAdded; it = it->next) {
 
 			Direction dir = it->direction;
+
+			if (isFirst) {
+
+				isCollided = isCollide(gameState->food, To(it->coord, dir));
+
+				if (isCollided) {
+
+					nextGameState->score[i]++;
+
+					srand((unsigned)time(0));
+					nextGameState->food = {
+						 settings.leftBoundaries + rand() % (settings.rightBoundaries - settings.leftBoundaries),
+						 settings.topBoundaries + rand() % (settings.bottomBoundaries - settings.topBoundaries),
+					};
+				}
+			}
+
+			if (it->next == nullptr && isCollided) {
+
+				it->next = new SnakePart();
+				it->next->coord = { it->coord.x, it->coord.y };
+				it->next->direction = it->direction;
+				it->next->next = nullptr;
+				isCollided = false;
+				isAdded = false;
+			}
 
 			if (!isFirst) {
 				it->direction = prevDir;
@@ -126,6 +158,7 @@ GameState* GameStateHolder::ApplyForces(std::vector<Input> inputs[2], GameSettig
 			isFirst = false;
 
 			prevDir = dir;
+
 
 			it->coord = To(it->coord, dir);
 		}

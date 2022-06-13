@@ -11,9 +11,15 @@
 #include "windows/MainWindow.h"
 #include "GameLoopService.h"
 
+// todo: simplify ApplyForces algorithm
+// todo: prevent instant fail with opposite inputs
+// todo: generate food only in empty spot
+// todo: improve AI to dodge player
+// todo: add ability to increase speed for input with same direction
+// todo: backward game state and insert new inputs
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow)
-{
+
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow) {
 
     snake::log("Main loop started");
 

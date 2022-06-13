@@ -10,7 +10,16 @@ std::vector<Input> AIService::getInputs(GameState* gameState, GameSettigs settin
     int x = gameState->snake_head[1]->coord.x;
     int y = gameState->snake_head[1]->coord.y;
 
+    int foodX = gameState->food.x;
+    int foodY = gameState->food.y;
+
     Direction dir = Direction::NONE;
+
+    if (x == foodX) {
+        dir = foodY > y ? Direction::DOWN : Direction::UP;
+    } else if (y == foodY)  {
+        dir = foodX > x ? Direction::RIGHT : Direction::LEFT;
+    }
 
     if (x >= settings.rightBoundaries - 1 && prevDirection == Direction::RIGHT) {
         dir = Direction::UP;

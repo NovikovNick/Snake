@@ -80,18 +80,7 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
     {
     case IN_PROCESS:
     {
-        Coord* food = &(gameState->food);
-        if (food != NULL) {
-
-            _pRT->FillRectangle(
-                D2D1::RectF(
-                    size * (food->x + 1) - settings.foodSize,
-                    size * (food->y + 1) - settings.foodSize,
-                    size * food->x  + settings.foodSize,
-                    size * food->y + settings.foodSize
-                ),
-                _pLightSlateGrayBrush);
-        }
+        
 
         for (auto it = gameState->snake_head[0]; it != NULL; it = it->next) {
             _pRT->FillRectangle(
@@ -143,6 +132,19 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
                 _pRedBrush);
 
             frame--;
+        }
+
+        Coord* food = &(gameState->food);
+        if (food != NULL) {
+
+            _pRT->FillRectangle(
+                D2D1::RectF(
+                    size * (food->x + 1) - settings.foodSize,
+                    size * (food->y + 1) - settings.foodSize,
+                    size * food->x + settings.foodSize,
+                    size * food->y + settings.foodSize
+                ),
+                _pLightSlateGrayBrush);
         }
 
         break;
