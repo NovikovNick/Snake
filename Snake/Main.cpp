@@ -11,8 +11,6 @@
 #include "windows/MainWindow.h"
 #include "GameLoopService.h"
 
-// todo: simplify ApplyForces algorithm
-// todo: prevent instant fail with opposite inputs
 // todo: generate food only in empty spot
 // todo: improve AI to dodge player
 // todo: add ability to increase speed for input with same direction

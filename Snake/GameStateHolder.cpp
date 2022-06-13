@@ -83,6 +83,19 @@ inline Coord To(const Coord coord, const Direction dir) {
 inline bool isCollide(Coord& a, Coord& b) {
 	return a.x == b.x && a.y == b.y;
 }
+
+Coord generateNewFood(GameState* gameState, GameSettigs& settings) {
+
+	srand((unsigned)time(0));
+
+	Coord res = {
+		 settings.leftBoundaries + rand() % (settings.rightBoundaries - settings.leftBoundaries),
+		 settings.topBoundaries + rand() % (settings.bottomBoundaries - settings.topBoundaries),
+	};
+
+	return res;
+}
+
 } // namespace
 
 	//* contains game state and return final presentation of it
@@ -105,62 +118,43 @@ GameState* GameStateHolder::ApplyForces(std::vector<Input> inputs[2], GameSettig
 	for (size_t i = 0; i < _playerCount; i++) {
 
 		_stateInputs[i][nextIndex] = {};
-		SnakePart* snakeHead = nextGameState->snake_head[i];
+		SnakePart* current = nextGameState->snake_head[i];
+
 		if (!inputs[i].empty()) {
 
 			Direction inputDirection = inputs[i].front().direction;
 
-			if (inputDirection != GetOpposite(inputDirection)) {
-				snakeHead->direction = inputDirection;
+			if (inputDirection != Direction::NONE && inputDirection != GetOpposite(current->direction)) {
+				current->direction = inputDirection;
 				nextGameState->input[i] = { inputDirection };
 				_stateInputs[i][nextIndex] = { inputDirection };
 			}
 		}
 
-		Direction prevDir;
-		bool isFirst = true;
-		bool isCollided = false;
-		bool isAdded = true;
+		Direction prevDir = current->direction;
+		Coord prevCoord = current->coord;
+		current->coord = To(current->coord, current->direction);
 
-		for (auto it = snakeHead; it != nullptr && isAdded; it = it->next) {
+		bool collided = isCollide(gameState->food, current->coord);
+		
+		for (auto it = current->next; it != nullptr; it = it->next) {
 
 			Direction dir = it->direction;
-
-			if (isFirst) {
-
-				isCollided = isCollide(gameState->food, To(it->coord, dir));
-
-				if (isCollided) {
-
-					nextGameState->score[i]++;
-
-					srand((unsigned)time(0));
-					nextGameState->food = {
-						 settings.leftBoundaries + rand() % (settings.rightBoundaries - settings.leftBoundaries),
-						 settings.topBoundaries + rand() % (settings.bottomBoundaries - settings.topBoundaries),
-					};
-				}
-			}
-
-			if (it->next == nullptr && isCollided) {
-
-				it->next = new SnakePart();
-				it->next->coord = { it->coord.x, it->coord.y };
-				it->next->direction = it->direction;
-				it->next->next = nullptr;
-				isCollided = false;
-				isAdded = false;
-			}
-
-			if (!isFirst) {
-				it->direction = prevDir;
-			}
-			isFirst = false;
-
+			it->direction = prevDir;
 			prevDir = dir;
-
-
+			prevCoord = it->coord;
 			it->coord = To(it->coord, dir);
+			current = it;
+		}
+
+		if (collided) {
+			current->next = new SnakePart();
+			current->next->coord = prevCoord;
+			current->next->direction = prevDir;
+			current->next->next = nullptr;
+
+			nextGameState->score[i]++;
+			nextGameState->food = generateNewFood(nextGameState, settings);
 		}
 	}
 
