@@ -1,6 +1,7 @@
 #ifndef SNAKE_SNAKE_GAME_MODEL_H_
 #define SNAKE_SNAKE_GAME_MODEL_H_
 #include "util/log.h"
+#include <vector>
 
 namespace snake {
 
@@ -45,12 +46,22 @@ struct SnakePart {
     }
 
     ~SnakePart() {
-        log("        SnakePart start destoying");
+        log("        SnakePart start destoying " + ToString());
         SnakePart* current = next;
         if (current != nullptr) {
             delete current;
         }
-        log("        SnakePart destoyed");
+        // log("        SnakePart destoyed " + ToString());
+    }
+
+    std::string ToString() {
+
+        std::string res = "[";
+        res += std::to_string(coord.x);
+        res += ";";
+        res += std::to_string(coord.y);
+        res += "]";
+        return res;
     }
 };
 
@@ -59,15 +70,17 @@ struct Food {
 };
 
 struct GameState {
-    int frame;
-    SnakePart* snake_head[2] = { nullptr, nullptr };
+    int frame = 0;
+    std::vector<SnakePart*> snake_head = { nullptr, nullptr };
+
     Coord food;
     int score[2] = { 0, 0 };
     GamePhase gamePhase = IN_PROCESS;
     Input input[2];// = { Direction::NONE }; // todo: is it should be like list or something?
 
-    GameState() {
-        log("    GameState created");
+    GameState(int frame) {
+        this->frame = frame;
+        log("    GameState created " + ToString());
     }
 
     GameState(GameState& state) {
@@ -87,17 +100,35 @@ struct GameState {
 
     ~GameState() {
 
-        log("    GameState start destoying");
+        log("    GameState start destoying " + ToString());
 
-        // todo: it can be simplefyed
-        for (int i = 0; i < 2; i++) {
-            if (snake_head[i] != nullptr) {
-                delete snake_head[i];
-            }
+        if (snake_head[0] != nullptr) {
+            delete snake_head[0];
+            snake_head[0] = nullptr;
         }
-        
-        log("    GameState destoyed");
 
+        if (snake_head[1] != nullptr) {
+            delete snake_head[1];
+            snake_head[1] = nullptr;
+        }
+        // log("    GameState destoyed " + ToString());
+    }
+
+    std::string ToString() {
+        std::string res = "State[frame:";
+        res += std::to_string(frame);
+        res += "];";
+        if (snake_head[0] != nullptr) {
+            res += " p1=";
+            res += snake_head[0]->ToString();
+            res += ";";
+        }
+        if (snake_head[1] != nullptr) {
+            res += " p2=";
+            res += snake_head[1]->ToString();
+            res += ";";
+        }
+        return res;
     }
 };
 

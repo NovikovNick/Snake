@@ -82,8 +82,7 @@ void GameLoopService::_startGameLoop() {
 
 	InitPlayer(snakeHead, settings);
 
-	GameState* gameState = new GameState();
-	gameState->frame = 0;
+	GameState* gameState = new GameState(0);
 	gameState->snake_head[0] = new SnakePart();
 	gameState->snake_head[1] = new SnakePart();
 
@@ -101,7 +100,7 @@ void GameLoopService::_startGameLoop() {
 	GameState* nextGameState;
 
     do {
-		log("Start loop");
+		// log("Start loop");
 		inputs[0] = _inputService->popInputs();
 		inputs[1] = _aiService->getInputs(gameStateHolder.GetState(gameStateHolder.GetFrame()), settings);
 
@@ -125,14 +124,14 @@ void GameLoopService::_startGameLoop() {
 			}
 		}
 
-		log("Fetching...");
+		// log("Fetching...");
 		GamePhase gamePhase = gameStateHolder.GetState(gameStateHolder.GetFrame())->gamePhase;
 
 		if (gamePhase == WIN || gamePhase == LOSE) {
 			paused = true;
 		}
 		
-		log("Calculating...");
+		// log("Calculating...");
 		nextGameState = paused
 			? gameStateHolder.GetStateWithOffset()
 			: gameStateHolder.ApplyForces(inputs, settings);
@@ -140,10 +139,10 @@ void GameLoopService::_startGameLoop() {
 		std::cout << nextGameState->frame << std::endl;
 
 
-		log("Checking...");
+		// log("Checking...");
 		_gameLogicService->check(nextGameState, settings);
 
-		log("Rendering...");
+		// log("Rendering...");
 		_renderService->render(nextGameState, &gameStateHolder, settings);
 
 		progress = (nextGameState->score[0] / (settings.scoreToWin / 100.0f)) / 100.0f;

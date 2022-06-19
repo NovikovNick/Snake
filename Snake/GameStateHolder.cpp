@@ -1,20 +1,20 @@
 #include "GameStateHolder.h"
 
 #include <vector>
+#include <unordered_map>
 
 
 namespace snake {
 namespace {
 
-GameState* clone(const GameState* state) {
+GameState* clone(const GameState* state, int frame) {
 
 	int playerCount = 2; // todo: it should got from settings
 
-	GameState* res = new GameState();
-	res->frame = state->frame;
+	GameState* res = new GameState(frame);
 			
 	for (int i = 0; i < playerCount; i++) {
-
+		
 		if (state->snake_head[i] == nullptr) {
 			continue;
 		}
@@ -79,21 +79,51 @@ inline Coord To(const Coord coord, const Direction dir) {
 	}
 }
 
-
 inline bool isCollide(Coord& a, Coord& b) {
 	return a.x == b.x && a.y == b.y;
 }
 
+// A hash function used to hash a pair of any kind
+struct hash_pair {
+	template <class T1, class T2>
+	size_t operator()(const std::pair<T1, T2>& p) const
+	{
+		auto hash1 = std::hash<T1>{}(p.first);
+		auto hash2 = std::hash<T2>{}(p.second);
+
+		if (hash1 != hash2) {
+			return hash1 ^ hash2;
+		}
+
+		// If hash1 == hash2, their XOR is zero.
+		return hash1;
+	}
+};
+
+
 Coord generateNewFood(GameState* gameState, GameSettigs& settings) {
 
-	srand((unsigned)time(0));
+	std::unordered_map<std::pair<int, int>, bool, hash_pair> um;
 
-	Coord res = {
-		 settings.leftBoundaries + rand() % (settings.rightBoundaries - settings.leftBoundaries),
-		 settings.topBoundaries + rand() % (settings.bottomBoundaries - settings.topBoundaries),
-	};
+	for (size_t i = 0; i < 2; i++) {
+		for (SnakePart* it = gameState->snake_head[i]; it != nullptr; it = it->next) {
+			um[std::make_pair(it->coord.x, it->coord.y)] = true;
+		}
+	}
+
+	Coord res;
+	srand((unsigned)time(NULL));
+	do {
+
+		res = {
+			settings.leftBoundaries + rand() % (settings.rightBoundaries - settings.leftBoundaries),
+			settings.topBoundaries + rand() % (settings.bottomBoundaries - settings.topBoundaries),
+		};
+
+	} while (um[std::make_pair(res.x, res.y)]);
 
 	return res;
+
 }
 
 } // namespace
@@ -106,14 +136,15 @@ GameState* GameStateHolder::ApplyForces(std::vector<Input> inputs[2], GameSettig
 
 	GameState* gameState = _ringBuffer[currentIndex];
 
-	GameState* nextGameState = clone(gameState);
-	nextGameState->frame = _frame;
+	GameState* nextGameState = clone(gameState, _frame);
 
-	if (_frame > _capacity) {
-		delete _ringBuffer[nextIndex];
+	if (_frame > _capacity && _ringBuffer[nextIndex] != nullptr) {
+		// WHY _CRT_SECURITYCRITICAL_ATTRIBUTE?!
+		// delete _ringBuffer[nextIndex];
 	}
 
 	_ringBuffer[nextIndex] = nextGameState;
+	int collidedIndex = -1;
 
 	for (size_t i = 0; i < _playerCount; i++) {
 
@@ -152,11 +183,15 @@ GameState* GameStateHolder::ApplyForces(std::vector<Input> inputs[2], GameSettig
 			current->next->coord = prevCoord;
 			current->next->direction = prevDir;
 			current->next->next = nullptr;
-
-			nextGameState->score[i]++;
-			nextGameState->food = generateNewFood(nextGameState, settings);
+			collidedIndex = i;
 		}
 	}
+
+	if (collidedIndex > -1) {
+		nextGameState->score[nextIndex]++;
+		nextGameState->food = generateNewFood(nextGameState, settings);
+	}
+	
 
     return nextGameState;
 }
