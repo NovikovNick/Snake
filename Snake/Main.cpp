@@ -12,12 +12,6 @@
 #include "GameLoopService.h"
 
 
-// todo: improve AI to dodge player
-// todo: improve AI to dodge himself
-// todo: add ability to increase speed for input with same direction
-// todo: backward game state and insert new inputs
-// todo: logging
-// todo: unit tests
 
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow) {

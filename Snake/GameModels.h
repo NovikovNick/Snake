@@ -25,6 +25,25 @@ struct Input {
 struct Coord {
    int x;
    int y;
+
+   Coord operator + (const Direction& dir) const {
+       switch (dir) {
+       case Direction::LEFT:
+           return { x - 1, y };
+       case Direction::RIGHT:
+           return { x + 1, y };
+       case Direction::UP:
+           return { x, y - 1 };
+       case Direction::DOWN:
+           return { x, y + 1 };
+       default:
+           return { x, y };
+       }
+   }
+
+   bool operator == (const Coord& other) const {
+       return x == other.x && y == other.y;
+   }
 };
 
 
@@ -57,7 +76,7 @@ struct SnakePart {
     std::string ToString() {
 
         std::string res = "[";
-        res += std::to_string(coord.x);
+        res += std::to_string(coord.x);// todo: why read access violation?!
         res += ";";
         res += std::to_string(coord.y);
         res += "]";
