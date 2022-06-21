@@ -7,7 +7,7 @@ namespace snake {
 
 namespace {
 
-std::vector<Input> DoSimpleStateCondition(GameState* gameState, GameSettigs settings) {
+InputDTO DoSimpleStateCondition(GameState* gameState, GameSettigs settings) {
     Direction prevDirection = gameState->snake_head[1]->direction;
     int x = gameState->snake_head[1]->coord.x;
     int y = gameState->snake_head[1]->coord.y;
@@ -34,30 +34,11 @@ std::vector<Input> DoSimpleStateCondition(GameState* gameState, GameSettigs sett
         dir = Direction::DOWN;
     }
     else if (y >= settings.bottomBoundaries - 1 && prevDirection == Direction::DOWN) {
-    dir = Direction::RIGHT;
+        dir = Direction::RIGHT;
     }
-
-    return { { dir, SystemCommand::NONE } };
-}
-
-inline Coord To(const Coord coord, const Direction dir) {
-
-    switch (dir) {
-    case Direction::LEFT:
-        return { coord.x - 1, coord.y };
-    case Direction::RIGHT:
-        return { coord.x + 1, coord.y };
-    case Direction::UP:
-        return { coord.x, coord.y - 1 };
-    case Direction::DOWN:
-        return { coord.x, coord.y + 1 };
-    default:
-        return { coord.x, coord.y };
-    }
-}
-
-inline bool equals(Coord& a, Coord& b) {
-    return a.x == b.x && a.y == b.y;
+    InputDTO res;
+    res.inputs = { { dir, SystemCommand::NONE } };
+    return res;
 }
 
 struct Node {
@@ -107,7 +88,7 @@ Direction directions[4] = {
 };
 
 
-std::vector<Input> FindPathToFood(GameState* gameState, GameSettigs settings) {
+InputDTO FindPathToFood(GameState* gameState, GameSettigs settings) {
 
     SnakePart* player = gameState->snake_head[0];
     SnakePart* bot = gameState->snake_head[1];
@@ -140,7 +121,9 @@ std::vector<Input> FindPathToFood(GameState* gameState, GameSettigs settings) {
                 for (auto it = node; it->prev != nullptr; it = it->prev) {
                     res = it->toPrev;
                 }
-                return { { res, SystemCommand::NONE } };
+                InputDTO rrr;
+                rrr.inputs = { { res, SystemCommand::NONE } };
+                return rrr;
             }
 
             bool isNotInReachable = reachable.find(candidate) == reachable.end();
@@ -155,13 +138,14 @@ std::vector<Input> FindPathToFood(GameState* gameState, GameSettigs settings) {
         reachable.extract(coord);
     }
 
-
-    return { { res, SystemCommand::NONE } };
+    InputDTO rrr;
+    rrr.inputs = { { res, SystemCommand::NONE } };
+    return rrr;
 }
 
 } // namespace
 
-std::vector<Input> AIService::getInputs(GameState* gameState, GameSettigs settings) {
+InputDTO AIService::getInputs(GameState* gameState, GameSettigs settings) {
 
     // return DoSimpleStateCondition(gameState, settings);
 

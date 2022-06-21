@@ -7,10 +7,6 @@ namespace snake {
 
 namespace {
 
-bool isCollide(Coord& a, Coord& b) {
-	return a.x == b.x && a.y == b.y;
-}
-
 bool isBorderCollision(SnakePart* snakeHead, GameSettigs& settings) {
 
 	if (snakeHead->coord.x <= settings.leftBoundaries - 1
@@ -27,7 +23,7 @@ bool isSelfCollision(SnakePart* snakeHead, GameSettigs& settings) {
 
 	SnakePart* tail = snakeHead->next;
 	for (; tail != NULL; tail = tail->next) {
-		if (isCollide(tail->coord, snakeHead->coord)) {
+		if (tail->coord == snakeHead->coord) {
 			return true;
 		}
 	}
@@ -39,7 +35,7 @@ bool isPlayerCollision(SnakePart* player, SnakePart* enemy, GameSettigs& setting
 
 	SnakePart* tail = enemy;
 	for (; tail != NULL; tail = tail->next) {
-		if (isCollide(tail->coord, player->coord)) {
+		if (tail->coord == player->coord) {
 			return true;
 		}
 	}

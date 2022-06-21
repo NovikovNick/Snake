@@ -46,6 +46,23 @@ struct Coord {
    }
 };
 
+enum class DebugMark {
+    REACHABLE, EXPLORED, NONE
+};
+
+struct DebugItem {
+    Coord coord;
+    DebugMark mark;
+};
+
+struct DebugContex {
+    std::vector<std::vector<DebugItem>> pathfinding;
+};
+
+struct InputDTO {
+    std::vector<Input> inputs;
+    DebugContex ctx;
+};
 
 struct SnakePart {
     Coord coord;
@@ -54,7 +71,6 @@ struct SnakePart {
 
     SnakePart() {
         log("        SnakePart created");
-        next = nullptr;
     }
 
     SnakePart(SnakePart& src) {

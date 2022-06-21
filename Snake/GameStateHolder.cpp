@@ -63,26 +63,6 @@ inline Direction GetOpposite(Direction& dir) {
 	}
 }
 
-inline Coord To(const Coord coord, const Direction dir) {
-
-	switch (dir) {
-	case Direction::LEFT:
-		return { coord.x - 1, coord.y };
-	case Direction::RIGHT:
-		return { coord.x + 1, coord.y };
-	case Direction::UP:
-		return { coord.x, coord.y - 1 };
-	case Direction::DOWN:
-		return { coord.x, coord.y + 1 };
-	default:
-		return { coord.x, coord.y };
-	}
-}
-
-inline bool isCollide(Coord& a, Coord& b) {
-	return a.x == b.x && a.y == b.y;
-}
-
 // A hash function used to hash a pair of any kind
 struct hash_pair {
 	template <class T1, class T2>
@@ -164,9 +144,9 @@ GameState* GameStateHolder::ApplyForces(std::vector<Input> inputs[2], GameSettig
 
 		Direction prevDir = current->direction;
 		Coord prevCoord = current->coord;
-		current->coord = To(current->coord, current->direction);
+		current->coord = current->coord + current->direction;
 
-		bool collided = isCollide(gameState->food, current->coord);
+		bool collided = gameState->food == current->coord;
 		
 		for (auto it = current->next; it != nullptr; it = it->next) {
 
@@ -174,7 +154,7 @@ GameState* GameStateHolder::ApplyForces(std::vector<Input> inputs[2], GameSettig
 			it->direction = prevDir;
 			prevDir = dir;
 			prevCoord = it->coord;
-			it->coord = To(it->coord, dir);
+			it->coord = it->coord + dir;
 			current = it;
 		}
 

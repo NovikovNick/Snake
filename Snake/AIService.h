@@ -9,7 +9,7 @@ namespace snake {
 
 class AIService {
 public:
-    std::vector<Input> getInputs(GameState* gameState, GameSettigs settings);
+    InputDTO getInputs(GameState* gameState, GameSettigs settings);
 };
 
 } // namespace snake

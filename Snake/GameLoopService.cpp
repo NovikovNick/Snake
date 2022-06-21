@@ -102,7 +102,7 @@ void GameLoopService::_startGameLoop() {
     do {
 		// log("Start loop");
 		inputs[0] = _inputService->popInputs();
-		inputs[1] = _aiService->getInputs(gameStateHolder.GetState(gameStateHolder.GetFrame()), settings);
+		
 
 		if (!inputs[0].empty()) {
 
@@ -130,13 +130,21 @@ void GameLoopService::_startGameLoop() {
 		if (gamePhase == WIN || gamePhase == LOSE) {
 			paused = true;
 		}
-		
-		// log("Calculating...");
-		nextGameState = paused
-			? gameStateHolder.GetStateWithOffset()
-			: gameStateHolder.ApplyForces(inputs, settings);
 
-		std::cout << nextGameState->frame << std::endl;
+		// log("Calculating...");
+
+		if (paused) {
+		
+			nextGameState = gameStateHolder.GetStateWithOffset();
+		
+		} else {
+
+			InputDTO botInput = _aiService->getInputs(gameStateHolder.GetState(gameStateHolder.GetFrame()), settings);
+			inputs[1] = botInput.inputs;
+
+			nextGameState = gameStateHolder.ApplyForces(inputs, settings);
+		}
+		
 
 
 		// log("Checking...");
