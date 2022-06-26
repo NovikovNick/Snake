@@ -174,9 +174,9 @@ struct GameSettigs {
     int maxSpeedMs = 50;
     
     int leftBoundaries = 1;
-    int rightBoundaries = 33;
+    int rightBoundaries = 34;
     int topBoundaries = 2;
-    int bottomBoundaries = 15;
+    int bottomBoundaries = 16;
 
 
     int startPlayedXCoord = 9;

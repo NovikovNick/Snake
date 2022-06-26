@@ -1,5 +1,5 @@
-# fix 258 frame limit bug
 # render pathfinding on pause
+# fix unexpected game state. It appears right after consuming food. Maybe it is AI issue. Need a debug visualisation to solve it.
 # add ability to increase speed for input with same direction
 # backward game state and insert new inputs
 # RELEASE 0.1.0

@@ -76,105 +76,90 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
         }
     }
 
-    switch (gameState->gamePhase)
-    {
-    case IN_PROCESS:
-    {
-        
 
-        for (auto it = gameState->snake_head[0]; it != NULL; it = it->next) {
-            _pRT->FillRectangle(
-                D2D1::RectF(
-                    size * (it->coord.x + 1) - settings.snakeSize,
-                    size * (it->coord.y + 1) - settings.snakeSize,
-                    size * it->coord.x + settings.snakeSize,
-                    size * it->coord.y + settings.snakeSize
-                ),
-                _pGreenBrush);
-        }
 
-        for (auto it = gameState->snake_head[1]; it != NULL; it = it->next) {
-            _pRT->FillRectangle(
-                D2D1::RectF(
-                    size * (it->coord.x + 1) - settings.snakeSize,
-                    size * (it->coord.y + 1) - settings.snakeSize,
-                    size * it->coord.x + settings.snakeSize,
-                    size * it->coord.y + settings.snakeSize
-                ),
-                _pRedBrush);
-        }
-        
-        
-        int frame = holder->GetFrame();
-        int capacity = settings.rightBoundaries - settings.leftBoundaries;
-        for (int i = 0; i < capacity && frame >= 0; i++) {
-           
-            DrawInput(
-               size * -0.8 + size * settings.leftBoundaries  + size * capacity - size * i,
-               size * 0.2 + settings.bottomBoundaries * size,
-                holder->GetInput(frame, 0).direction,
-                size * 0.7, 
-                frame == gameState->frame,
-                _pGreenBrush);
-
-           frame--;
-        }
-
-        frame = holder->GetFrame();
-        for (int i = 0; i < capacity && frame >= 0; i++) {
-
-            DrawInput(
-                size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
-                size * 0.2 + size,
-                holder->GetInput(frame, 1).direction,
-                size * 0.7,
-                frame == gameState->frame,
-                _pRedBrush);
-
-            frame--;
-        }
-
-        Coord* food = &(gameState->food);
-        if (food != NULL) {
-
-            _pRT->FillRectangle(
-                D2D1::RectF(
-                    size * (food->x + 1) - settings.foodSize,
-                    size * (food->y + 1) - settings.foodSize,
-                    size * food->x + settings.foodSize,
-                    size * food->y + settings.foodSize
-                ),
-                _pLightSlateGrayBrush);
-        }
-
-        break;
-    }
-    case WIN:
-    {
+    for (auto it = gameState->snake_head[0]; it != NULL; it = it->next) {
         _pRT->FillRectangle(
             D2D1::RectF(
-                _rc.right,
-                _rc.bottom,
-                0,
-                0
+                size * (it->coord.x + 1) - settings.snakeSize,
+                size * (it->coord.y + 1) - settings.snakeSize,
+                size * it->coord.x + settings.snakeSize,
+                size * it->coord.y + settings.snakeSize
             ),
             _pGreenBrush);
-        break;
     }
-    case LOSE:
-    default:
-    {
+
+    for (auto it = gameState->snake_head[1]; it != NULL; it = it->next) {
         _pRT->FillRectangle(
             D2D1::RectF(
-                _rc.right,
-                _rc.bottom,
-                0,
-                0
+                size * (it->coord.x + 1) - settings.snakeSize,
+                size * (it->coord.y + 1) - settings.snakeSize,
+                size * it->coord.x + settings.snakeSize,
+                size * it->coord.y + settings.snakeSize
             ),
             _pRedBrush);
-        break;
     }
+
+
+    int frame = holder->GetFrame();
+    int capacity = settings.rightBoundaries - settings.leftBoundaries;
+    for (int i = 0; i < capacity && frame >= 0; i++) {
+
+        DrawInput(
+            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
+            size * 0.2 + settings.bottomBoundaries * size,
+            holder->GetInput(frame, 0).direction,
+            size * 0.7,
+            frame == gameState->frame,
+            _pGreenBrush);
+
+        frame--;
     }
+
+    frame = holder->GetFrame();
+    for (int i = 0; i < capacity && frame >= 0; i++) {
+
+        DrawInput(
+            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
+            size * 0.2 + size,
+            holder->GetInput(frame, 1).direction,
+            size * 0.7,
+            frame == gameState->frame,
+            _pRedBrush);
+
+        frame--;
+    }
+
+    Coord* food = &(gameState->food);
+    if (food != NULL) {
+
+        _pRT->FillRectangle(
+            D2D1::RectF(
+                size * (food->x + 1) - settings.foodSize,
+                size * (food->y + 1) - settings.foodSize,
+                size * food->x + settings.foodSize,
+                size * food->y + settings.foodSize
+            ),
+            _pLightSlateGrayBrush);
+    }
+
+
+    if (gameState->gamePhase == WIN) {
+
+        _pRT->FillRectangle(D2D1::RectF(size, _rc.bottom, 0, 0), _pGreenBrush);
+        _pRT->FillRectangle(D2D1::RectF(_rc.right, size, 0, 0), _pGreenBrush);
+        _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, _rc.right - size, 0), _pGreenBrush);
+        _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, 0, _rc.bottom - size), _pGreenBrush);
+
+    } else if (gameState->gamePhase == LOSE) {
+
+        _pRT->FillRectangle(D2D1::RectF(size, _rc.bottom, 0, 0), _pRedBrush);
+        _pRT->FillRectangle(D2D1::RectF(_rc.right, size, 0, 0), _pRedBrush);
+        _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, _rc.right - size, 0), _pRedBrush);
+        _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, 0, _rc.bottom - size), _pRedBrush);
+
+    }
+
 
     _pRT->EndDraw();
 }
