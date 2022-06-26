@@ -57,9 +57,6 @@ RenderService::~RenderService() {
 void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSettigs settings) {
 
     float size = 40.0f;
-
-    _pRT->BeginDraw();
-    _pRT->Clear();
     
     for (size_t x = settings.leftBoundaries; x < settings.rightBoundaries; x++)
     {
@@ -75,8 +72,6 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
                 _pGrayBrush);
         }
     }
-
-
 
     for (auto it = gameState->snake_head[0]; it != NULL; it = it->next) {
         _pRT->FillRectangle(
@@ -159,8 +154,42 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
         _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, 0, _rc.bottom - size), _pRedBrush);
 
     }
+}
 
+void RenderService::render(std::vector<DebugItem> debugCtx) {
+    
+    float size = 40.0f;
 
+    for (DebugItem item : debugCtx) {
+        
+        auto rect = D2D1::RectF(
+            size * (item.coord.x + 1),
+            size * (item.coord.y + 1),
+            size * item.coord.x,
+            size * item.coord.y
+        );
+
+        switch (item.mark) {
+        case DebugMark::EXPLORED:
+            _pRT->FillRectangle(rect, _pGrayBrush);
+            break;
+        case DebugMark::REACHABLE:
+            _pRT->FillRectangle(rect, _pLightSlateGrayBrush);
+            break;
+
+        default:
+            break;
+        }
+        
+    }
+}
+
+void RenderService::BeginDraw() {
+    _pRT->BeginDraw();
+    _pRT->Clear();
+}
+
+void RenderService::EndDraw() {
     _pRT->EndDraw();
 }
 

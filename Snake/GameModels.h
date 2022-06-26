@@ -55,13 +55,13 @@ struct DebugItem {
     DebugMark mark;
 };
 
-struct DebugContex {
+struct DebugContext {
     std::vector<std::vector<DebugItem>> pathfinding;
 };
 
 struct InputDTO {
     std::vector<Input> inputs;
-    DebugContex ctx;
+    DebugContext ctx;
 };
 
 struct SnakePart {

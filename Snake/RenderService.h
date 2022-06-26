@@ -20,6 +20,10 @@ public:
     RenderService(HWND hwnd);
     ~RenderService();
     void render(GameState* gameState, GameStateHolder* gameStateHolder, GameSettigs settings);
+    void render(std::vector<DebugItem> debugCtx);
+
+    void BeginDraw();
+    void EndDraw();
 private:
 
     HWND _hwnd;

@@ -91,13 +91,16 @@ void GameLoopService::_startGameLoop() {
 
 	gameState->food = { settings.startFoodXCoord, settings.startFoodYCoord };
 
-	GameStateHolder gameStateHolder = GameStateHolder(gameState);
+	GameStateHolder holder = GameStateHolder(gameState);
 
 	bool paused = false;
 	int64_t delay = settings.initialSpeedMs;
 	float progress = 0;
 	std::vector<Input> inputs[2];
 	GameState* nextGameState;
+
+	std::vector<DebugContext> debugCtx;
+	debugCtx.resize(32);
 
     do {
 		// log("Start loop");
@@ -109,15 +112,15 @@ void GameLoopService::_startGameLoop() {
 			switch (inputs[0].front().command) {
 			case SystemCommand::PAUSE:
 				paused = !paused;
-				gameStateHolder.ClearOffset();
+				holder.ClearOffset();
 				break;
 
 			case SystemCommand::STEP_FORWARD:
-				gameStateHolder.StepForward();
+				holder.StepForward();
 				break;
 
 			case SystemCommand::STEP_BACKWARD:
-				gameStateHolder.StepBackward();
+				holder.StepBackward();
 				break;
 			default:
 				break;
@@ -125,7 +128,7 @@ void GameLoopService::_startGameLoop() {
 		}
 
 		// log("Fetching...");
-		GamePhase gamePhase = gameStateHolder.GetState(gameStateHolder.GetFrame())->gamePhase;
+		GamePhase gamePhase = holder.GetState(holder.GetFrame())->gamePhase;
 
 		if (gamePhase == WIN || gamePhase == LOSE) {
 			paused = true;
@@ -135,32 +138,39 @@ void GameLoopService::_startGameLoop() {
 
 		if (paused) {
 		
-			nextGameState = gameStateHolder.GetStateWithOffset();
-		
+			nextGameState = holder.GetStateWithOffset();
+			DebugContext ctx = debugCtx[(holder.GetFrame() + holder.GetOffset()) % holder.GetCapacity()];
+
+			for (auto it : ctx.pathfinding) {
+				_renderService->BeginDraw();
+				_renderService->render(nextGameState, &holder, settings);
+				_renderService->render(it);
+				_renderService->EndDraw();
+				//std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(1));
+			}
+
 		} else {
 
-			InputDTO botInput = _aiService->getInputs(gameStateHolder.GetState(gameStateHolder.GetFrame()), settings);
+			InputDTO botInput = _aiService->getInputs(holder.GetState(holder.GetFrame()), settings);
 			inputs[1] = botInput.inputs;
 
-			nextGameState = gameStateHolder.ApplyForces(inputs, settings);
+			nextGameState = holder.ApplyForces(inputs, settings);
+			debugCtx[holder.GetFrame() % holder.GetCapacity()] = botInput.ctx;
+			
+
+			_gameLogicService->check(nextGameState, settings);
+
+			_renderService->BeginDraw();
+			_renderService->render(nextGameState, &holder, settings);
+			_renderService->EndDraw();
 		}
-		
-
-
-		// log("Checking...");
-		_gameLogicService->check(nextGameState, settings);
-
-		// log("Rendering...");
-		_renderService->render(nextGameState, &gameStateHolder, settings);
 
 		progress = (nextGameState->score[0] / (settings.scoreToWin / 100.0f)) / 100.0f;
 		delay = paused ? 15 : settings.maxSpeedMs + (settings.initialSpeedMs - settings.maxSpeedMs) * (1 - progress);
 
 		log("End loop");
 
-		if (!paused) {
-			std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(delay));
-		}
+		std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(delay));
 
     } while (_running);
 }

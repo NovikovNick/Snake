@@ -109,6 +109,12 @@ InputDTO FindPathToFood(GameState* gameState, GameSettigs settings) {
 
     Direction res = Direction::RIGHT; // by default it 
     Node* pathToFood = nullptr;
+
+    DebugContext ctx;
+    ctx.pathfinding;
+    ctx.pathfinding.resize(1);
+    int depth = 0;
+
     while (!reachable.empty()) {
         auto reachableIterator = reachable.begin();
         Coord coord = reachableIterator->second->coord;
@@ -123,6 +129,7 @@ InputDTO FindPathToFood(GameState* gameState, GameSettigs settings) {
                 }
                 InputDTO rrr;
                 rrr.inputs = { { res, SystemCommand::NONE } };
+                rrr.ctx = ctx;
                 return rrr;
             }
 
@@ -136,6 +143,16 @@ InputDTO FindPathToFood(GameState* gameState, GameSettigs settings) {
         }
         explored[coord] = nullptr;
         reachable.extract(coord);
+
+
+        for (auto it : reachable) {
+            ctx.pathfinding[depth].push_back({ it.first, DebugMark::REACHABLE });
+        }
+        for (auto it : explored) {
+            ctx.pathfinding[depth].push_back({ it.first, DebugMark::EXPLORED });
+        }
+        ctx.pathfinding.push_back({});
+        depth++;
     }
 
     InputDTO rrr;

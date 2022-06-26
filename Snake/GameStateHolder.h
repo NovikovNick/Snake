@@ -28,6 +28,7 @@ public:
     inline int GetFrame() const { return _frame; }
     inline int GetCapacity() const { return _capacity; }
     inline int GetPlayerCount() const { return _playerCount; }
+    inline int GetOffset() const { return _frameOffset; }
 
     GameState* GetState(int frame);
     Input GetInput(int frame, int index);
