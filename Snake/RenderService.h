@@ -19,11 +19,29 @@ class RenderService {
 public:
     RenderService(HWND hwnd);
     ~RenderService();
-    void render(GameState* gameState, GameStateHolder* gameStateHolder, GameSettigs settings);
-    void render(std::vector<DebugItem> debugCtx);
+
+    void renderSelf(GameState* gameState, int index, GameSettigs settings);
+    void renderEnemy(GameState* gameState, int index, GameSettigs settings);
+    void renderPlayer(GameState* gameState, int index, GameSettigs settings, ID2D1SolidColorBrush* _pBrush);
+
+    void renderBoard(GameSettigs settings);
+
+    void renderFood(GameState* gameState, GameSettigs settings);
+
+    void renderSelfInputs(GameState* gameState, GameStateHolder* holder, GameSettigs settings);
+    void renderEnemyInputs(GameState* gameState, GameStateHolder* holder, GameSettigs settings);
+    
+    void renderWinState();
+    void renderLoseState();
+    void renderPauseState();
+
+    void renderDebugAI(std::vector<DebugItem> debugCtx);
 
     void BeginDraw();
     void EndDraw();
+
+    float size = 40.0f;
+
 private:
 
     HWND _hwnd;

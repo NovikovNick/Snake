@@ -101,6 +101,7 @@ void GameLoopService::_startGameLoop() {
 
 	std::vector<DebugContext> debugCtx;
 	debugCtx.resize(32);
+	int pauseFrame = 0;
 
     do {
 		// log("Start loop");
@@ -112,6 +113,7 @@ void GameLoopService::_startGameLoop() {
 			switch (inputs[0].front().command) {
 			case SystemCommand::PAUSE:
 				paused = !paused;
+				pauseFrame = 0;
 				holder.ClearOffset();
 				break;
 
@@ -121,6 +123,15 @@ void GameLoopService::_startGameLoop() {
 
 			case SystemCommand::STEP_BACKWARD:
 				holder.StepBackward();
+				break;
+			case SystemCommand::AI_STEP_BACKWARD:
+				pauseFrame--;
+				if (pauseFrame < 0) {
+					pauseFrame = 0;
+				}
+				break;
+			case SystemCommand::AI_STEP_FORWARD:
+				pauseFrame++;
 				break;
 			default:
 				break;
@@ -141,13 +152,22 @@ void GameLoopService::_startGameLoop() {
 			nextGameState = holder.GetStateWithOffset();
 			DebugContext ctx = debugCtx[(holder.GetFrame() + holder.GetOffset()) % holder.GetCapacity()];
 
-			for (auto it : ctx.pathfinding) {
-				_renderService->BeginDraw();
-				_renderService->render(nextGameState, &holder, settings);
-				_renderService->render(it);
-				_renderService->EndDraw();
-				//std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(1));
+			if (pauseFrame >= ctx.pathfinding.size()) {
+				pauseFrame = ctx.pathfinding.size() - 1 ;
 			}
+			
+			auto it = ctx.pathfinding[pauseFrame];
+			
+			_renderService->BeginDraw();
+			_renderService->renderBoard(settings);
+			
+			_renderService->renderDebugAI(it);
+			_renderService->renderSelfInputs(nextGameState, &holder, settings);
+			_renderService->renderEnemyInputs(nextGameState, &holder, settings);
+
+			_renderService->renderSelf(nextGameState, 0, settings);
+			_renderService->renderEnemy(nextGameState, 1, settings);
+			_renderService->renderFood(nextGameState, settings);
 
 		} else {
 
@@ -161,15 +181,27 @@ void GameLoopService::_startGameLoop() {
 			_gameLogicService->check(nextGameState, settings);
 
 			_renderService->BeginDraw();
-			_renderService->render(nextGameState, &holder, settings);
-			_renderService->EndDraw();
+			_renderService->renderBoard(settings);
+			_renderService->renderSelf(nextGameState, 0, settings);
+			_renderService->renderEnemy(nextGameState, 1, settings);
+			_renderService->renderFood(nextGameState, settings);
+
+			
 		}
+
+		if (nextGameState->gamePhase == WIN) {
+			_renderService->renderWinState();
+		} else if (nextGameState->gamePhase == LOSE) {
+			_renderService->renderLoseState();
+		}
+		_renderService->EndDraw();
 
 		progress = (nextGameState->score[0] / (settings.scoreToWin / 100.0f)) / 100.0f;
 		delay = paused ? 15 : settings.maxSpeedMs + (settings.initialSpeedMs - settings.maxSpeedMs) * (1 - progress);
 
 		log("End loop");
 
+		
 		std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(delay));
 
     } while (_running);

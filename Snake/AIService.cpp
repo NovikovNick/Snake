@@ -125,7 +125,9 @@ InputDTO FindPathToFood(GameState* gameState, GameSettigs settings) {
             if (candidate == to) {
                 Node* node = new Node(candidate, directions[i], reachableIterator->second);
                 for (auto it = node; it->prev != nullptr; it = it->prev) {
+                    
                     res = it->toPrev;
+                    ctx.pathfinding[depth].push_back({ it->coord, DebugMark::PATH });
                 }
                 InputDTO rrr;
                 rrr.inputs = { { res, SystemCommand::NONE } };

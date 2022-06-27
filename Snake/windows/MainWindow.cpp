@@ -31,6 +31,12 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         case VK_F2:
             _inputService->addInput({ Direction::NONE, SystemCommand::STEP_FORWARD });
             break;
+        case VK_F3:
+            _inputService->addInput({ Direction::NONE, SystemCommand::AI_STEP_BACKWARD });
+            break;
+        case VK_F4:
+            _inputService->addInput({ Direction::NONE, SystemCommand::AI_STEP_FORWARD });
+            break;
         case VK_ESCAPE:
             PostQuitMessage(0);
             return 0;

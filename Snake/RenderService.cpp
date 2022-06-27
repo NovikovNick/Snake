@@ -54,9 +54,39 @@ RenderService::~RenderService() {
     SafeRelease(&_pD2DFactory);
 }
 
-void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSettigs settings) {
+void RenderService::renderEnemy(GameState* gameState, int index, GameSettigs settings) {
+    renderPlayer(gameState, index, settings, _pRedBrush);
+}
 
-    float size = 40.0f;
+void RenderService::renderSelf(
+    GameState* gameState, 
+    int index, 
+    GameSettigs settings) {
+
+    renderPlayer(gameState, index, settings, _pGreenBrush);
+}
+
+void RenderService::renderPlayer(
+    GameState* gameState, 
+    int index,
+    GameSettigs settings,
+    ID2D1SolidColorBrush* _pBrush) {
+
+    int margin = 5;
+
+    for (auto it = gameState->snake_head[index]; it != NULL; it = it->next) {
+        _pRT->FillRectangle(
+            D2D1::RectF(
+                size * (it->coord.x + 1) - settings.snakeSize - margin,
+                size * (it->coord.y + 1) - settings.snakeSize - margin,
+                margin + size * it->coord.x + settings.snakeSize,
+                margin + size * it->coord.y + settings.snakeSize
+            ),
+            _pBrush);
+    }
+}
+
+void RenderService::renderBoard(GameSettigs settings) {
     
     for (size_t x = settings.leftBoundaries; x < settings.rightBoundaries; x++)
     {
@@ -72,94 +102,9 @@ void RenderService::render(GameState* gameState, GameStateHolder* holder, GameSe
                 _pGrayBrush);
         }
     }
-
-    for (auto it = gameState->snake_head[0]; it != NULL; it = it->next) {
-        _pRT->FillRectangle(
-            D2D1::RectF(
-                size * (it->coord.x + 1) - settings.snakeSize,
-                size * (it->coord.y + 1) - settings.snakeSize,
-                size * it->coord.x + settings.snakeSize,
-                size * it->coord.y + settings.snakeSize
-            ),
-            _pGreenBrush);
-    }
-
-    for (auto it = gameState->snake_head[1]; it != NULL; it = it->next) {
-        _pRT->FillRectangle(
-            D2D1::RectF(
-                size * (it->coord.x + 1) - settings.snakeSize,
-                size * (it->coord.y + 1) - settings.snakeSize,
-                size * it->coord.x + settings.snakeSize,
-                size * it->coord.y + settings.snakeSize
-            ),
-            _pRedBrush);
-    }
-
-
-    int frame = holder->GetFrame();
-    int capacity = settings.rightBoundaries - settings.leftBoundaries;
-    for (int i = 0; i < capacity && frame >= 0; i++) {
-
-        DrawInput(
-            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
-            size * 0.2 + settings.bottomBoundaries * size,
-            holder->GetInput(frame, 0).direction,
-            size * 0.7,
-            frame == gameState->frame,
-            _pGreenBrush);
-
-        frame--;
-    }
-
-    frame = holder->GetFrame();
-    for (int i = 0; i < capacity && frame >= 0; i++) {
-
-        DrawInput(
-            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
-            size * 0.2 + size,
-            holder->GetInput(frame, 1).direction,
-            size * 0.7,
-            frame == gameState->frame,
-            _pRedBrush);
-
-        frame--;
-    }
-
-    Coord* food = &(gameState->food);
-    if (food != NULL) {
-
-        _pRT->FillRectangle(
-            D2D1::RectF(
-                size * (food->x + 1) - settings.foodSize,
-                size * (food->y + 1) - settings.foodSize,
-                size * food->x + settings.foodSize,
-                size * food->y + settings.foodSize
-            ),
-            _pLightSlateGrayBrush);
-    }
-
-
-    if (gameState->gamePhase == WIN) {
-
-        _pRT->FillRectangle(D2D1::RectF(size, _rc.bottom, 0, 0), _pGreenBrush);
-        _pRT->FillRectangle(D2D1::RectF(_rc.right, size, 0, 0), _pGreenBrush);
-        _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, _rc.right - size, 0), _pGreenBrush);
-        _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, 0, _rc.bottom - size), _pGreenBrush);
-
-    } else if (gameState->gamePhase == LOSE) {
-
-        _pRT->FillRectangle(D2D1::RectF(size, _rc.bottom, 0, 0), _pRedBrush);
-        _pRT->FillRectangle(D2D1::RectF(_rc.right, size, 0, 0), _pRedBrush);
-        _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, _rc.right - size, 0), _pRedBrush);
-        _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, 0, _rc.bottom - size), _pRedBrush);
-
-    }
 }
 
-void RenderService::render(std::vector<DebugItem> debugCtx) {
-    
-    float size = 40.0f;
-
+void RenderService::renderDebugAI(std::vector<DebugItem> debugCtx) {
     for (DebugItem item : debugCtx) {
         
         auto rect = D2D1::RectF(
@@ -176,11 +121,73 @@ void RenderService::render(std::vector<DebugItem> debugCtx) {
         case DebugMark::REACHABLE:
             _pRT->FillRectangle(rect, _pLightSlateGrayBrush);
             break;
-
+        case DebugMark::PATH:
+            _pRT->FillRectangle(rect, _pLightSlateGrayBrush);
+            break;
         default:
             break;
         }
-        
+    }
+}
+
+void RenderService::renderFood(GameState* gameState, GameSettigs settings) {
+    
+    Coord* food = &(gameState->food);
+    if (food != NULL) {
+
+        _pRT->FillRectangle(
+            D2D1::RectF(
+                size * (food->x + 1) - settings.foodSize,
+                size * (food->y + 1) - settings.foodSize,
+                size * food->x + settings.foodSize,
+                size * food->y + settings.foodSize
+            ),
+            _pLightSlateGrayBrush);
+    }
+}
+
+void RenderService::renderSelfInputs(
+    GameState* gameState,
+    GameStateHolder* holder,
+    GameSettigs settings) {
+
+
+    int frame = holder->GetFrame();
+    int capacity = settings.rightBoundaries - settings.leftBoundaries;
+    for (int i = 0; i < capacity && frame >= 0; i++) {
+
+        DrawInput(
+            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
+            size * 0.2 + settings.bottomBoundaries * size,
+            holder->GetInput(frame, 0).direction,
+            size * 0.7,
+            frame == gameState->frame,
+            _pGreenBrush);
+
+        frame--;
+    }
+}
+
+void RenderService::renderEnemyInputs(
+    GameState* gameState,
+    GameStateHolder* holder,
+    GameSettigs settings) {
+
+    int frame = holder->GetFrame();
+    int capacity = settings.rightBoundaries - settings.leftBoundaries;
+
+    frame = holder->GetFrame();
+    for (int i = 0; i < capacity && frame >= 0; i++) {
+
+        DrawInput(
+            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
+            size * 0.2 + size,
+            holder->GetInput(frame, 1).direction,
+            size * 0.7,
+            frame == gameState->frame,
+            _pRedBrush);
+
+        frame--;
     }
 }
 
@@ -191,6 +198,27 @@ void RenderService::BeginDraw() {
 
 void RenderService::EndDraw() {
     _pRT->EndDraw();
+}
+
+void RenderService::renderWinState() {
+    _pRT->FillRectangle(D2D1::RectF(size, _rc.bottom, 0, 0), _pGreenBrush);
+    _pRT->FillRectangle(D2D1::RectF(_rc.right, size, 0, 0), _pGreenBrush);
+    _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, _rc.right - size, 0), _pGreenBrush);
+    _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, 0, _rc.bottom - size), _pGreenBrush);
+}
+
+void RenderService::renderLoseState() {
+    _pRT->FillRectangle(D2D1::RectF(size, _rc.bottom, 0, 0), _pRedBrush);
+    _pRT->FillRectangle(D2D1::RectF(_rc.right, size, 0, 0), _pRedBrush);
+    _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, _rc.right - size, 0), _pRedBrush);
+    _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, 0, _rc.bottom - size), _pRedBrush);
+}
+
+void RenderService::renderPauseState() {
+    _pRT->FillRectangle(D2D1::RectF(size, _rc.bottom, 0, 0), _pGrayBrush);
+    _pRT->FillRectangle(D2D1::RectF(_rc.right, size, 0, 0), _pGrayBrush);
+    _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, _rc.right - size, 0), _pGrayBrush);
+    _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, 0, _rc.bottom - size), _pGrayBrush);
 }
 
 void RenderService::DrawInput(

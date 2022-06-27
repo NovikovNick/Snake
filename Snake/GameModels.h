@@ -14,7 +14,10 @@ enum class Direction {
 };
 
 enum class SystemCommand {
-    PAUSE, STEP_FORWARD, STEP_BACKWARD, NONE
+    PAUSE,
+    STEP_FORWARD, STEP_BACKWARD,
+    AI_STEP_FORWARD, AI_STEP_BACKWARD,
+    NONE
 };
 
 struct Input {
@@ -47,7 +50,7 @@ struct Coord {
 };
 
 enum class DebugMark {
-    REACHABLE, EXPLORED, NONE
+    REACHABLE, EXPLORED, PATH, NONE
 };
 
 struct DebugItem {
