@@ -1,4 +1,4 @@
-# priority queue to improve AI
+# add check previous finded path
 # fix unexpected game state. It appears right after consuming food. Maybe it is AI issue. Need a debug visualisation to solve it.
 # add ability to increase speed for input with same direction
 # backward game state and insert new inputs

@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <unordered_map>
+#include <queue>
 
 namespace snake {
 
@@ -87,6 +88,15 @@ Direction directions[4] = {
         Direction::UP
 };
 
+struct CoordCompare
+{
+    Coord point;
+
+    bool operator()(const Coord& a, const Coord& b)
+    {
+        return std::abs(point.x - a.x) + std::abs(point.y - a.y) > std::abs(point.x - b.x) + std::abs(point.y - b.y);
+    }
+};
 
 InputDTO FindPathToFood(GameState* gameState, GameSettigs settings) {
 
@@ -98,6 +108,10 @@ InputDTO FindPathToFood(GameState* gameState, GameSettigs settings) {
     
     std::unordered_map<Coord, Node*, hash_coord> reachable = { { from, new Node(from) } };
     std::unordered_map<Coord, Node*, hash_coord> explored;
+
+    CoordCompare comp({ to });
+    std::priority_queue<Coord, std::vector<Coord>, CoordCompare> reachableQueue(comp);
+    reachableQueue.push(from);
 
     for (auto it = player; it != nullptr; it = it->next) {
         explored[it->coord] = nullptr;
@@ -116,14 +130,15 @@ InputDTO FindPathToFood(GameState* gameState, GameSettigs settings) {
     int depth = 0;
 
     while (!reachable.empty()) {
-        auto reachableIterator = reachable.begin();
-        Coord coord = reachableIterator->second->coord;
+        Coord coord = reachableQueue.top();
+        reachableQueue.pop();
+        Node* second = reachable[coord];
 
         for (size_t i = 0; i < 4; i++) {
             Coord candidate = coord + directions[i];
             
             if (candidate == to) {
-                Node* node = new Node(candidate, directions[i], reachableIterator->second);
+                Node* node = new Node(candidate, directions[i], second);
                 for (auto it = node; it->prev != nullptr; it = it->prev) {
                     
                     res = it->toPrev;
@@ -140,12 +155,12 @@ InputDTO FindPathToFood(GameState* gameState, GameSettigs settings) {
             bool isNotOutOfBorder = !isBorderCollision(candidate, settings);
 
             if (isNotInReachable && isNotInExplored && isNotOutOfBorder) {
-                reachable[candidate] = new Node(candidate, directions[i], reachableIterator->second);
+                reachable[candidate] = new Node(candidate, directions[i], second);
+                reachableQueue.push(candidate);
             }
         }
         explored[coord] = nullptr;
         reachable.extract(coord);
-
 
         for (auto it : reachable) {
             ctx.pathfinding[depth].push_back({ it.first, DebugMark::REACHABLE });
