@@ -166,9 +166,9 @@ GameState* GameStateHolder::ApplyForces(std::vector<Input> inputs[2], GameSettig
 			collidedIndex = i;
 		}
 	}
-
+	 
 	if (collidedIndex > -1) {
-		nextGameState->score[nextIndex]++;
+		nextGameState->score[collidedIndex]++;
 		nextGameState->food = generateNewFood(nextGameState, settings);
 	}
 	

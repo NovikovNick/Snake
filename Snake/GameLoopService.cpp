@@ -78,10 +78,6 @@ void GameLoopService::_startGameLoop() {
 
 	GameSettigs settings = {};
 
-	SnakePart* snakeHead = new SnakePart();
-
-	InitPlayer(snakeHead, settings);
-
 	GameState* gameState = new GameState(0);
 	gameState->snake_head[0] = new SnakePart();
 	gameState->snake_head[1] = new SnakePart();
@@ -150,18 +146,26 @@ void GameLoopService::_startGameLoop() {
 		if (paused) {
 		
 			nextGameState = holder.GetStateWithOffset();
-			DebugContext ctx = debugCtx[(holder.GetFrame() + holder.GetOffset()) % holder.GetCapacity()];
+			int index = (holder.GetFrame() + holder.GetOffset()) % holder.GetCapacity();
+			DebugContext ctx = debugCtx[index];
 
-			if (pauseFrame >= ctx.pathfinding.size()) {
-				pauseFrame = ctx.pathfinding.size() - 1 ;
-			}
 			
-			auto it = ctx.pathfinding[pauseFrame];
+			
 			
 			_renderService->BeginDraw();
 			_renderService->renderBoard(settings);
+
+			if (ctx.pathfinding.size() > 0) {
+
+				if (pauseFrame >= ctx.pathfinding.size()) {
+					pauseFrame = ctx.pathfinding.size() - 1;
+				}
+
+				auto it = ctx.pathfinding[pauseFrame];
+				_renderService->renderDebugAI(it);
+			}
 			
-			_renderService->renderDebugAI(it);
+
 			_renderService->renderSelfInputs(nextGameState, &holder, settings);
 			_renderService->renderEnemyInputs(nextGameState, &holder, settings);
 

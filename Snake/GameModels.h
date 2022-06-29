@@ -172,7 +172,7 @@ struct GameState {
 
 
 struct GameSettigs {
-    int scoreToWin = 20;
+    int scoreToWin = 50;
     int initialSpeedMs = 100;
     int maxSpeedMs = 50;
     
