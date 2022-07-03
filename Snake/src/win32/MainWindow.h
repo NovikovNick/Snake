@@ -2,8 +2,8 @@
 
 #include <deque>
 
-#include "../GameModels.h"
-#include "../InputService.h"
+#include "../service/GameModels.h"
+#include "../service/InputService.h"
 
 namespace snake {
 

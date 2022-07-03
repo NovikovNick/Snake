@@ -1,4 +1,4 @@
-#include "AIService.h"
+#include "../AIService.h"
 
 #include <stdlib.h>
 #include <unordered_map>

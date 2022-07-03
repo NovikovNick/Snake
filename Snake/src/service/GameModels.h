@@ -1,7 +1,9 @@
 #ifndef SNAKE_SNAKE_GAME_MODEL_H_
 #define SNAKE_SNAKE_GAME_MODEL_H_
-#include "util/log.h"
+
 #include <vector>
+
+#include "../util/log.h"
 
 namespace snake {
 
