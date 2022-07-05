@@ -22,10 +22,10 @@ add_executable (Snake WIN32  "Snake/main.cpp" ${SRC_FILES})
 
 # unit tests
 
-add_executable(test_executable "Snake/test/AIService_test.cpp" ${SRC_FILES})
-target_include_directories(test_executable PRIVATE Boost::unit_test_framework)
-    
+add_executable(CoordOperationTest "Snake/test/CoordOperationTest.cpp" ${SRC_FILES})
+target_include_directories(CoordOperationTest PRIVATE Boost::unit_test_framework)
+add_test(NAME test_coord_operations COMMAND CoordOperationTest)
+
+
 message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
 message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
-
-add_test(NAME test1 COMMAND test_executable)
