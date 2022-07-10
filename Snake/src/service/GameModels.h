@@ -4,6 +4,9 @@
 #include <vector>
 
 #include "../util/log.h"
+#include <map>
+#include <iostream>
+#include <queue>
 
 namespace snake {
 
@@ -195,6 +198,62 @@ struct GameSettigs {
 
     int foodSize = 5;
     int snakeSize = 1;
+};
+
+
+struct Snake {
+
+    Snake(int id) : id_(id) { std::cout << "direct constructor " << std::to_string(id_) << " : " << this << std::endl; }
+    Snake(Snake const& src) : id_(src.id_) { std::cout << "copy constructor " << std::to_string(id_) << " : " << this << std::endl; }
+    Snake(Snake&&) noexcept { std::cout << "move constructor " << this << std::endl;}
+    ~Snake() noexcept { std::cout << "destructor " << std::to_string(id_) << " : " << this << std::endl; }
+
+    Snake move(const Direction& dir = Direction::NONE);
+
+    Snake add(Coord coord, Direction dir);
+
+    Snake moveAndGain(Direction direction);
+
+    bool isInBound(Coord leftTop, Coord rightBottom);
+
+    bool isCollide(Coord coord);
+
+    int getId() const { return id_; };
+
+private:
+    std::map<Coord, Direction> parts_;
+    int id_;
+};
+
+
+template <typename T>
+struct GameStateBuffer {
+
+    GameStateBuffer(int size) : size_(size) {
+        data_.resize(size);
+    }
+
+    void add(T* item) noexcept {
+        cursor_ = (cursor_ + 1) % size_;
+        data_[cursor_] = std::unique_ptr<T>(item);
+    }
+
+    const T& head() const noexcept {
+        return *(data_[cursor_].get());
+    }
+
+    const T& operator[](const int& index) const noexcept {
+        return *(data_[index].get());
+    }
+
+    int getSize() const noexcept {
+        return cursor_ < size_ ? cursor_ + 1: size_;
+    }
+
+private:
+    int cursor_ = -1;
+    int size_;
+    std::vector<std::unique_ptr<T>> data_;
 };
 
 } // namespace snake
