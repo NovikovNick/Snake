@@ -4,9 +4,9 @@
 #include <vector>
 
 #include "../util/log.h"
-#include <map>
 #include <iostream>
-#include <queue>
+#include <list>
+#include <unordered_map>
 
 namespace snake {
 
@@ -15,7 +15,7 @@ enum GamePhase {
 };
 
 enum class Direction {
-    UP, DOWN, LEFT, RIGHT, NONE
+    UP, DOWN, LEFT, RIGHT, NONE,
 };
 
 enum class SystemCommand {
@@ -52,6 +52,21 @@ struct Coord {
    bool operator == (const Coord& other) const {
        return x == other.x && y == other.y;
    }
+};
+
+struct hash_coord {
+    size_t operator()(const snake::Coord& p) const
+    {
+        auto hash1 = std::hash<int>{}(p.x);
+        auto hash2 = std::hash<int>{}(p.y);
+
+        if (hash1 != hash2) {
+            return hash1 ^ hash2;
+        }
+
+        // If hash1 == hash2, their XOR is zero.
+        return hash1;
+    }
 };
 
 enum class DebugMark {
@@ -203,28 +218,43 @@ struct GameSettigs {
 
 struct Snake {
 
-    Snake(int id) : id_(id) { std::cout << "direct constructor " << std::to_string(id_) << " : " << this << std::endl; }
-    Snake(Snake const& src) : id_(src.id_) { std::cout << "copy constructor " << std::to_string(id_) << " : " << this << std::endl; }
+    Snake(std::vector<std::pair<Coord, Direction>> list) : list_(list) {
+        for (auto const& item : list_) {
+            map_[item.first] = item.second;
+        }
+        std::cout << "Snake direct constructor " << this << std::endl; 
+    }
+    Snake(Snake const& src) : list_(src.list_) { std::cout << "copy constructor " << this << std::endl; }
     Snake(Snake&&) noexcept { std::cout << "move constructor " << this << std::endl;}
-    ~Snake() noexcept { std::cout << "destructor " << std::to_string(id_) << " : " << this << std::endl; }
+    ~Snake() noexcept { std::cout << "destructor " << " : " << this << std::endl; }
 
-    Snake move(const Direction& dir = Direction::NONE);
-
-    Snake add(Coord coord, Direction dir);
-
-    Snake moveAndGain(Direction direction);
+    Snake* move(const Direction& dir = Direction::NONE, 
+                const bool& gain = false) const noexcept;
 
     bool isInBound(Coord leftTop, Coord rightBottom);
 
     bool isCollide(Coord coord);
 
-    int getId() const { return id_; };
+    const std::vector<std::pair<Coord, Direction>>& getParts() const { return list_; };
 
 private:
-    std::map<Coord, Direction> parts_;
-    int id_;
+    std::vector<std::pair<Coord, Direction>> list_;
+    std::unordered_map<Coord, Direction, hash_coord> map_;
 };
 
+struct GameStateB {
+
+private:
+    int frame_ = 0;
+    GamePhase gamePhase_ = IN_PROCESS;
+
+    std::vector<std::unique_ptr<Snake>> players_;
+    std::vector<Input> input_;
+    std::vector<int> scores_;
+    Coord food_;
+
+    DebugContext ctx_;
+};
 
 template <typename T>
 struct GameStateBuffer {

@@ -1,12 +1,49 @@
 #include "../GameModels.h"
 
+
+
 namespace snake {
 
-Snake Snake::move(const Direction& dir) {
+namespace {
+	Direction opporite(const Direction& dir) {
+		switch (dir) {
+		case Direction::LEFT:
+			return Direction::RIGHT;
+		case Direction::RIGHT:
+			return Direction::LEFT;
+		case Direction::UP:
+			return Direction::DOWN;
+		case Direction::DOWN:
+			return Direction::UP;
+		default:
+			return Direction::NONE;
+		}
+	}
+}
 
-	std::cout << "Snake [" << std::to_string(id_) << "]  move" << std::endl;
+Snake* Snake::move(const Direction& dir, const bool& gain) const noexcept {
 
-	return Snake(id_ + 1);
+	std::cout << "Snake [" << this << "]  move" << std::endl;
+
+	std::vector<std::pair<Coord, Direction>> srcParts = getParts();
+	std::vector<std::pair<Coord, Direction>> dstParts;
+
+	Direction previous = (dir == Direction::NONE || dir == opporite(srcParts[0].second)) 
+		? srcParts[0].second 
+		: dir;
+
+	dstParts.push_back(std::make_pair(srcParts[0].first + previous, previous));
+
+	for (size_t i = 1; i < srcParts.size(); i++) {
+		dstParts.push_back(std::make_pair(srcParts[i].first + srcParts[i].second, previous));
+		previous = srcParts[i].second;
+	}
+
+	if (gain) {
+		dstParts.push_back(std::make_pair(srcParts[srcParts.size() - 1].first, srcParts[srcParts.size() - 1].second));
+	}
+
+	return new Snake(dstParts);
 }
 
 } // namespace snake
