@@ -12,7 +12,7 @@ BOOST_AUTO_TEST_CASE(testSnakeMoveWithoutArgs) {
         std::make_pair(Coord{ 3, 1 }, Direction::RIGHT),
         std::make_pair(Coord{ 2, 1 }, Direction::RIGHT),
         std::make_pair(Coord{ 1, 1 }, Direction::RIGHT)
-    });
+        });
 
     // act
     std::unique_ptr<Snake> res(snake.move());

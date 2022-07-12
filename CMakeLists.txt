@@ -26,14 +26,21 @@ add_executable(CoordOperationTest "Snake/test/CoordOperationTest.cpp" ${SRC_FILE
 target_include_directories(CoordOperationTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_coord_operations COMMAND CoordOperationTest)
 
-add_executable(SnakeTest "Snake/test/SnakeTest.cpp" ${SRC_FILES})
-target_include_directories(SnakeTest PRIVATE Boost::unit_test_framework)
-add_test(NAME test_snake_invariants COMMAND SnakeTest)
+add_executable(SnakeMoveTest "Snake/test/SnakeMoveTest.cpp" ${SRC_FILES})
+target_include_directories(SnakeMoveTest PRIVATE Boost::unit_test_framework)
+add_test(NAME test_SnakeMove COMMAND SnakeMoveTest)
 
 add_executable(GameStateBufferTest "Snake/test/GameStateBufferTest.cpp" ${SRC_FILES})
 target_include_directories(GameStateBufferTest PRIVATE Boost::unit_test_framework)
-add_test(NAME test_GameStateBuffer_invariants COMMAND GameStateBufferTest)
+add_test(NAME test_GameStateBuffer COMMAND GameStateBufferTest)
 
+add_executable(SnakeIsInBoundTest "Snake/test/SnakeIsInBoundTest.cpp" ${SRC_FILES})
+target_include_directories(SnakeIsInBoundTest PRIVATE Boost::unit_test_framework)
+add_test(NAME test_SnakeIsInBound COMMAND SnakeIsInBoundTest)
+
+add_executable(SnakeIsCollideTest "Snake/test/SnakeIsCollideTest.cpp" ${SRC_FILES})
+target_include_directories(SnakeIsCollideTest PRIVATE Boost::unit_test_framework)
+add_test(NAME test_SnakeIsCollide COMMAND SnakeIsCollideTest)
 
 message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
 message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")

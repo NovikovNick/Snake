@@ -1,24 +1,22 @@
 #include "../GameModels.h"
 
-
-
 namespace snake {
 
 namespace {
-	Direction opporite(const Direction& dir) {
-		switch (dir) {
-		case Direction::LEFT:
-			return Direction::RIGHT;
-		case Direction::RIGHT:
-			return Direction::LEFT;
-		case Direction::UP:
-			return Direction::DOWN;
-		case Direction::DOWN:
-			return Direction::UP;
-		default:
-			return Direction::NONE;
-		}
+Direction opporite(const Direction& dir) {
+	switch (dir) {
+	case Direction::LEFT:
+		return Direction::RIGHT;
+	case Direction::RIGHT:
+		return Direction::LEFT;
+	case Direction::UP:
+		return Direction::DOWN;
+	case Direction::DOWN:
+		return Direction::UP;
+	default:
+		return Direction::NONE;
 	}
+}
 }
 
 Snake* Snake::move(const Direction& dir, const bool& gain) const noexcept {
@@ -44,6 +42,17 @@ Snake* Snake::move(const Direction& dir, const bool& gain) const noexcept {
 	}
 
 	return new Snake(dstParts);
+}
+
+bool Snake::isInBound(const Coord& leftTop, const Coord& rightBottom) const noexcept {
+	return leftTop.x < leftTop_.x
+		&& leftTop.y < leftTop_.y
+		&& rightBottom.x > rightBottom_.x
+		&& rightBottom.y > rightBottom_.y;
+}
+
+bool Snake::isCollide(const Coord& coord) const noexcept {
+	return map_.find(coord) != map_.end();
 }
 
 } // namespace snake

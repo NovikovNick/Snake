@@ -218,27 +218,40 @@ struct GameSettigs {
 
 struct Snake {
 
-    Snake(std::vector<std::pair<Coord, Direction>> list) : list_(list) {
+    Snake(std::vector<std::pair<Coord, Direction>> list) 
+        : list_(list), 
+        leftTop_(list_[0].first), 
+        rightBottom_(list_[0].first)  {
+
         for (auto const& item : list_) {
+
+            leftTop_.x = leftTop_.x < item.first.x ? leftTop_.x : item.first.x;
+            leftTop_.y = leftTop_.y < item.first.y ? leftTop_.y : item.first.y;
+
+            rightBottom_.x = rightBottom_.x > item.first.x ? rightBottom_.x : item.first.x;
+            rightBottom_.y = rightBottom_.y > item.first.y ? rightBottom_.y : item.first.y;
+
             map_[item.first] = item.second;
         }
         std::cout << "Snake direct constructor " << this << std::endl; 
     }
-    Snake(Snake const& src) : list_(src.list_) { std::cout << "copy constructor " << this << std::endl; }
+    Snake(Snake const& src) : Snake(src.list_) { std::cout << "copy constructor " << this << std::endl; }
     Snake(Snake&&) noexcept { std::cout << "move constructor " << this << std::endl;}
     ~Snake() noexcept { std::cout << "destructor " << " : " << this << std::endl; }
 
     Snake* move(const Direction& dir = Direction::NONE, 
                 const bool& gain = false) const noexcept;
 
-    bool isInBound(Coord leftTop, Coord rightBottom);
+    bool isInBound(const Coord& leftTop, const Coord& rightBottom) const noexcept;
 
-    bool isCollide(Coord coord);
+    bool isCollide(const Coord& coord) const noexcept;
 
     const std::vector<std::pair<Coord, Direction>>& getParts() const { return list_; };
 
 private:
     std::vector<std::pair<Coord, Direction>> list_;
+    Coord leftTop_;
+    Coord rightBottom_;
     std::unordered_map<Coord, Direction, hash_coord> map_;
 };
 
