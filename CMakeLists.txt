@@ -42,5 +42,9 @@ add_executable(SnakeIsCollideTest "Snake/test/SnakeIsCollideTest.cpp" ${SRC_FILE
 target_include_directories(SnakeIsCollideTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_SnakeIsCollide COMMAND SnakeIsCollideTest)
 
+add_executable(PathfinderTest "Snake/test/PathfinderTest.cpp" ${SRC_FILES})
+target_include_directories(PathfinderTest PRIVATE Boost::unit_test_framework)
+add_test(NAME test_Pathfinder COMMAND PathfinderTest)
+
 message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
 message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")

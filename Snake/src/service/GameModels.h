@@ -49,6 +49,21 @@ struct Coord {
        }
    }
 
+   Coord operator - (const Direction& dir) const {
+       switch (dir) {
+       case Direction::LEFT:
+           return { x + 1, y };
+       case Direction::RIGHT:
+           return { x - 1, y };
+       case Direction::UP:
+           return { x, y + 1 };
+       case Direction::DOWN:
+           return { x, y - 1 };
+       default:
+           return { x, y };
+       }
+   }
+
    bool operator == (const Coord& other) const {
        return x == other.x && y == other.y;
    }
@@ -84,6 +99,11 @@ struct DebugContext {
 
 struct InputDTO {
     std::vector<Input> inputs;
+    DebugContext ctx;
+};
+
+struct Path {
+    std::vector<Direction> path;
     DebugContext ctx;
 };
 
