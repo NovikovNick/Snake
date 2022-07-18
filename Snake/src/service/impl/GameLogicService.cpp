@@ -7,35 +7,10 @@ namespace snake {
 
 namespace {
 
-bool isBorderCollision(SnakePart* snakeHead, GameSettigs& settings) {
+bool isPlayerCollision(const Snake& p1, const Snake& p2) {
 
-	if (snakeHead->coord.x <= settings.leftBoundaries - 1
-		|| snakeHead->coord.x >= settings.rightBoundaries
-		|| snakeHead->coord.y <= settings.topBoundaries - 1
-		|| snakeHead->coord.y >= settings.bottomBoundaries) {
-		return true; // more lines for debug :)
-	}
-	return false;
-}
-
-
-bool isSelfCollision(SnakePart* snakeHead, GameSettigs& settings) {
-
-	SnakePart* tail = snakeHead->next;
-	for (; tail != NULL; tail = tail->next) {
-		if (tail->coord == snakeHead->coord) {
-			return true;
-		}
-	}
-	return false;
-}
-
-
-bool isPlayerCollision(SnakePart* player, SnakePart* enemy, GameSettigs& settings) {
-
-	SnakePart* tail = enemy;
-	for (; tail != NULL; tail = tail->next) {
-		if (tail->coord == player->coord) {
+	for (auto p2Part : p2.getParts()) {
+		if (p2Part.first == p1.getHeadCoord()) {
 			return true;
 		}
 	}
@@ -53,27 +28,32 @@ bool isPlayerReachedScore(int playerScore, int scoreToWin) {
 
 } // namespace
 
-void GameLogicService::check(GameState* gameState, GameSettigs settings) {
+const GamePhase& GameLogicService::check(const GameState& gameState, const GameSettigs& settings) {
 
-	if (gameState->gamePhase != IN_PROCESS) {
-		return;
+	if (gameState.getPhase()  != IN_PROCESS) {
+		return gameState.getPhase();
 	};
+	const Coord& leftTop = { settings.leftBoundaries, settings.topBoundaries };
+    const Coord& rightBottom = { settings.rightBoundaries, settings.bottomBoundaries };
+	
 
-	if (isBorderCollision(gameState->snake_head[0], settings)
-		|| isSelfCollision(gameState->snake_head[0], settings)
-		|| isPlayerCollision(gameState->snake_head[0], gameState->snake_head[1], settings)
-		|| isPlayerReachedScore(gameState->score[1], settings.scoreToWin)) {
-		gameState->gamePhase = LOSE;
-		return;
+	if (gameState.getPlayer(0).isInBound(leftTop, rightBottom)
+		|| gameState.getPlayer(0).isSelfCollide()
+		|| isPlayerCollision(gameState.getPlayer(0), gameState.getPlayer(1))
+		|| gameState.getScore(1) == settings.scoreToWin) {
+
+		return LOSE;
 	}
 
-	if (isBorderCollision(gameState->snake_head[1], settings)
-		|| isSelfCollision(gameState->snake_head[1], settings)
-		|| isPlayerCollision(gameState->snake_head[1], gameState->snake_head[0], settings)
-		|| isPlayerReachedScore(gameState->score[0], settings.scoreToWin)) {
-		gameState->gamePhase = WIN;
-		return;
+	if (gameState.getPlayer(1).isInBound(leftTop, rightBottom)
+		|| gameState.getPlayer(1).isSelfCollide()
+		|| isPlayerCollision(gameState.getPlayer(1), gameState.getPlayer(0))
+		|| gameState.getScore(0) == settings.scoreToWin) {
+		return WIN;
 	}
+
+
+	return IN_PROCESS;
 }
 
 } // namespace snake

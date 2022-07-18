@@ -147,74 +147,75 @@ struct Food {
     Coord coord;
 };
 
-struct GameState {
-    int frame = 0;
-    std::vector<SnakePart*> snake_head = { nullptr, nullptr };
+//struct GameState {
+//    int frame = 0;
+//    std::vector<SnakePart*> snake_head = { nullptr, nullptr };
+//
+//    Coord food;
+//    int score[2] = { 0, 0 };
+//    GamePhase gamePhase = IN_PROCESS;
+//    Input input[2];// = { Direction::NONE }; // todo: is it should be like list or something?
+//
+//    GameState(int frame) {
+//        this->frame = frame;
+//        log("    GameState created " + ToString());
+//    }
+//
+//    GameState(GameState& state) {
+//        frame = state.frame;
+//
+//        for (int i = 0; i < 2; i++) {
+//            snake_head[i] = state.snake_head[i];
+//            input[i] = state.input[i];
+//            score[i] = state.score[i];
+//        }
+//
+//        food = state.food;
+//        gamePhase = state.gamePhase;
+//
+//        log("    GameState copyied");
+//    }
+//
+//    ~GameState() {
+//
+//        log("    GameState start destoying " + ToString());
+//
+//        if (snake_head[0] != nullptr) {
+//            delete snake_head[0];
+//            snake_head[0] = nullptr;
+//        }
+//
+//        if (snake_head[1] != nullptr) {
+//            delete snake_head[1];
+//            snake_head[1] = nullptr;
+//        }
+//        // log("    GameState destoyed " + ToString());
+//    }
+//
+//    std::string ToString() {
+//        std::string res = "State[frame:";
+//        res += std::to_string(frame);
+//        res += "];";
+//        if (snake_head[0] != nullptr) {
+//            res += " p1=";
+//            res += snake_head[0]->ToString();
+//            res += ";";
+//        }
+//        if (snake_head[1] != nullptr) {
+//            res += " p2=";
+//            res += snake_head[1]->ToString();
+//            res += ";";
+//        }
+//        return res;
+//    }
+//};
 
-    Coord food;
-    int score[2] = { 0, 0 };
-    GamePhase gamePhase = IN_PROCESS;
-    Input input[2];// = { Direction::NONE }; // todo: is it should be like list or something?
-
-    GameState(int frame) {
-        this->frame = frame;
-        log("    GameState created " + ToString());
-    }
-
-    GameState(GameState& state) {
-        frame = state.frame;
-
-        for (int i = 0; i < 2; i++) {
-            snake_head[i] = state.snake_head[i];
-            input[i] = state.input[i];
-            score[i] = state.score[i];
-        }
-
-        food = state.food;
-        gamePhase = state.gamePhase;
-
-        log("    GameState copyied");
-    }
-
-    ~GameState() {
-
-        log("    GameState start destoying " + ToString());
-
-        if (snake_head[0] != nullptr) {
-            delete snake_head[0];
-            snake_head[0] = nullptr;
-        }
-
-        if (snake_head[1] != nullptr) {
-            delete snake_head[1];
-            snake_head[1] = nullptr;
-        }
-        // log("    GameState destoyed " + ToString());
-    }
-
-    std::string ToString() {
-        std::string res = "State[frame:";
-        res += std::to_string(frame);
-        res += "];";
-        if (snake_head[0] != nullptr) {
-            res += " p1=";
-            res += snake_head[0]->ToString();
-            res += ";";
-        }
-        if (snake_head[1] != nullptr) {
-            res += " p2=";
-            res += snake_head[1]->ToString();
-            res += ";";
-        }
-        return res;
-    }
-};
 
 
 struct GameSettigs {
     int scoreToWin = 50;
     int initialSpeedMs = 100;
-    int maxSpeedMs = 50;
+    int maxSpeedMs = 100;
     
     int leftBoundaries = 1;
     int rightBoundaries = 34;
@@ -251,6 +252,8 @@ struct Snake {
             rightBottom_.x = rightBottom_.x > item.first.x ? rightBottom_.x : item.first.x;
             rightBottom_.y = rightBottom_.y > item.first.y ? rightBottom_.y : item.first.y;
 
+            selfCollision_ = selfCollision_ || map_.find(item.first) == map_.end();
+
             map_[item.first] = item.second;
         }
         std::cout << "Snake direct constructor " << this << std::endl; 
@@ -262,9 +265,15 @@ struct Snake {
     Snake* move(const Direction& dir = Direction::NONE, 
                 const bool& gain = false) const noexcept;
 
+    void gain() noexcept;
+
     bool isInBound(const Coord& leftTop, const Coord& rightBottom) const noexcept;
 
+    const Coord& getHeadCoord() const noexcept;
+
     bool isCollide(const Coord& coord) const noexcept;
+
+    bool isSelfCollide() const noexcept { return selfCollision_; };
 
     const std::vector<std::pair<Coord, Direction>>& getParts() const { return list_; };
 
@@ -273,9 +282,31 @@ private:
     Coord leftTop_;
     Coord rightBottom_;
     std::unordered_map<Coord, Direction, hash_coord> map_;
+    bool selfCollision_ = false;
 };
 
-struct GameStateB {
+struct GameState {
+    
+    GameState(
+        const int& frame, 
+        Snake* player, 
+        Snake* enemy) : frame_(frame) {
+    
+        players_.resize(2);
+        players_[0] = std::unique_ptr<Snake>(player);
+        players_[1] = std::unique_ptr<Snake>(enemy);
+    }
+
+    const Snake& getPlayer(const int& index) const noexcept { return *(players_[index].get()); }
+
+    const Coord& getFood() const noexcept { return food_; }
+    const GamePhase& getPhase() const noexcept { return gamePhase_; }
+    const int& getScore(const int& index) const noexcept { return scores_[index]; }
+    const DebugContext& getDebugContext() const noexcept { return ctx_; }
+
+    void setFood(const Coord& food) noexcept { food_ = food; }
+    void setPhase(const GamePhase& gamePhase) noexcept { gamePhase_ = gamePhase; }
+    void setDebugContext(const DebugContext& ctx) noexcept { ctx_ = ctx; }
 
 private:
     int frame_ = 0;
@@ -283,7 +314,7 @@ private:
 
     std::vector<std::unique_ptr<Snake>> players_;
     std::vector<Input> input_;
-    std::vector<int> scores_;
+    std::vector<int> scores_ = {0, 0};
     Coord food_;
 
     DebugContext ctx_;

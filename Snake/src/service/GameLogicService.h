@@ -9,7 +9,7 @@ namespace snake {
 
     class GameLogicService {
     public:
-        void check(GameState* gameState, GameSettigs settings);
+        const GamePhase& check(const GameState& gameState, const GameSettigs& settings);
     };
 
 } // namespace snake

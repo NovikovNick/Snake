@@ -10,8 +10,6 @@
 #include <deque>
 #pragma comment(lib, "d2d1") // This line of code is equivalent to adding d2d1.lib in the additional dependency linker options.
 
-#include "GameStateHolder.h"
-
 
 namespace snake {
 
@@ -20,16 +18,16 @@ public:
     RenderService(HWND hwnd);
     ~RenderService();
 
-    void renderSelf(GameState* gameState, int index, GameSettigs settings);
-    void renderEnemy(GameState* gameState, int index, GameSettigs settings);
-    void renderPlayer(GameState* gameState, int index, GameSettigs settings, ID2D1SolidColorBrush* _pBrush);
+    void renderSelf(const GameState& gameState, const int& index, const GameSettigs& settings);
+    void renderEnemy(const GameState& gameState, const int& index, const GameSettigs& settings);
+    void renderPlayer(const GameState& gameState, const int& index, const GameSettigs& settings, ID2D1SolidColorBrush* _pBrush);
 
-    void renderBoard(GameSettigs settings);
+    void renderBoard(const GameSettigs& settings);
 
-    void renderFood(GameState* gameState, GameSettigs settings);
+    void renderFood(const Coord& food, const GameSettigs& settings);
 
-    void renderSelfInputs(GameState* gameState, GameStateHolder* holder, GameSettigs settings);
-    void renderEnemyInputs(GameState* gameState, GameStateHolder* holder, GameSettigs settings);
+    // void renderSelfInputs(GameState* gameState, GameStateHolder* holder, GameSettigs settings);
+    // void renderEnemyInputs(GameState* gameState, GameStateHolder* holder, GameSettigs settings);
     
     void renderWinState();
     void renderLoseState();
@@ -52,6 +50,7 @@ private:
     ID2D1SolidColorBrush* _pRedBrush = NULL;
     ID2D1SolidColorBrush* _pGreenBrush = NULL;
     ID2D1SolidColorBrush* _pGrayBrush = NULL;
+    ID2D1SolidColorBrush* _pCoralBrush = NULL;
     RECT _rc;
 
     void DrawInput(float x, float y, Direction dir, float size, bool focused, ID2D1SolidColorBrush* _pBrush);

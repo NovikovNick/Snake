@@ -9,7 +9,7 @@ namespace snake {
 
 class AIService {
 public:
-    InputDTO getInputs(GameState* gameState, GameSettigs settings);
+    InputDTO getInputs(const GameState& gameState, const GameSettigs& settings);
 };
 
 } // namespace snake

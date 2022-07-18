@@ -40,6 +40,7 @@ RenderService::RenderService(HWND hwnd) {
         _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Crimson), &_pRedBrush);
         _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Green), &_pGreenBrush);
         _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::LightGray), &_pGrayBrush);
+        _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Coral), &_pCoralBrush);
     }
 }
 
@@ -51,42 +52,40 @@ RenderService::~RenderService() {
     SafeRelease(&_pRedBrush);
     SafeRelease(&_pGreenBrush);
     SafeRelease(&_pGrayBrush);
+    SafeRelease(&_pCoralBrush);
     SafeRelease(&_pD2DFactory);
 }
 
-void RenderService::renderEnemy(GameState* gameState, int index, GameSettigs settings) {
+void RenderService::renderEnemy(const GameState& gameState, const int& index, const GameSettigs& settings) {
     renderPlayer(gameState, index, settings, _pRedBrush);
 }
 
-void RenderService::renderSelf(
-    GameState* gameState, 
-    int index, 
-    GameSettigs settings) {
+void RenderService::renderSelf(const GameState& gameState, const int& index, const GameSettigs& settings) {
 
     renderPlayer(gameState, index, settings, _pGreenBrush);
 }
 
 void RenderService::renderPlayer(
-    GameState* gameState, 
-    int index,
-    GameSettigs settings,
+    const GameState& gameState, 
+    const int& index, 
+    const GameSettigs& settings,
     ID2D1SolidColorBrush* _pBrush) {
 
     int margin = 5;
 
-    for (auto it = gameState->snake_head[index]; it != NULL; it = it->next) {
+    for (auto part : gameState.getPlayer(index).getParts()) {
         _pRT->FillRectangle(
             D2D1::RectF(
-                size * (it->coord.x + 1) - settings.snakeSize - margin,
-                size * (it->coord.y + 1) - settings.snakeSize - margin,
-                margin + size * it->coord.x + settings.snakeSize,
-                margin + size * it->coord.y + settings.snakeSize
+                size * (part.first.x + 1) - settings.snakeSize - margin,
+                size * (part.first.y + 1) - settings.snakeSize - margin,
+                margin + size * part.first.x + settings.snakeSize,
+                margin + size * part.first.y + settings.snakeSize
             ),
             _pBrush);
     }
 }
 
-void RenderService::renderBoard(GameSettigs settings) {
+void RenderService::renderBoard(const GameSettigs& settings) {
     
     for (size_t x = settings.leftBoundaries; x < settings.rightBoundaries; x++)
     {
@@ -105,18 +104,20 @@ void RenderService::renderBoard(GameSettigs settings) {
 }
 
 void RenderService::renderDebugAI(std::vector<DebugItem> debugCtx) {
+    int margin = 16;
+
     for (DebugItem item : debugCtx) {
-        
+
         auto rect = D2D1::RectF(
-            size * (item.coord.x + 1),
-            size * (item.coord.y + 1),
-            size * item.coord.x,
-            size * item.coord.y
+            size * (item.coord.x + 1) - margin,
+            size * (item.coord.y + 1) - margin,
+            size * item.coord.x + margin,
+            size * item.coord.y + margin
         );
 
         switch (item.mark) {
         case DebugMark::EXPLORED:
-            _pRT->FillRectangle(rect, _pGrayBrush);
+            _pRT->FillRectangle(rect, _pCoralBrush);
             break;
         case DebugMark::REACHABLE:
             _pRT->FillRectangle(rect, _pLightSlateGrayBrush);
@@ -130,66 +131,63 @@ void RenderService::renderDebugAI(std::vector<DebugItem> debugCtx) {
     }
 }
 
-void RenderService::renderFood(GameState* gameState, GameSettigs settings) {
+void RenderService::renderFood(const Coord& food, const GameSettigs& settings) {
     
-    Coord* food = &(gameState->food);
-    if (food != NULL) {
-
-        _pRT->FillRectangle(
-            D2D1::RectF(
-                size * (food->x + 1) - settings.foodSize,
-                size * (food->y + 1) - settings.foodSize,
-                size * food->x + settings.foodSize,
-                size * food->y + settings.foodSize
-            ),
-            _pLightSlateGrayBrush);
-    }
+    
+    _pRT->FillRectangle(
+        D2D1::RectF(
+            size * (food.x + 1) - settings.foodSize,
+            size * (food.y + 1) - settings.foodSize,
+            size * food.x + settings.foodSize,
+            size * food.y + settings.foodSize
+        ),
+        _pLightSlateGrayBrush);
 }
 
-void RenderService::renderSelfInputs(
-    GameState* gameState,
-    GameStateHolder* holder,
-    GameSettigs settings) {
-
-
-    int frame = holder->GetFrame();
-    int capacity = settings.rightBoundaries - settings.leftBoundaries;
-    for (int i = 0; i < capacity && frame >= 0; i++) {
-
-        DrawInput(
-            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
-            size * 0.2 + settings.bottomBoundaries * size,
-            holder->GetInput(frame, 0).direction,
-            size * 0.7,
-            frame == gameState->frame,
-            _pGreenBrush);
-
-        frame--;
-    }
-}
-
-void RenderService::renderEnemyInputs(
-    GameState* gameState,
-    GameStateHolder* holder,
-    GameSettigs settings) {
-
-    int frame = holder->GetFrame();
-    int capacity = settings.rightBoundaries - settings.leftBoundaries;
-
-    frame = holder->GetFrame();
-    for (int i = 0; i < capacity && frame >= 0; i++) {
-
-        DrawInput(
-            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
-            size * 0.2 + size,
-            holder->GetInput(frame, 1).direction,
-            size * 0.7,
-            frame == gameState->frame,
-            _pRedBrush);
-
-        frame--;
-    }
-}
+//void RenderService::renderSelfInputs(
+//    GameState* gameState,
+//    GameStateHolder* holder,
+//    GameSettigs settings) {
+//
+//
+//    int frame = holder->GetFrame();
+//    int capacity = settings.rightBoundaries - settings.leftBoundaries;
+//    for (int i = 0; i < capacity && frame >= 0; i++) {
+//
+//        DrawInput(
+//            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
+//            size * 0.2 + settings.bottomBoundaries * size,
+//            holder->GetInput(frame, 0).direction,
+//            size * 0.7,
+//            frame == gameState->frame,
+//            _pGreenBrush);
+//
+//        frame--;
+//    }
+//}
+//
+//void RenderService::renderEnemyInputs(
+//    GameState* gameState,
+//    GameStateHolder* holder,
+//    GameSettigs settings) {
+//
+//    int frame = holder->GetFrame();
+//    int capacity = settings.rightBoundaries - settings.leftBoundaries;
+//
+//    frame = holder->GetFrame();
+//    for (int i = 0; i < capacity && frame >= 0; i++) {
+//
+//        DrawInput(
+//            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
+//            size * 0.2 + size,
+//            holder->GetInput(frame, 1).direction,
+//            size * 0.7,
+//            frame == gameState->frame,
+//            _pRedBrush);
+//
+//        frame--;
+//    }
+//}
 
 void RenderService::BeginDraw() {
     _pRT->BeginDraw();

@@ -55,4 +55,15 @@ bool Snake::isCollide(const Coord& coord) const noexcept {
 	return map_.find(coord) != map_.end();
 }
 
+const Coord& Snake::getHeadCoord() const noexcept {
+	return getParts()[0].first;
+}
+
+void Snake::gain() noexcept {
+
+	std::pair<Coord, Direction> last = getParts().back();
+	list_.push_back({ last.first - last.second, last.second });
+}
+
+
 } // namespace snake

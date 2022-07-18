@@ -1,68 +1,137 @@
 #include "../GameLoopService.h"
+#include <unordered_set>
 
 namespace snake {
 
 namespace {
 
-	void InitPlayer(SnakePart* snakeHead, GameSettigs settings) {
+Snake* InitPlayer(
+	const int& x,
+	const int& y,
+	const int& lenght,
+	const Direction& dir) {
+
+	std::vector<std::pair<Coord, Direction>> list{
+		std::make_pair(Coord{x, y}, dir)
+	};
+
+	for (size_t i = 0; i < lenght; i++) {
+		list.push_back(std::make_pair(list.back().first - dir, dir));
+	}
+
+	return new Snake(list);
+}
+
+struct GameLoopContext {
+
+	GameLoopContext(const int& capacity) : capacity_(capacity) {}
+
+	const int& getFrame() const noexcept { return frame_; }
+	const int& getOffsetFrame() const noexcept { return frame_ - frameOffset_; }
+	const int& getPauseFrame() const noexcept { return pauseFrame_; }
+	const bool& isPaused() const noexcept { return paused_; }
+
+	void incrementFrame() noexcept { frame_++; }
+	void switchPause() noexcept { 
+		paused_ = !paused_;
+		pauseFrame_ = 0;
+		frameOffset_ = 0;
+	}
+	void frameForward() noexcept {
 		
-		snakeHead->coord = { settings.startPlayedXCoord, settings.startPlayedYCoord };
-		snakeHead->direction = settings.startPlayedDirection;
-		snakeHead->next = nullptr;
+		frameOffset_++;
 
-		SnakePart* snakePart = snakeHead;
-		for (int i = 1; i < settings.startLenght; i++)
-		{
+		if (frameOffset_ > frame_) {
+			frameOffset_ = frame_;
+		} else if (frameOffset_ > capacity_) {
+			frameOffset_ = capacity_;
+		}
+	}
+	void frameBackward() noexcept {
+		frameOffset_--;
+		if (frameOffset_ < 0) {
+			frameOffset_ = 0;
+		}
+	}
+	void pauseFrameForward() noexcept {
+		pauseFrame_++;
+		if (pauseFrame_ > pauseMaxFrame_) {
+			pauseFrame_ = pauseMaxFrame_;
+		}
+	}
+	void pauseFrameBackward() noexcept {
+		pauseFrame_--;
+		if (pauseFrame_ < 0) {
+			pauseFrame_ = 0;
+		}
+	}
+	void pause() noexcept { paused_ = false; }
 
-				snakePart->next = new SnakePart();
+private:
+	int frame_ = 0;
+	int capacity_;
+	int frameOffset_ = 0;
+	int pauseFrame_ = 0;
 
-				snakePart->next->coord = {
-					settings.startPlayedDirection == Direction::RIGHT 
-					? settings.startPlayedXCoord - i 
-					: settings.startPlayedXCoord + i,
+	int pauseMaxFrame_ = 0;
 
-					settings.startPlayedYCoord
-				};
-				snakePart->next->direction = settings.startPlayedDirection;
-				snakePart->next->next = nullptr;
+	bool paused_ = false;
+};
 
-			snakePart = snakePart->next;
+void updateGameLoopContext(
+	GameLoopContext& gameLoopCtx,
+	const std::vector<Input>& inputs) {
+
+	if (!inputs.empty()) {
+
+		switch (inputs.front().command) {
+		case SystemCommand::PAUSE:
+			gameLoopCtx.switchPause();
+			break;
+		case SystemCommand::STEP_FORWARD:
+			gameLoopCtx.frameForward();
+			break;
+		case SystemCommand::STEP_BACKWARD:
+			gameLoopCtx.frameBackward();
+			break;
+		case SystemCommand::AI_STEP_BACKWARD:
+			gameLoopCtx.pauseFrameBackward();
+			break;
+		case SystemCommand::AI_STEP_FORWARD:
+			gameLoopCtx.pauseFrameForward();
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+
+Coord generateNewFood(const GameState& gameState, GameSettigs& settings) {
+
+
+	std::unordered_set<Coord, hash_coord> set;
+
+	for (size_t i = 0; i < 2; i++) {
+		for (auto part : gameState.getPlayer(i).getParts()) {
+			set.insert(part.first);
 		}
 	}
 
-	void InitEnemy(SnakePart* snakeHead, GameSettigs settings) {
 
+	Coord res;
+    srand((unsigned)time(NULL));
+    do {
+		res.x = settings.leftBoundaries + rand() % (settings.rightBoundaries - settings.leftBoundaries);
+		res.y = settings.topBoundaries + rand() % (settings.bottomBoundaries - settings.topBoundaries);
 
-		int enemyStartPlayedXCoord = 10;
-		int enemyStartPlayedYCoord = 13;
-		int enemyLenght = 3;
-		Direction startEnemyDirection = Direction::RIGHT;
+    } while (set.find(res) != set.end());
 
-		snakeHead->coord = { enemyStartPlayedXCoord, enemyStartPlayedYCoord };
-		snakeHead->direction = startEnemyDirection;
-		snakeHead->next = nullptr;
-
-		SnakePart* snakePart = snakeHead;
-		for (int i = 1; i < enemyLenght; i++)
-		{
-
-			snakePart->next = new SnakePart();
-
-			snakePart->next->coord = {
-				startEnemyDirection == Direction::RIGHT
-				? enemyStartPlayedXCoord - i
-				: enemyStartPlayedXCoord + i,
-
-				enemyStartPlayedYCoord
-			};
-			snakePart->next->direction = startEnemyDirection;
-			snakePart->next->next = nullptr;
-
-			snakePart = snakePart->next;
-		}
-	}
+	return res;
 
 }
+
+}// namespace
 
 void GameLoopService::start() {
 	_running = true;
@@ -78,79 +147,41 @@ void GameLoopService::_startGameLoop() {
 
 	GameSettigs settings = {};
 
-	GameState* gameState = new GameState(0);
-	gameState->snake_head[0] = new SnakePart();
-	gameState->snake_head[1] = new SnakePart();
+	GameState* initGameState = new GameState(
+		0, 
+		InitPlayer(settings.startPlayedXCoord, settings.startPlayedYCoord, settings.startLenght, settings.startPlayedDirection),
+		InitPlayer(10, 13, 3, Direction::RIGHT)
+	);
+	initGameState->setFood({ settings.startFoodXCoord, settings.startFoodYCoord });
 
-	InitPlayer(gameState->snake_head[0], settings);
-	InitEnemy(gameState->snake_head[1], settings);
+	
+	GameStateBuffer<GameState> holder(32);
+	holder.add(initGameState);
 
-	gameState->food = { settings.startFoodXCoord, settings.startFoodYCoord };
 
-	GameStateHolder holder = GameStateHolder(gameState);
+	GameLoopContext gameLoopCtx(32);
 
-	bool paused = false;
 	int64_t delay = settings.initialSpeedMs;
 	float progress = 0;
 	std::vector<Input> inputs[2];
-	GameState* nextGameState;
 
 	std::vector<DebugContext> debugCtx;
 	debugCtx.resize(32);
-	int pauseFrame = 0;
 
     do {
-		// log("Start loop");
+
+		// get inputs
 		inputs[0] = _inputService->popInputs();
+		updateGameLoopContext(gameLoopCtx, inputs[0]);
+
+		// Calculating...
+		if (gameLoopCtx.isPaused()) {
 		
-
-		if (!inputs[0].empty()) {
-
-			switch (inputs[0].front().command) {
-			case SystemCommand::PAUSE:
-				paused = !paused;
-				pauseFrame = 0;
-				holder.ClearOffset();
-				break;
-
-			case SystemCommand::STEP_FORWARD:
-				holder.StepForward();
-				break;
-
-			case SystemCommand::STEP_BACKWARD:
-				holder.StepBackward();
-				break;
-			case SystemCommand::AI_STEP_BACKWARD:
-				pauseFrame--;
-				if (pauseFrame < 0) {
-					pauseFrame = 0;
-				}
-				break;
-			case SystemCommand::AI_STEP_FORWARD:
-				pauseFrame++;
-				break;
-			default:
-				break;
-			}
-		}
-
-		// log("Fetching...");
-		GamePhase gamePhase = holder.GetState(holder.GetFrame())->gamePhase;
-
-		if (gamePhase == WIN || gamePhase == LOSE) {
-			paused = true;
-		}
-
-		// log("Calculating...");
-
-		if (paused) {
-		
+			/*
+			
 			nextGameState = holder.GetStateWithOffset();
 			int index = (holder.GetFrame() + holder.GetOffset()) % holder.GetCapacity();
 			DebugContext ctx = debugCtx[index];
-
-			
-			
 			
 			_renderService->BeginDraw();
 			_renderService->renderBoard(settings);
@@ -172,40 +203,102 @@ void GameLoopService::_startGameLoop() {
 			_renderService->renderSelf(nextGameState, 0, settings);
 			_renderService->renderEnemy(nextGameState, 1, settings);
 			_renderService->renderFood(nextGameState, settings);
+			if (nextGameState == WIN) {
+				_renderService->renderWinState();
+			} else if (nextGameState->gamePhase == LOSE) {
+				_renderService->renderLoseState();
+			}
+			*/
 
 		} else {
 
-			InputDTO botInput = _aiService->getInputs(holder.GetState(holder.GetFrame()), settings);
+			const GameState& prevGameState = holder.head();
+			const GamePhase& prevGamePhase = prevGameState.getPhase();
+
+			if (prevGamePhase == WIN || prevGamePhase == LOSE) {
+				gameLoopCtx.pause();
+			}
+
+
+			InputDTO botInput = _aiService->getInputs(prevGameState, settings);
 			inputs[1] = botInput.inputs;
 
-			nextGameState = holder.ApplyForces(inputs, settings);
-			debugCtx[holder.GetFrame() % holder.GetCapacity()] = botInput.ctx;
+			const Snake& prevPlayer = prevGameState.getPlayer(0);
+			const Snake& prevBot = prevGameState.getPlayer(1);
+
+			Snake* nextPlayer = prevPlayer.move(
+				inputs[0].empty() ? Direction::NONE : inputs[0].front().direction
+			);
+			Snake* nextBot = prevBot.move(
+				inputs[1].empty() ? Direction::NONE : inputs[1].front().direction
+			);
+
+
+			bool playerGained = nextPlayer->getHeadCoord() == prevGameState.getFood();
+			bool botGained = nextBot->getHeadCoord() == prevGameState.getFood();
 			
 
-			_gameLogicService->check(nextGameState, settings);
+			GameState* nextGameState = new GameState(gameLoopCtx.getFrame() + 1, nextPlayer, nextBot);
+			nextGameState->setDebugContext(botInput.ctx);
+			nextGameState->setFood(prevGameState.getFood());
 
-			_renderService->BeginDraw();
-			_renderService->renderBoard(settings);
-			_renderService->renderSelf(nextGameState, 0, settings);
-			_renderService->renderEnemy(nextGameState, 1, settings);
-			_renderService->renderFood(nextGameState, settings);
 
+			if (playerGained) {
+				nextPlayer->gain();
+				nextGameState->setFood(generateNewFood(*nextGameState, settings));
+			}
+			else if (botGained) {
+				nextBot->gain();
+				nextGameState->setFood(generateNewFood(*nextGameState, settings));
+			}
+
+			nextGameState->setPhase(_gameLogicService->check(*nextGameState, settings));
+			
+			holder.add(nextGameState);
+
+			gameLoopCtx.incrementFrame();
 			
 		}
 
-		if (nextGameState->gamePhase == WIN) {
+		const GameState& gameState = holder.head();
+
+		_renderService->BeginDraw();
+		_renderService->renderSelf(gameState, 0, settings);
+		_renderService->renderEnemy(gameState, 1, settings);
+		_renderService->renderFood(gameState.getFood(), settings);
+
+		if (gameState.getDebugContext().pathfinding.size() > 0) {
+
+			/*if (pauseFrame >= ctx.pathfinding.size()) {
+				pauseFrame = ctx.pathfinding.size() - 1;
+			}*/
+
+			auto it = gameState.getDebugContext().pathfinding[gameState.getDebugContext().pathfinding.size() - 1];
+			_renderService->renderDebugAI(it);
+		}
+		_renderService->renderBoard(settings);
+		
+		if (gameLoopCtx.isPaused()) {
 			_renderService->renderWinState();
-		} else if (nextGameState->gamePhase == LOSE) {
-			_renderService->renderLoseState();
 		}
+
+		/*if (nextGameState->getPhase() == WIN) {
+			_renderService->renderWinState();
+			gameLoopCtx.pause();
+		}
+		else if (nextGameState->getPhase() == LOSE) {
+			_renderService->renderLoseState();
+			gameLoopCtx.pause();
+		}*/
+
 		_renderService->EndDraw();
 
-		progress = (nextGameState->score[0] / (settings.scoreToWin / 100.0f)) / 100.0f;
-		delay = paused ? 15 : settings.maxSpeedMs + (settings.initialSpeedMs - settings.maxSpeedMs) * (1 - progress);
+		// progress = (nextGameState->score[0] / (settings.scoreToWin / 100.0f)) / 100.0f;
+		// delay = paused ? 15 : settings.maxSpeedMs + (settings.initialSpeedMs - settings.maxSpeedMs) * (1 - progress);
 
-		log("End loop");
+		delay = gameLoopCtx.isPaused() ? 15 : settings.maxSpeedMs;
 
-		
+		// End loop
 		std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(delay));
 
     } while (_running);

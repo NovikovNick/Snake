@@ -9,7 +9,6 @@
 #include "RenderService.h"
 #include "InputService.h"
 #include "GameLogicService.h"
-#include "GameStateHolder.h"
 #include "AIService.h"
 
 
