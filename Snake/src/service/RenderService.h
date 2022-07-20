@@ -26,8 +26,10 @@ public:
 
     void renderFood(const Coord& food, const GameSettigs& settings);
 
-    // void renderSelfInputs(GameState* gameState, GameStateHolder* holder, GameSettigs settings);
-    // void renderEnemyInputs(GameState* gameState, GameStateHolder* holder, GameSettigs settings);
+    void renderInputs(
+        const int& frame,
+        const GameStateBuffer<GameState>& holder,
+        const GameSettigs& settings);
     
     void renderWinState();
     void renderLoseState();

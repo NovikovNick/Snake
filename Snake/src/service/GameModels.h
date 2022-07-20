@@ -237,8 +237,15 @@ struct GameSettigs {
 };
 
 
-struct Snake {
+class Snake {
 
+    std::vector<std::pair<Coord, Direction>> list_;
+    Coord leftTop_;
+    Coord rightBottom_;
+    std::unordered_map<Coord, Direction, hash_coord> map_;
+    bool selfCollision_ = false;
+
+public:
     Snake(std::vector<std::pair<Coord, Direction>> list) 
         : list_(list), 
         leftTop_(list_[0].first), 
@@ -277,12 +284,6 @@ struct Snake {
 
     const std::vector<std::pair<Coord, Direction>>& getParts() const { return list_; };
 
-private:
-    std::vector<std::pair<Coord, Direction>> list_;
-    Coord leftTop_;
-    Coord rightBottom_;
-    std::unordered_map<Coord, Direction, hash_coord> map_;
-    bool selfCollision_ = false;
 };
 
 struct GameState {
@@ -303,26 +304,35 @@ struct GameState {
     const GamePhase& getPhase() const noexcept { return gamePhase_; }
     const int& getScore(const int& index) const noexcept { return scores_[index]; }
     const DebugContext& getDebugContext() const noexcept { return ctx_; }
+    const std::vector<Input>& getInputs() const noexcept { return input_; }
+    const int& getSize() const noexcept { return players_.size(); }
 
     void setFood(const Coord& food) noexcept { food_ = food; }
     void setPhase(const GamePhase& gamePhase) noexcept { gamePhase_ = gamePhase; }
     void setDebugContext(const DebugContext& ctx) noexcept { ctx_ = ctx; }
+    void setInputs(const std::vector<Input>& inputs) noexcept { input_ = inputs; }
 
 private:
     int frame_ = 0;
     GamePhase gamePhase_ = IN_PROCESS;
 
     std::vector<std::unique_ptr<Snake>> players_;
-    std::vector<Input> input_;
+    std::vector<Input> input_ = { Input{}, Input{} };
     std::vector<int> scores_ = {0, 0};
-    Coord food_;
+    Coord food_ = { 0, 0 };
 
     DebugContext ctx_;
 };
 
 template <typename T>
-struct GameStateBuffer {
+class GameStateBuffer {
 
+    int cursor_ = -1;
+    int size_;
+    bool overlaped = false;
+    std::vector<std::unique_ptr<T>> data_;
+
+public:
     GameStateBuffer(int size) : size_(size) {
         data_.resize(size);
     }
@@ -330,6 +340,10 @@ struct GameStateBuffer {
     void add(T* item) noexcept {
         cursor_ = (cursor_ + 1) % size_;
         data_[cursor_] = std::unique_ptr<T>(item);
+
+        if (!overlaped && (cursor_ + 1) == size_) {
+            overlaped = true;
+        }
     }
 
     const T& head() const noexcept {
@@ -337,17 +351,14 @@ struct GameStateBuffer {
     }
 
     const T& operator[](const int& index) const noexcept {
-        return *(data_[index].get());
+
+        int offset = (cursor_ - index) % size_;
+        return *(data_[offset < 0 ? size_ + offset : offset].get());
     }
 
     int getSize() const noexcept {
-        return cursor_ < size_ ? cursor_ + 1: size_;
+        return overlaped ? data_.size() : cursor_ + 1;
     }
-
-private:
-    int cursor_ = -1;
-    int size_;
-    std::vector<std::unique_ptr<T>> data_;
 };
 
 } // namespace snake

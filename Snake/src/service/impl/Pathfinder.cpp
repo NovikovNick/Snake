@@ -8,7 +8,7 @@
 namespace snake {
 
 namespace {
-	const int MAX_ATTEMPTS = 30 * 20;
+	const int MAX_ATTEMPTS = 100;
 
 	struct CoordCompare
 	{

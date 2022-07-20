@@ -80,29 +80,26 @@ private:
 
 void updateGameLoopContext(
 	GameLoopContext& gameLoopCtx,
-	const std::vector<Input>& inputs) {
+	const Input& input) {
 
-	if (!inputs.empty()) {
-
-		switch (inputs.front().command) {
-		case SystemCommand::PAUSE:
-			gameLoopCtx.switchPause();
-			break;
-		case SystemCommand::STEP_FORWARD:
-			gameLoopCtx.frameForward();
-			break;
-		case SystemCommand::STEP_BACKWARD:
-			gameLoopCtx.frameBackward();
-			break;
-		case SystemCommand::AI_STEP_BACKWARD:
-			gameLoopCtx.pauseFrameBackward();
-			break;
-		case SystemCommand::AI_STEP_FORWARD:
-			gameLoopCtx.pauseFrameForward();
-			break;
-		default:
-			break;
-		}
+	switch (input.command) {
+	case SystemCommand::PAUSE:
+		gameLoopCtx.switchPause();
+		break;
+	case SystemCommand::STEP_FORWARD:
+		gameLoopCtx.frameForward();
+		break;
+	case SystemCommand::STEP_BACKWARD:
+		gameLoopCtx.frameBackward();
+		break;
+	case SystemCommand::AI_STEP_BACKWARD:
+		gameLoopCtx.pauseFrameBackward();
+		break;
+	case SystemCommand::AI_STEP_FORWARD:
+		gameLoopCtx.pauseFrameForward();
+		break;
+	default:
+		break;
 	}
 }
 
@@ -163,10 +160,13 @@ void GameLoopService::_startGameLoop() {
 
 	int64_t delay = settings.initialSpeedMs;
 	float progress = 0;
-	std::vector<Input> inputs[2];
+	std::vector<Input> inputs;
+	inputs.resize(2);
 
 	std::vector<DebugContext> debugCtx;
 	debugCtx.resize(32);
+
+
 
     do {
 
@@ -175,8 +175,12 @@ void GameLoopService::_startGameLoop() {
 		updateGameLoopContext(gameLoopCtx, inputs[0]);
 
 		// Calculating...
+
+		_renderService->BeginDraw();
 		if (gameLoopCtx.isPaused()) {
-		
+
+			_renderService->renderInputs(gameLoopCtx.getOffsetFrame(), holder, settings);
+
 			/*
 			
 			nextGameState = holder.GetStateWithOffset();
@@ -221,17 +225,13 @@ void GameLoopService::_startGameLoop() {
 
 
 			InputDTO botInput = _aiService->getInputs(prevGameState, settings);
-			inputs[1] = botInput.inputs;
+			inputs[1] = botInput.inputs.empty() ? Input{} : botInput.inputs.front();
 
 			const Snake& prevPlayer = prevGameState.getPlayer(0);
 			const Snake& prevBot = prevGameState.getPlayer(1);
 
-			Snake* nextPlayer = prevPlayer.move(
-				inputs[0].empty() ? Direction::NONE : inputs[0].front().direction
-			);
-			Snake* nextBot = prevBot.move(
-				inputs[1].empty() ? Direction::NONE : inputs[1].front().direction
-			);
+			Snake* nextPlayer = prevPlayer.move(inputs[0].direction);
+			Snake* nextBot = prevBot.move(inputs[1].direction);
 
 
 			bool playerGained = nextPlayer->getHeadCoord() == prevGameState.getFood();
@@ -241,13 +241,12 @@ void GameLoopService::_startGameLoop() {
 			GameState* nextGameState = new GameState(gameLoopCtx.getFrame() + 1, nextPlayer, nextBot);
 			nextGameState->setDebugContext(botInput.ctx);
 			nextGameState->setFood(prevGameState.getFood());
-
+			nextGameState->setInputs(inputs);
 
 			if (playerGained) {
 				nextPlayer->gain();
 				nextGameState->setFood(generateNewFood(*nextGameState, settings));
-			}
-			else if (botGained) {
+			} else if (botGained) {
 				nextBot->gain();
 				nextGameState->setFood(generateNewFood(*nextGameState, settings));
 			}
@@ -262,7 +261,6 @@ void GameLoopService::_startGameLoop() {
 
 		const GameState& gameState = holder.head();
 
-		_renderService->BeginDraw();
 		_renderService->renderSelf(gameState, 0, settings);
 		_renderService->renderEnemy(gameState, 1, settings);
 		_renderService->renderFood(gameState.getFood(), settings);
@@ -277,10 +275,6 @@ void GameLoopService::_startGameLoop() {
 			_renderService->renderDebugAI(it);
 		}
 		_renderService->renderBoard(settings);
-		
-		if (gameLoopCtx.isPaused()) {
-			_renderService->renderWinState();
-		}
 
 		/*if (nextGameState->getPhase() == WIN) {
 			_renderService->renderWinState();

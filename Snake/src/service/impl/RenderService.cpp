@@ -144,50 +144,39 @@ void RenderService::renderFood(const Coord& food, const GameSettigs& settings) {
         _pLightSlateGrayBrush);
 }
 
-//void RenderService::renderSelfInputs(
-//    GameState* gameState,
-//    GameStateHolder* holder,
-//    GameSettigs settings) {
-//
-//
-//    int frame = holder->GetFrame();
-//    int capacity = settings.rightBoundaries - settings.leftBoundaries;
-//    for (int i = 0; i < capacity && frame >= 0; i++) {
-//
-//        DrawInput(
-//            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
-//            size * 0.2 + settings.bottomBoundaries * size,
-//            holder->GetInput(frame, 0).direction,
-//            size * 0.7,
-//            frame == gameState->frame,
-//            _pGreenBrush);
-//
-//        frame--;
-//    }
-//}
-//
-//void RenderService::renderEnemyInputs(
-//    GameState* gameState,
-//    GameStateHolder* holder,
-//    GameSettigs settings) {
-//
-//    int frame = holder->GetFrame();
-//    int capacity = settings.rightBoundaries - settings.leftBoundaries;
-//
-//    frame = holder->GetFrame();
-//    for (int i = 0; i < capacity && frame >= 0; i++) {
-//
-//        DrawInput(
-//            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
-//            size * 0.2 + size,
-//            holder->GetInput(frame, 1).direction,
-//            size * 0.7,
-//            frame == gameState->frame,
-//            _pRedBrush);
-//
-//        frame--;
-//    }
-//}
+void RenderService::renderInputs(
+    const int& frame,
+    const GameStateBuffer<GameState>& holder,
+    const GameSettigs& settings) {
+
+    const int& capacity = settings.rightBoundaries - settings.leftBoundaries;
+    
+    for (int i = holder.getSize() - 1; i >= 0; i--) {
+
+        const GameState& state = holder[i];
+        const std::vector<Input>& inputs = state.getInputs();
+
+        if (inputs.empty()) {
+            continue;
+        }
+
+        DrawInput(
+            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
+            size * 0.2 + settings.bottomBoundaries * size,
+            inputs[0].direction,
+            size * 0.7,
+            i == frame % capacity,
+            _pGreenBrush);
+
+        DrawInput(
+            size * -0.8 + size * settings.leftBoundaries + size * capacity - size * i,
+            size * 0.2 + size,
+            inputs[1].direction,
+            size * 0.7,
+            i == frame % capacity,
+            _pRedBrush);
+    }
+}
 
 void RenderService::BeginDraw() {
     _pRT->BeginDraw();

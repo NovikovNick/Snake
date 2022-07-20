@@ -56,7 +56,56 @@ BOOST_AUTO_TEST_CASE(testGameStateBufferErasion) {
     // act
     // arrange
     BOOST_CHECK_EQUAL(3, data.getSize());
-    BOOST_CHECK_EQUAL(3, data[0].getId());
+    BOOST_CHECK_EQUAL(5, data[0].getId());
     BOOST_CHECK_EQUAL(4, data[1].getId());
-    BOOST_CHECK_EQUAL(5, data[2].getId());
+    BOOST_CHECK_EQUAL(3, data[2].getId());
+}
+
+BOOST_AUTO_TEST_CASE(testGameStateForEachWithOverlap) {
+    using namespace snake;
+    // arrange
+    int bufferSize = 3;
+
+    GameStateBuffer<Dummy> data(bufferSize);
+    data.add(new Dummy(1));
+    data.add(new Dummy(2));
+    data.add(new Dummy(3));
+    data.add(new Dummy(4));
+
+
+    for (int i = 0; i < data.getSize(); i++) {
+        std::cout << data[i].getId()  << std::endl;
+    }
+
+    // act
+    // arrange
+    BOOST_CHECK_EQUAL(3, data.getSize());
+    BOOST_CHECK_EQUAL(4, data[0].getId());
+    BOOST_CHECK_EQUAL(3, data[1].getId());
+    BOOST_CHECK_EQUAL(2, data[2].getId());
+}
+
+BOOST_AUTO_TEST_CASE(testGameStateForEachWithSpase) {
+    using namespace snake;
+    // arrange
+    int bufferSize = 6;
+
+    GameStateBuffer<Dummy> data(bufferSize);
+    data.add(new Dummy(1));
+    data.add(new Dummy(2));
+    data.add(new Dummy(3));
+    data.add(new Dummy(4));
+
+
+    for (int i = 0; i < data.getSize(); i++) {
+        std::cout << data[i].getId() << std::endl;
+    }
+
+    // act
+    // arrange
+    BOOST_CHECK_EQUAL(4, data.getSize());
+    BOOST_CHECK_EQUAL(4, data[0].getId());
+    BOOST_CHECK_EQUAL(3, data[1].getId());
+    BOOST_CHECK_EQUAL(2, data[2].getId());
+    BOOST_CHECK_EQUAL(1, data[3].getId());
 }

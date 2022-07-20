@@ -7,22 +7,15 @@ void InputService::addInput(Input input)
 	_inputQueue.push_front(input);
 }
 
-std::vector<Input> InputService::popInputs()
-{
-
+const Input& InputService::popInputs() {
 
 	if (!_inputQueue.empty()) {
-		
-		std::vector<Input> res = std::vector<Input>();
-
-		for (; !_inputQueue.empty(); _inputQueue.pop_back()) {
-			res.push_back(_inputQueue.back());
-		}
-
+		Input res = _inputQueue.front();
+		_inputQueue.clear();
 		return res;
 
 	}
-	return { Input{} };
+	return Input{};
 }
 
 } // namespace snake

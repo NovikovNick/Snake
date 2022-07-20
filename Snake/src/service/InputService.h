@@ -11,7 +11,7 @@ namespace snake {
 class InputService {
 public:
 	void addInput(Input input);
-	std::vector<Input> popInputs();
+	const Input& popInputs();
 private:
 	std::deque<Input> _inputQueue = std::deque<Input, std::allocator<Input>>();
 };
