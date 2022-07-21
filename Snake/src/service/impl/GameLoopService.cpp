@@ -27,7 +27,7 @@ struct GameLoopContext {
 	GameLoopContext(const int& capacity) : capacity_(capacity) {}
 
 	const int& getFrame() const noexcept { return frame_; }
-	const int& getOffsetFrame() const noexcept { return frame_ - frameOffset_; }
+	const int& getOffsetFrame() const noexcept { return frameOffset_; }
 	const int& getPauseFrame() const noexcept { return pauseFrame_; }
 	const bool& isPaused() const noexcept { return paused_; }
 
@@ -39,41 +39,55 @@ struct GameLoopContext {
 	}
 	void frameForward() noexcept {
 		
-		frameOffset_++;
+		if (paused_) {
+			frameOffset_++;
 
-		if (frameOffset_ > frame_) {
-			frameOffset_ = frame_;
-		} else if (frameOffset_ > capacity_) {
-			frameOffset_ = capacity_;
+			if (frameOffset_ > frame_) {
+				frameOffset_ = frame_;
+			}
+			else if (frameOffset_ >= capacity_) {
+				frameOffset_ = capacity_ - 1;
+			}
 		}
 	}
 	void frameBackward() noexcept {
-		frameOffset_--;
-		if (frameOffset_ < 0) {
-			frameOffset_ = 0;
+		if (paused_) {
+			frameOffset_--;
+			if (frameOffset_ < 0) {
+				frameOffset_ = 0;
+			}
 		}
+		
 	}
 	void pauseFrameForward() noexcept {
-		pauseFrame_++;
-		if (pauseFrame_ > pauseMaxFrame_) {
-			pauseFrame_ = pauseMaxFrame_;
+
+		if (paused_) {
+			pauseFrame_++;
 		}
+
 	}
 	void pauseFrameBackward() noexcept {
-		pauseFrame_--;
-		if (pauseFrame_ < 0) {
-			pauseFrame_ = 0;
+
+		if (paused_) {
+			pauseFrame_--;
+			if (pauseFrame_ < 0) {
+				pauseFrame_ = 0;
+			}
 		}
+
+		
 	}
-	void pause() noexcept { paused_ = false; }
+	void pause() noexcept {
+		paused_ = true;
+		pauseFrame_ = 0;
+		frameOffset_ = 0;
+	}
 
 private:
 	int frame_ = 0;
 	int capacity_;
 	int frameOffset_ = 0;
 	int pauseFrame_ = 0;
-
-	int pauseMaxFrame_ = 0;
 
 	bool paused_ = false;
 };
@@ -176,53 +190,12 @@ void GameLoopService::_startGameLoop() {
 
 		// Calculating...
 
-		_renderService->BeginDraw();
-		if (gameLoopCtx.isPaused()) {
-
-			_renderService->renderInputs(gameLoopCtx.getOffsetFrame(), holder, settings);
-
-			/*
-			
-			nextGameState = holder.GetStateWithOffset();
-			int index = (holder.GetFrame() + holder.GetOffset()) % holder.GetCapacity();
-			DebugContext ctx = debugCtx[index];
-			
-			_renderService->BeginDraw();
-			_renderService->renderBoard(settings);
-
-			if (ctx.pathfinding.size() > 0) {
-
-				if (pauseFrame >= ctx.pathfinding.size()) {
-					pauseFrame = ctx.pathfinding.size() - 1;
-				}
-
-				auto it = ctx.pathfinding[pauseFrame];
-				_renderService->renderDebugAI(it);
-			}
-			
-
-			_renderService->renderSelfInputs(nextGameState, &holder, settings);
-			_renderService->renderEnemyInputs(nextGameState, &holder, settings);
-
-			_renderService->renderSelf(nextGameState, 0, settings);
-			_renderService->renderEnemy(nextGameState, 1, settings);
-			_renderService->renderFood(nextGameState, settings);
-			if (nextGameState == WIN) {
-				_renderService->renderWinState();
-			} else if (nextGameState->gamePhase == LOSE) {
-				_renderService->renderLoseState();
-			}
-			*/
-
-		} else {
+		if (!gameLoopCtx.isPaused()) {
 
 			const GameState& prevGameState = holder.head();
 			const GamePhase& prevGamePhase = prevGameState.getPhase();
 
-			if (prevGamePhase == WIN || prevGamePhase == LOSE) {
-				gameLoopCtx.pause();
-			}
-
+			
 
 			InputDTO botInput = _aiService->getInputs(prevGameState, settings);
 			inputs[1] = botInput.inputs.empty() ? Input{} : botInput.inputs.front();
@@ -242,53 +215,72 @@ void GameLoopService::_startGameLoop() {
 			nextGameState->setDebugContext(botInput.ctx);
 			nextGameState->setFood(prevGameState.getFood());
 			nextGameState->setInputs(inputs);
+			nextGameState->setScore(0, prevGameState.getScore(0));
+			nextGameState->setScore(1, prevGameState.getScore(1));
 
 			if (playerGained) {
 				nextPlayer->gain();
 				nextGameState->setFood(generateNewFood(*nextGameState, settings));
+
+				nextGameState->setScore(0, prevGameState.getScore(0) + 1);
 			} else if (botGained) {
 				nextBot->gain();
 				nextGameState->setFood(generateNewFood(*nextGameState, settings));
+				nextGameState->setScore(1, prevGameState.getScore(1) + 1);
 			}
 
 			nextGameState->setPhase(_gameLogicService->check(*nextGameState, settings));
-			
+
 			holder.add(nextGameState);
 
-			gameLoopCtx.incrementFrame();
-			
+			if (nextGameState->getPhase() == WIN || nextGameState->getPhase() == LOSE) {
+				gameLoopCtx.pause();
+			} 
 		}
 
-		const GameState& gameState = holder.head();
+		const GameState& gameState = holder[gameLoopCtx.getOffsetFrame()];
 
+		_renderService->BeginDraw();
 		_renderService->renderSelf(gameState, 0, settings);
 		_renderService->renderEnemy(gameState, 1, settings);
 		_renderService->renderFood(gameState.getFood(), settings);
-
-		if (gameState.getDebugContext().pathfinding.size() > 0) {
-
-			/*if (pauseFrame >= ctx.pathfinding.size()) {
-				pauseFrame = ctx.pathfinding.size() - 1;
-			}*/
-
-			auto it = gameState.getDebugContext().pathfinding[gameState.getDebugContext().pathfinding.size() - 1];
-			_renderService->renderDebugAI(it);
-		}
 		_renderService->renderBoard(settings);
 
-		/*if (nextGameState->getPhase() == WIN) {
-			_renderService->renderWinState();
-			gameLoopCtx.pause();
+		if (gameLoopCtx.isPaused()) {
+
+
+			auto path = gameState.getDebugContext().pathfinding;
+			if (path.size() > 0) {
+
+				int pauseFrame = gameLoopCtx.getPauseFrame();
+				if (pauseFrame >= path.size()) {
+					pauseFrame = path.size() - 1;
+				}
+				auto pathfindingIteration = gameState.getDebugContext().pathfinding[pauseFrame];
+				_renderService->renderDebugAI(pathfindingIteration);
+			}
+
+
+			_renderService->renderInputs(gameLoopCtx.getOffsetFrame(), holder, settings);
 		}
-		else if (nextGameState->getPhase() == LOSE) {
-			_renderService->renderLoseState();
-			gameLoopCtx.pause();
-		}*/
+
+		switch (gameState.getPhase()) {
+			case WIN:
+				_renderService->renderWinState();
+				break;
+			case LOSE:
+				_renderService->renderLoseState();
+				break;
+		}
 
 		_renderService->EndDraw();
 
 		// progress = (nextGameState->score[0] / (settings.scoreToWin / 100.0f)) / 100.0f;
 		// delay = paused ? 15 : settings.maxSpeedMs + (settings.initialSpeedMs - settings.maxSpeedMs) * (1 - progress);
+
+		if (!gameLoopCtx.isPaused()) {
+			gameLoopCtx.incrementFrame();
+		}
 
 		delay = gameLoopCtx.isPaused() ? 15 : settings.maxSpeedMs;
 

@@ -33,22 +33,33 @@ const GamePhase& GameLogicService::check(const GameState& gameState, const GameS
 	if (gameState.getPhase()  != IN_PROCESS) {
 		return gameState.getPhase();
 	};
-	const Coord& leftTop = { settings.leftBoundaries, settings.topBoundaries };
-    const Coord& rightBottom = { settings.rightBoundaries, settings.bottomBoundaries };
+	const Coord& leftTop = { settings.leftBoundaries - 1, settings.topBoundaries - 1};
+    const Coord& rightBottom = { settings.rightBoundaries, settings.bottomBoundaries};
 	
 
-	if (gameState.getPlayer(0).isInBound(leftTop, rightBottom)
-		|| gameState.getPlayer(0).isSelfCollide()
-		|| isPlayerCollision(gameState.getPlayer(0), gameState.getPlayer(1))
-		|| gameState.getScore(1) == settings.scoreToWin) {
-
+	if (!gameState.getPlayer(0).isInBound(leftTop, rightBottom)) {
+		return LOSE;
+	}
+	/*if (gameState.getPlayer(0).isSelfCollide()) {
+		return LOSE;
+	}*/
+	if (isPlayerCollision(gameState.getPlayer(0), gameState.getPlayer(1))) {
+		return LOSE;
+	}
+	if (gameState.getScore(1) == settings.scoreToWin) {
 		return LOSE;
 	}
 
-	if (gameState.getPlayer(1).isInBound(leftTop, rightBottom)
-		|| gameState.getPlayer(1).isSelfCollide()
-		|| isPlayerCollision(gameState.getPlayer(1), gameState.getPlayer(0))
-		|| gameState.getScore(0) == settings.scoreToWin) {
+	if (!gameState.getPlayer(1).isInBound(leftTop, rightBottom)) {
+		return WIN;
+	}
+	/*if (gameState.getPlayer(1).isSelfCollide()) {
+		return WIN;
+	}*/
+	if (isPlayerCollision(gameState.getPlayer(1), gameState.getPlayer(0))) {
+ 		return WIN;
+	}
+	if (gameState.getScore(0) == settings.scoreToWin) {
 		return WIN;
 	}
 

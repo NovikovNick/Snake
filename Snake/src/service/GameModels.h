@@ -311,6 +311,7 @@ struct GameState {
     void setPhase(const GamePhase& gamePhase) noexcept { gamePhase_ = gamePhase; }
     void setDebugContext(const DebugContext& ctx) noexcept { ctx_ = ctx; }
     void setInputs(const std::vector<Input>& inputs) noexcept { input_ = inputs; }
+    void setScore(const int& index, int score) noexcept { scores_[index] = score; }
 
 private:
     int frame_ = 0;
