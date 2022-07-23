@@ -40,9 +40,9 @@ const GamePhase& GameLogicService::check(const GameState& gameState, const GameS
 	if (!gameState.getPlayer(0).isInBound(leftTop, rightBottom)) {
 		return LOSE;
 	}
-	/*if (gameState.getPlayer(0).isSelfCollide()) {
+	if (!gameState.getPlayer(0).isValid()) {
 		return LOSE;
-	}*/
+	}
 	if (isPlayerCollision(gameState.getPlayer(0), gameState.getPlayer(1))) {
 		return LOSE;
 	}
@@ -53,9 +53,9 @@ const GamePhase& GameLogicService::check(const GameState& gameState, const GameS
 	if (!gameState.getPlayer(1).isInBound(leftTop, rightBottom)) {
 		return WIN;
 	}
-	/*if (gameState.getPlayer(1).isSelfCollide()) {
+	if (!gameState.getPlayer(1).isValid()) {
 		return WIN;
-	}*/
+	}
 	if (isPlayerCollision(gameState.getPlayer(1), gameState.getPlayer(0))) {
  		return WIN;
 	}

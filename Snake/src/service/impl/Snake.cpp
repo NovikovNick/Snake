@@ -37,8 +37,12 @@ Snake* Snake::move(const Direction& dir, const bool& gain) const noexcept {
 		previous = srcParts[i].second;
 	}
 
+	//bool valid = dstParts.size() == srcParts.size();
+
 	if (gain) {
-		dstParts.push_back(std::make_pair(srcParts[srcParts.size() - 1].first, srcParts[srcParts.size() - 1].second));
+
+		auto srcTail = srcParts[srcParts.size() - 1];
+		dstParts.push_back(std::make_pair(srcTail.first, srcTail.second));
 	}
 
 	return new Snake(dstParts);

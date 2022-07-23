@@ -243,7 +243,7 @@ class Snake {
     Coord leftTop_;
     Coord rightBottom_;
     std::unordered_map<Coord, Direction, hash_coord> map_;
-    bool selfCollision_ = false;
+    bool validState_ = true;
 
 public:
     Snake(std::vector<std::pair<Coord, Direction>> list) 
@@ -259,10 +259,13 @@ public:
             rightBottom_.x = rightBottom_.x > item.first.x ? rightBottom_.x : item.first.x;
             rightBottom_.y = rightBottom_.y > item.first.y ? rightBottom_.y : item.first.y;
 
-            selfCollision_ = selfCollision_ || map_.find(item.first) == map_.end();
+            if (validState_) {
+                validState_ = map_.find(item.first) == map_.end();
+            }
 
             map_[item.first] = item.second;
         }
+
         std::cout << "Snake direct constructor " << this << std::endl; 
     }
     Snake(Snake const& src) : Snake(src.list_) { std::cout << "copy constructor " << this << std::endl; }
@@ -280,7 +283,7 @@ public:
 
     bool isCollide(const Coord& coord) const noexcept;
 
-    bool isSelfCollide() const noexcept { return selfCollision_; };
+    bool isValid() const noexcept { return validState_; };
 
     const std::vector<std::pair<Coord, Direction>>& getParts() const { return list_; };
 
