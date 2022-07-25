@@ -131,7 +131,7 @@ Coord generateNewFood(const GameState& gameState, GameSettigs& settings) {
 
 
 	Coord res;
-    srand((unsigned)time(NULL));
+    srand(settings.foodGenerationSeed);
     do {
 		res.x = settings.leftBoundaries + rand() % (settings.rightBoundaries - settings.leftBoundaries);
 		res.y = settings.topBoundaries + rand() % (settings.bottomBoundaries - settings.topBoundaries);

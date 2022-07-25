@@ -17,7 +17,7 @@ bool isPlayerCollision(const Snake& p1, const Snake& p2) {
 	return false;
 }
 
-bool isPlayerReachedScore(int playerScore, int scoreToWin) {
+bool isPlayerReachedScore(const int& playerScore, const int& scoreToWin) {
 
 	if (playerScore >= scoreToWin) {
 		return true; // more lines for debug :)
@@ -35,7 +35,6 @@ const GamePhase& GameLogicService::check(const GameState& gameState, const GameS
 	};
 	const Coord& leftTop = { settings.leftBoundaries - 1, settings.topBoundaries - 1};
     const Coord& rightBottom = { settings.rightBoundaries, settings.bottomBoundaries};
-	
 
 	if (!gameState.getPlayer(0).isInBound(leftTop, rightBottom)) {
 		return LOSE;

@@ -107,109 +107,9 @@ struct Path {
     DebugContext ctx;
 };
 
-struct SnakePart {
-    Coord coord;
-    Direction direction;
-    SnakePart* next = nullptr;
-
-    SnakePart() {
-        log("        SnakePart created");
-    }
-
-    SnakePart(SnakePart& src) {
-        coord = src.coord;
-        direction = src.direction;
-        next = src.next;
-        log("        SnakePart copied");
-    }
-
-    ~SnakePart() {
-        log("        SnakePart start destoying " + ToString());
-        SnakePart* current = next;
-        if (current != nullptr) {
-            delete current;
-        }
-        // log("        SnakePart destoyed " + ToString());
-    }
-
-    std::string ToString() {
-
-        std::string res = "[";
-        res += std::to_string(coord.x);// todo: why read access violation?!
-        res += ";";
-        res += std::to_string(coord.y);
-        res += "]";
-        return res;
-    }
-};
-
 struct Food {
     Coord coord;
 };
-
-//struct GameState {
-//    int frame = 0;
-//    std::vector<SnakePart*> snake_head = { nullptr, nullptr };
-//
-//    Coord food;
-//    int score[2] = { 0, 0 };
-//    GamePhase gamePhase = IN_PROCESS;
-//    Input input[2];// = { Direction::NONE }; // todo: is it should be like list or something?
-//
-//    GameState(int frame) {
-//        this->frame = frame;
-//        log("    GameState created " + ToString());
-//    }
-//
-//    GameState(GameState& state) {
-//        frame = state.frame;
-//
-//        for (int i = 0; i < 2; i++) {
-//            snake_head[i] = state.snake_head[i];
-//            input[i] = state.input[i];
-//            score[i] = state.score[i];
-//        }
-//
-//        food = state.food;
-//        gamePhase = state.gamePhase;
-//
-//        log("    GameState copyied");
-//    }
-//
-//    ~GameState() {
-//
-//        log("    GameState start destoying " + ToString());
-//
-//        if (snake_head[0] != nullptr) {
-//            delete snake_head[0];
-//            snake_head[0] = nullptr;
-//        }
-//
-//        if (snake_head[1] != nullptr) {
-//            delete snake_head[1];
-//            snake_head[1] = nullptr;
-//        }
-//        // log("    GameState destoyed " + ToString());
-//    }
-//
-//    std::string ToString() {
-//        std::string res = "State[frame:";
-//        res += std::to_string(frame);
-//        res += "];";
-//        if (snake_head[0] != nullptr) {
-//            res += " p1=";
-//            res += snake_head[0]->ToString();
-//            res += ";";
-//        }
-//        if (snake_head[1] != nullptr) {
-//            res += " p2=";
-//            res += snake_head[1]->ToString();
-//            res += ";";
-//        }
-//        return res;
-//    }
-//};
-
 
 
 struct GameSettigs {
@@ -234,6 +134,8 @@ struct GameSettigs {
 
     int foodSize = 5;
     int snakeSize = 1;
+
+    long foodGenerationSeed = 1658772641;
 };
 
 
