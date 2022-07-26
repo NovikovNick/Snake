@@ -131,7 +131,6 @@ Coord generateNewFood(const GameState& gameState, GameSettigs& settings) {
 
 
 	Coord res;
-    srand(settings.foodGenerationSeed);
     do {
 		res.x = settings.leftBoundaries + rand() % (settings.rightBoundaries - settings.leftBoundaries);
 		res.y = settings.topBoundaries + rand() % (settings.bottomBoundaries - settings.topBoundaries);
@@ -180,12 +179,12 @@ void GameLoopService::_startGameLoop() {
 	std::vector<DebugContext> debugCtx;
 	debugCtx.resize(32);
 
-
+	srand(settings.foodGenerationSeed);
 
     do {
 
 		// get inputs
-		inputs[0] = _inputService->popInputs();
+		inputs[0] = inputService_->popInputs();
 		updateGameLoopContext(gameLoopCtx, inputs[0]);
 
 		// Calculating...
@@ -197,7 +196,7 @@ void GameLoopService::_startGameLoop() {
 
 			
 
-			InputDTO botInput = _aiService->getInputs(prevGameState, settings);
+			InputDTO botInput = aiService_->getInputs(prevGameState, settings);
 			inputs[1] = botInput.inputs.empty() ? Input{} : botInput.inputs.front();
 
 			const Snake& prevPlayer = prevGameState.getPlayer(0);
@@ -229,7 +228,7 @@ void GameLoopService::_startGameLoop() {
 				nextGameState->setScore(1, prevGameState.getScore(1) + 1);
 			}
 
-			nextGameState->setPhase(_gameLogicService->check(*nextGameState, settings));
+			nextGameState->setPhase(gameLogicService_->check(*nextGameState, settings));
 
 			holder.add(nextGameState);
 
@@ -240,11 +239,11 @@ void GameLoopService::_startGameLoop() {
 
 		const GameState& gameState = holder[gameLoopCtx.getOffsetFrame()];
 
-		_renderService->BeginDraw();
-		_renderService->renderSelf(gameState, 0, settings);
-		_renderService->renderEnemy(gameState, 1, settings);
-		_renderService->renderFood(gameState.getFood(), settings);
-		_renderService->renderBoard(settings);
+		renderService_->BeginDraw();
+		renderService_->renderSelf(gameState, 0, settings);
+		renderService_->renderEnemy(gameState, 1, settings);
+		renderService_->renderFood(gameState.getFood(), settings);
+		renderService_->renderBoard(settings);
 
 		if (gameLoopCtx.isPaused()) {
 
@@ -257,23 +256,23 @@ void GameLoopService::_startGameLoop() {
 					pauseFrame = path.size() - 1;
 				}
 				auto pathfindingIteration = gameState.getDebugContext().pathfinding[pauseFrame];
-				_renderService->renderDebugAI(pathfindingIteration);
+				renderService_->renderDebugAI(pathfindingIteration);
 			}
 
 
-			_renderService->renderInputs(gameLoopCtx.getOffsetFrame(), holder, settings);
+			renderService_->renderInputs(gameLoopCtx.getOffsetFrame(), holder, settings);
 		}
 
 		switch (gameState.getPhase()) {
 			case WIN:
-				_renderService->renderWinState();
+				renderService_->renderWinState();
 				break;
 			case LOSE:
-				_renderService->renderLoseState();
+				renderService_->renderLoseState();
 				break;
 		}
 
-		_renderService->EndDraw();
+		renderService_->EndDraw();
 
 		// progress = (nextGameState->score[0] / (settings.scoreToWin / 100.0f)) / 100.0f;
 		// delay = paused ? 15 : settings.maxSpeedMs + (settings.initialSpeedMs - settings.maxSpeedMs) * (1 - progress);

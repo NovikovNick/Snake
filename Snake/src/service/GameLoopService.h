@@ -19,23 +19,23 @@ class GameLoopService {
 public:
 	void start();
 	void stop();
-	GameLoopService(InputService* inputService,
-		RenderService* renderService,
-		GameLogicService* gameLogicService,
-		AIService* aiService) {
+	GameLoopService(std::shared_ptr<InputService> inputService,
+		std::shared_ptr<RenderService> renderService,
+		std::shared_ptr<GameLogicService> gameLogicService,
+		std::shared_ptr<AIService> aiService) {
 
-		_inputService = inputService;
-		_renderService = renderService;
-		_gameLogicService = gameLogicService;
-		_aiService = aiService;
+		inputService_ = inputService;
+		renderService_ = renderService;
+		gameLogicService_ = gameLogicService;
+		aiService_ = aiService;
 	}
 
 private:
 
-	InputService* _inputService;
-	RenderService* _renderService;
-	GameLogicService* _gameLogicService;
-	AIService* _aiService;
+	std::shared_ptr<InputService> inputService_;
+	std::shared_ptr<RenderService> renderService_;
+	std::shared_ptr<GameLogicService> gameLogicService_;
+	std::shared_ptr<AIService> aiService_;
 
 	std::thread _renderThread;
 	bool _running = false;

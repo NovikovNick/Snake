@@ -8,12 +8,12 @@
 namespace snake {
 
 class MainWindow : public BaseWindow<MainWindow>{
-    InputService* inputService_;
+    std::shared_ptr<InputService> inputService_;
 public:
     PCWSTR  ClassName() const { return L"Sample Window Class"; }
     LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    inline void SetInputService(InputService* inputService) { inputService_ =  inputService; };
+    inline void SetInputService(std::shared_ptr<InputService> inputService) { inputService_ =  inputService; };
 };
 
 } // namespace snake

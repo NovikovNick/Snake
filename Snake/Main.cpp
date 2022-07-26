@@ -27,13 +27,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
     ShowWindow(win.Window(), nCmdShow);
    
     // init services
-    snake::InputService *inputService = new snake::InputService();
-    win.SetInputService(inputService);
+    auto inputServicePtr = std::make_shared<snake::InputService>();
+    win.SetInputService(inputServicePtr);
 
-    snake::RenderService* renderService = new snake::RenderService(win.Window());
-    snake::GameLogicService* gameLogicService = new snake::GameLogicService();
-    snake::AIService* aiService = new snake::AIService();
-    snake::GameLoopService* gameLoopService = new snake::GameLoopService(inputService, renderService, gameLogicService, aiService);
+    auto renderServicePtr = std::make_shared<snake::RenderService>(win.Window());
+    auto gameLogicServicePtr = std::make_shared<snake::GameLogicService>();
+    auto aiServicePtr = std::make_shared<snake::AIService>();
+    auto gameLoopService = std::make_shared<snake::GameLoopService>(inputServicePtr, renderServicePtr, gameLogicServicePtr, aiServicePtr);
 
     // start the game
     gameLoopService->start();
@@ -44,11 +44,5 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
     gameLoopService->stop();
 
     snake::log("Main loop ended. Deleting...");
-
-    delete inputService;
-    delete renderService;
-    delete gameLoopService;
-    delete gameLogicService;
-
     return 0;
 }
