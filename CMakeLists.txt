@@ -28,27 +28,27 @@ add_test(NAME test_coord_operations COMMAND CoordOperationTest)
 
 add_executable(SnakeMoveTest "Snake/test/snake_move_test.cc" ${SRC_FILES})
 target_include_directories(SnakeMoveTest PRIVATE Boost::unit_test_framework)
-add_test(NAME test_SnakeMove COMMAND SnakeMoveTest)
+add_test(NAME test_snake_move COMMAND SnakeMoveTest)
 
 add_executable(GameStateBufferTest "Snake/test/game_state_buffer_test.cc" ${SRC_FILES})
 target_include_directories(GameStateBufferTest PRIVATE Boost::unit_test_framework)
-add_test(NAME test_GameStateBuffer COMMAND GameStateBufferTest)
+add_test(NAME test_game_state_buffer COMMAND GameStateBufferTest)
 
 add_executable(SnakeIsInBoundTest "Snake/test/snake_is_in_bound_test.cc" ${SRC_FILES})
 target_include_directories(SnakeIsInBoundTest PRIVATE Boost::unit_test_framework)
-add_test(NAME test_SnakeIsInBound COMMAND SnakeIsInBoundTest)
+add_test(NAME test_snake_is_inbound COMMAND SnakeIsInBoundTest)
 
 add_executable(SnakeIsCollideTest "Snake/test/snake_is_collide_test.cc" ${SRC_FILES})
 target_include_directories(SnakeIsCollideTest PRIVATE Boost::unit_test_framework)
-add_test(NAME test_SnakeIsCollide COMMAND SnakeIsCollideTest)
+add_test(NAME test_snake_is_collide COMMAND SnakeIsCollideTest)
 
 add_executable(PathfinderTest "Snake/test/pathfinder_test.cc" ${SRC_FILES})
 target_include_directories(PathfinderTest PRIVATE Boost::unit_test_framework)
-add_test(NAME test_Pathfinder COMMAND PathfinderTest)
+add_test(NAME test_pathfinder COMMAND PathfinderTest)
 
 add_executable(SnakeIsValidTest "Snake/test/snake_is_valid_test.cc" ${SRC_FILES})
 target_include_directories(SnakeIsValidTest PRIVATE Boost::unit_test_framework)
-add_test(NAME test_SnakeIsValid COMMAND SnakeIsValidTest)
+add_test(NAME test_snake_is_valid COMMAND SnakeIsValidTest)
 
 message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
 message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")

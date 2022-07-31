@@ -1,20 +1,21 @@
 #ifndef SNAKE_SNAKE_INPUT_SERVICE_H_
 #define SNAKE_SNAKE_INPUT_SERVICE_H_
-#include "game_models.h"
-
-#include "deque"
 #include <vector>
 
+#include "deque"
+#include "game_models.h"
 
 namespace snake {
 
 class InputService final {
-	std::deque<Input> input_queue_ = std::deque<Input, std::allocator<Input>>();
-public:
-	void AddInput(const Input& input);
-	Input PopInputs();
+ public:
+  void AddInput(const Input& input);
+  Input PopInputs();
+
+ private:
+  std::deque<Input> input_queue_;
 };
 
-} // namespace snake
+}  // namespace snake
 
-#endif // SNAKE_SNAKE_INPUT_SERVICE_H_
+#endif  // SNAKE_SNAKE_INPUT_SERVICE_H_

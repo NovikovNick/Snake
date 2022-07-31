@@ -1,72 +1,78 @@
 #ifndef SNAKE_SNAKE_RENDER_SERVICE_H_
 #define SNAKE_SNAKE_RENDER_SERVICE_H_
 
-#include "game_models.h"
-
-
 #include <d2d1.h>
-#include <thread>
-#include <iostream>
-#include <deque>
-#pragma comment(lib, "d2d1") // This line of code is equivalent to adding d2d1.lib in the additional dependency linker options.
 
+#include <deque>
+#include <iostream>
+#include <thread>
+
+#include "game_models.h"
+#pragma comment(lib, \
+                "d2d1")  // This line of code is equivalent to adding d2d1.lib
+                         // in the additional dependency linker options.
 
 namespace snake {
 
-class RenderService {
-public:
-    RenderService(HWND hwnd);
-    ~RenderService();
+class RenderService final {
+ public:
+  RenderService(HWND hwnd);
 
-    void renderSelf(const GameState& gameState, const int& index, const GameSettigs& settings);
-    void renderEnemy(const GameState& gameState, const int& index, const GameSettigs& settings);
-    void renderPlayer(const GameState& gameState, const int& index, const GameSettigs& settings, ID2D1SolidColorBrush* _pBrush);
+  ~RenderService();
 
-    void renderBoard(const GameSettigs& settings);
+  void renderSelf(const GameState& gameState, const int& index,
+                  const GameSettigs& settings);
 
-    void renderFood(const Coord& food, const GameSettigs& settings);
+  void renderEnemy(const GameState& gameState, const int& index,
+                   const GameSettigs& settings);
 
-    void renderInputs(
-        const int& frame,
-        const GameStateBuffer<GameState>& holder,
-        const GameSettigs& settings);
-    
-    void renderWinState();
-    void renderLoseState();
-    void renderPauseState();
+  void renderPlayer(const GameState& gameState, const int& index,
+                    const GameSettigs& settings, ID2D1SolidColorBrush* _pBrush);
 
-    void renderDebugAI(std::vector<DebugItem> debugCtx);
+  void renderBoard(const GameSettigs& settings);
 
-    void BeginDraw();
-    void EndDraw();
+  void renderFood(const Coord& food, const GameSettigs& settings);
 
-    float size = 40.0f;
+  void renderInputs(const int& frame, const GameStateBuffer<GameState>& holder,
+                    const GameSettigs& settings);
 
-private:
+  void renderWinState();
 
-    HWND _hwnd;
-    ID2D1Factory* _pD2DFactory = NULL;
-    ID2D1HwndRenderTarget* _pRT = NULL;
-    ID2D1SolidColorBrush* _pBlackBrush = NULL;
-    ID2D1SolidColorBrush* _pLightSlateGrayBrush = NULL;
-    ID2D1SolidColorBrush* _pRedBrush = NULL;
-    ID2D1SolidColorBrush* _pGreenBrush = NULL;
-    ID2D1SolidColorBrush* _pGrayBrush = NULL;
-    ID2D1SolidColorBrush* _pCoralBrush = NULL;
-    RECT _rc;
+  void renderLoseState();
 
-    void DrawInput(float x, float y, Direction dir, float size, bool focused, ID2D1SolidColorBrush* _pBrush);
+  void renderPauseState();
 
-    template <class T> void SafeRelease(T** ppT)
-    {
-        if (*ppT)
-        {
-            (*ppT)->Release();
-            *ppT = NULL;
-        }
+  void renderDebugAI(std::vector<DebugItem> debugCtx);
+
+  void BeginDraw();
+
+  void EndDraw();
+
+  float size = 40.0f;
+
+ private:
+  HWND _hwnd;
+  ID2D1Factory* _pD2DFactory = NULL;
+  ID2D1HwndRenderTarget* _pRT = NULL;
+  ID2D1SolidColorBrush* _pBlackBrush = NULL;
+  ID2D1SolidColorBrush* _pLightSlateGrayBrush = NULL;
+  ID2D1SolidColorBrush* _pRedBrush = NULL;
+  ID2D1SolidColorBrush* _pGreenBrush = NULL;
+  ID2D1SolidColorBrush* _pGrayBrush = NULL;
+  ID2D1SolidColorBrush* _pCoralBrush = NULL;
+  RECT _rc;
+
+  void DrawInput(float x, float y, Direction dir, float size, bool focused,
+                 ID2D1SolidColorBrush* _pBrush);
+
+  template <class T>
+  void SafeRelease(T** ppT) {
+    if (*ppT) {
+      (*ppT)->Release();
+      *ppT = NULL;
     }
+  }
 };
+}  // namespace snake
 
-} // namespace snake
-
-#endif // !SNAKE_SNAKE_RENDER_SERVICE_H_
+#endif  // !SNAKE_SNAKE_RENDER_SERVICE_H_

@@ -1,17 +1,15 @@
 #ifndef SNAKE_SNAKE_AI_SERVICE_H_
 #define SNAKE_SNAKE_AI_SERVICE_H_
 
-#include "game_models.h"
-
 #include <vector>
+
+#include "game_models.h"
 
 namespace snake {
 
-class AIService {
-public:
-    InputDTO getInputs(const GameState& gameState, const GameSettigs& settings);
+class AIService final {
+ public:
+  InputDTO GetInputs(const GameState& gameState, const GameSettigs& settings);
 };
-
-} // namespace snake
-
+}  // namespace snake
 #endif  // SNAKE_SNAKE_AI_SERVICE_H_

@@ -1,292 +1,274 @@
 #include "../game_loop_service.h"
+
 #include <unordered_set>
 
 namespace snake {
 
 namespace {
 
-Snake* InitPlayer(
-	const int& x,
-	const int& y,
-	const int& lenght,
-	const Direction& dir) {
+Snake* InitPlayer(const int& x, const int& y, const int& lenght,
+                  const Direction& dir) {
+  std::vector<std::pair<Coord, Direction>> list{
+      std::make_pair(Coord{x, y}, dir)};
 
-	std::vector<std::pair<Coord, Direction>> list{
-		std::make_pair(Coord{x, y}, dir)
-	};
+  for (int i = 0; i < lenght; ++i) {
+    list.push_back(std::make_pair(list.back().first - dir, dir));
+  }
 
-	for (size_t i = 0; i < lenght; i++) {
-		list.push_back(std::make_pair(list.back().first - dir, dir));
-	}
-
-	return new Snake(list);
+  return new Snake(list);
 }
 
-struct GameLoopContext {
+struct GameLoopContext final {
+  GameLoopContext(const int& capacity) : capacity_(capacity) {}
 
-	GameLoopContext(const int& capacity) : capacity_(capacity) {}
+  const int& getFrame() const noexcept { return frame_; }
+  const int& getOffsetFrame() const noexcept { return frameOffset_; }
+  const int& getPauseFrame() const noexcept { return pauseFrame_; }
+  const bool& isPaused() const noexcept { return paused_; }
 
-	const int& getFrame() const noexcept { return frame_; }
-	const int& getOffsetFrame() const noexcept { return frameOffset_; }
-	const int& getPauseFrame() const noexcept { return pauseFrame_; }
-	const bool& isPaused() const noexcept { return paused_; }
+  void incrementFrame() noexcept { frame_++; }
+  void switchPause() noexcept {
+    paused_ = !paused_;
+    pauseFrame_ = 0;
+    frameOffset_ = 0;
+  }
+  void frameForward() noexcept {
+    if (paused_) {
+      frameOffset_++;
 
-	void incrementFrame() noexcept { frame_++; }
-	void switchPause() noexcept { 
-		paused_ = !paused_;
-		pauseFrame_ = 0;
-		frameOffset_ = 0;
-	}
-	void frameForward() noexcept {
-		
-		if (paused_) {
-			frameOffset_++;
+      if (frameOffset_ > frame_) {
+        frameOffset_ = frame_;
+      } else if (frameOffset_ >= capacity_) {
+        frameOffset_ = capacity_ - 1;
+      }
+    }
+  }
+  void frameBackward() noexcept {
+    if (paused_) {
+      frameOffset_--;
+      if (frameOffset_ < 0) {
+        frameOffset_ = 0;
+      }
+    }
+  }
+  void pauseFrameForward() noexcept {
+    if (paused_) {
+      pauseFrame_++;
+    }
+  }
+  void pauseFrameBackward() noexcept {
+    if (paused_) {
+      pauseFrame_--;
+      if (pauseFrame_ < 0) {
+        pauseFrame_ = 0;
+      }
+    }
+  }
+  void pause() noexcept {
+    paused_ = true;
+    pauseFrame_ = 0;
+    frameOffset_ = 0;
+  }
 
-			if (frameOffset_ > frame_) {
-				frameOffset_ = frame_;
-			}
-			else if (frameOffset_ >= capacity_) {
-				frameOffset_ = capacity_ - 1;
-			}
-		}
-	}
-	void frameBackward() noexcept {
-		if (paused_) {
-			frameOffset_--;
-			if (frameOffset_ < 0) {
-				frameOffset_ = 0;
-			}
-		}
-		
-	}
-	void pauseFrameForward() noexcept {
+ private:
+  int frame_ = 0;
+  int capacity_;
+  int frameOffset_ = 0;
+  int pauseFrame_ = 0;
 
-		if (paused_) {
-			pauseFrame_++;
-		}
-
-	}
-	void pauseFrameBackward() noexcept {
-
-		if (paused_) {
-			pauseFrame_--;
-			if (pauseFrame_ < 0) {
-				pauseFrame_ = 0;
-			}
-		}
-
-		
-	}
-	void pause() noexcept {
-		paused_ = true;
-		pauseFrame_ = 0;
-		frameOffset_ = 0;
-	}
-
-private:
-	int frame_ = 0;
-	int capacity_;
-	int frameOffset_ = 0;
-	int pauseFrame_ = 0;
-
-	bool paused_ = false;
+  bool paused_ = false;
 };
 
-void updateGameLoopContext(
-	GameLoopContext& gameLoopCtx,
-	const Input& input) {
-
-	switch (input.command) {
-	case SystemCommand::PAUSE:
-		gameLoopCtx.switchPause();
-		break;
-	case SystemCommand::STEP_FORWARD:
-		gameLoopCtx.frameForward();
-		break;
-	case SystemCommand::STEP_BACKWARD:
-		gameLoopCtx.frameBackward();
-		break;
-	case SystemCommand::AI_STEP_BACKWARD:
-		gameLoopCtx.pauseFrameBackward();
-		break;
-	case SystemCommand::AI_STEP_FORWARD:
-		gameLoopCtx.pauseFrameForward();
-		break;
-	default:
-		break;
-	}
+void UpdateGameLoopContext(GameLoopContext& gameLoopCtx, const Input& input) {
+  switch (input.command) {
+    case SystemCommand::PAUSE:
+      gameLoopCtx.switchPause();
+      break;
+    case SystemCommand::STEP_FORWARD:
+      gameLoopCtx.frameForward();
+      break;
+    case SystemCommand::STEP_BACKWARD:
+      gameLoopCtx.frameBackward();
+      break;
+    case SystemCommand::AI_STEP_BACKWARD:
+      gameLoopCtx.pauseFrameBackward();
+      break;
+    case SystemCommand::AI_STEP_FORWARD:
+      gameLoopCtx.pauseFrameForward();
+      break;
+    default:
+      break;
+  }
 }
 
+Coord GenerateNewFood(const GameState& gameState, GameSettigs& settings) {
+  std::unordered_set<Coord, hash_coord> set;
 
-Coord generateNewFood(const GameState& gameState, GameSettigs& settings) {
+  for (size_t i = 0; i < 2; i++) {
+    for (auto part : gameState.getPlayer(i).getParts()) {
+      set.insert(part.first);
+    }
+  }
 
+  Coord res;
+  do {
+    res.x = settings.leftBoundaries +
+            rand() % (settings.rightBoundaries - settings.leftBoundaries);
+    res.y = settings.topBoundaries +
+            rand() % (settings.bottomBoundaries - settings.topBoundaries);
 
-	std::unordered_set<Coord, hash_coord> set;
+  } while (set.find(res) != set.end());
 
-	for (size_t i = 0; i < 2; i++) {
-		for (auto part : gameState.getPlayer(i).getParts()) {
-			set.insert(part.first);
-		}
-	}
-
-
-	Coord res;
-    do {
-		res.x = settings.leftBoundaries + rand() % (settings.rightBoundaries - settings.leftBoundaries);
-		res.y = settings.topBoundaries + rand() % (settings.bottomBoundaries - settings.topBoundaries);
-
-    } while (set.find(res) != set.end());
-
-	return res;
-
+  return res;
 }
 
-}// namespace
+}  // namespace
 
-void GameLoopService::start() {
-	_running = true;
-	_renderThread = std::thread(&GameLoopService::_startGameLoop, this);
+void GameLoopService::Start() {
+  running_ = true;
+  render_thread_ = std::thread(&GameLoopService::StartGameLoop, this);
 }
 
-void GameLoopService::stop() {
-	_running = false;
-	_renderThread.join();
+void GameLoopService::Stop() {
+  running_ = false;
+  render_thread_.join();
 }
 
-void GameLoopService::_startGameLoop() {
+void GameLoopService::StartGameLoop() {
+  GameSettigs settings = {};
 
-	GameSettigs settings = {};
+  GameState* init_game_state = new GameState(
+      0,
+      InitPlayer(settings.startPlayedXCoord, settings.startPlayedYCoord,
+                 settings.startLenght, settings.startPlayedDirection),
+      InitPlayer(10, 13, 3, Direction::RIGHT));
+  init_game_state->setFood(
+      {settings.startFoodXCoord, settings.startFoodYCoord});
 
-	GameState* initGameState = new GameState(
-		0, 
-		InitPlayer(settings.startPlayedXCoord, settings.startPlayedYCoord, settings.startLenght, settings.startPlayedDirection),
-		InitPlayer(10, 13, 3, Direction::RIGHT)
-	);
-	initGameState->setFood({ settings.startFoodXCoord, settings.startFoodYCoord });
+  GameStateBuffer<GameState> holder(32);
+  holder.add(init_game_state);
 
-	
-	GameStateBuffer<GameState> holder(32);
-	holder.add(initGameState);
+  GameLoopContext game_loop_ctx(32);
 
+  int64_t delay = settings.initialSpeedMs;
+  float progress = 0;
+  std::vector<Input> inputs;
+  inputs.resize(2);
 
-	GameLoopContext gameLoopCtx(32);
+  std::vector<DebugContext> debug_ctx;
+  debug_ctx.resize(32);
 
-	int64_t delay = settings.initialSpeedMs;
-	float progress = 0;
-	std::vector<Input> inputs;
-	inputs.resize(2);
+  srand(settings.foodGenerationSeed);
 
-	std::vector<DebugContext> debugCtx;
-	debugCtx.resize(32);
+  do {
+    // get inputs
+    inputs[0] = input_service_->PopInputs();
+    UpdateGameLoopContext(game_loop_ctx, inputs[0]);
 
-	srand(settings.foodGenerationSeed);
+    // Calculating...
 
-    do {
+    if (!game_loop_ctx.isPaused()) {
+      const GameState& prev_game_state = holder.head();
 
-		// get inputs
-		inputs[0] = inputService_->PopInputs();
-		updateGameLoopContext(gameLoopCtx, inputs[0]);
+      InputDTO botInput = ai_service_->GetInputs(prev_game_state, settings);
+      inputs[1] = botInput.inputs.empty() ? Input{} : botInput.inputs.front();
 
-		// Calculating...
+      const Snake& prevPlayer = prev_game_state.getPlayer(0);
+      const Snake& prevBot = prev_game_state.getPlayer(1);
 
-		if (!gameLoopCtx.isPaused()) {
+      Snake* next_player = prevPlayer.move(inputs[0].direction);
+      Snake* next_bot = prevBot.move(inputs[1].direction);
 
-			const GameState& prevGameState = holder.head();
-			const GamePhase& prevGamePhase = prevGameState.getPhase();
+      bool is_player_gained =
+          next_player->getHeadCoord() == prev_game_state.getFood();
+      bool is_bot_gained =
+          next_bot->getHeadCoord() == prev_game_state.getFood();
 
-			
+      GameState* next_game_state =
+          new GameState(game_loop_ctx.getFrame() + 1, next_player, next_bot);
+      next_game_state->setDebugContext(botInput.ctx);
+      next_game_state->setFood(prev_game_state.getFood());
+      next_game_state->setInputs(inputs);
+      next_game_state->setScore(0, prev_game_state.getScore(0));
+      next_game_state->setScore(1, prev_game_state.getScore(1));
 
-			InputDTO botInput = aiService_->getInputs(prevGameState, settings);
-			inputs[1] = botInput.inputs.empty() ? Input{} : botInput.inputs.front();
+      if (is_player_gained) {
+        next_player->gain();
+        next_game_state->setFood(GenerateNewFood(*next_game_state, settings));
 
-			const Snake& prevPlayer = prevGameState.getPlayer(0);
-			const Snake& prevBot = prevGameState.getPlayer(1);
+        next_game_state->setScore(0, prev_game_state.getScore(0) + 1);
+      } else if (is_bot_gained) {
+        next_bot->gain();
+        next_game_state->setFood(GenerateNewFood(*next_game_state, settings));
+        next_game_state->setScore(1, prev_game_state.getScore(1) + 1);
+      }
 
-			Snake* nextPlayer = prevPlayer.move(inputs[0].direction);
-			Snake* nextBot = prevBot.move(inputs[1].direction);
+      next_game_state->setPhase(
+          game_logic_service_->check(*next_game_state, settings));
 
+      holder.add(next_game_state);
 
-			bool playerGained = nextPlayer->getHeadCoord() == prevGameState.getFood();
-			bool botGained = nextBot->getHeadCoord() == prevGameState.getFood();
-			
+      if (next_game_state->getPhase() == WIN ||
+          next_game_state->getPhase() == LOSE) {
+        game_loop_ctx.pause();
+      }
+    }
 
-			GameState* nextGameState = new GameState(gameLoopCtx.getFrame() + 1, nextPlayer, nextBot);
-			nextGameState->setDebugContext(botInput.ctx);
-			nextGameState->setFood(prevGameState.getFood());
-			nextGameState->setInputs(inputs);
-			nextGameState->setScore(0, prevGameState.getScore(0));
-			nextGameState->setScore(1, prevGameState.getScore(1));
+    const GameState& gameState = holder[game_loop_ctx.getOffsetFrame()];
 
-			if (playerGained) {
-				nextPlayer->gain();
-				nextGameState->setFood(generateNewFood(*nextGameState, settings));
+    render_service_->BeginDraw();
+    render_service_->renderSelf(gameState, 0, settings);
+    render_service_->renderEnemy(gameState, 1, settings);
+    render_service_->renderFood(gameState.getFood(), settings);
+    render_service_->renderBoard(settings);
 
-				nextGameState->setScore(0, prevGameState.getScore(0) + 1);
-			} else if (botGained) {
-				nextBot->gain();
-				nextGameState->setFood(generateNewFood(*nextGameState, settings));
-				nextGameState->setScore(1, prevGameState.getScore(1) + 1);
-			}
+    if (game_loop_ctx.isPaused()) {
+      auto path = gameState.getDebugContext().pathfinding;
+      if (path.size() > 0) {
+        int pauseFrame = game_loop_ctx.getPauseFrame();
+        if (pauseFrame >= path.size()) {
+          pauseFrame = path.size() - 1;
+        }
+        auto pathfindingIteration =
+            gameState.getDebugContext().pathfinding[pauseFrame];
+        render_service_->renderDebugAI(pathfindingIteration);
+      }
 
-			nextGameState->setPhase(gameLogicService_->check(*nextGameState, settings));
+      render_service_->renderInputs(game_loop_ctx.getOffsetFrame(), holder,
+                                    settings);
+    }
 
-			holder.add(nextGameState);
+    switch (gameState.getPhase()) {
+      case WIN:
+        render_service_->renderWinState();
+        break;
+      case LOSE:
+        render_service_->renderLoseState();
+        break;
+    }
 
-			if (nextGameState->getPhase() == WIN || nextGameState->getPhase() == LOSE) {
-				gameLoopCtx.pause();
-			} 
-		}
+    render_service_->EndDraw();
 
-		const GameState& gameState = holder[gameLoopCtx.getOffsetFrame()];
+#if 0 
+    progress =
+        (gameState.getScore(0) / (settings.scoreToWin / 100.0f)) / 100.0f;
+    delay = gameLoopCtx.isPaused()
+                ? 15
+                : settings.maxSpeedMs +
+                      (settings.initialSpeedMs - settings.maxSpeedMs) *
+                          (1 - progress);
+#endif
 
-		renderService_->BeginDraw();
-		renderService_->renderSelf(gameState, 0, settings);
-		renderService_->renderEnemy(gameState, 1, settings);
-		renderService_->renderFood(gameState.getFood(), settings);
-		renderService_->renderBoard(settings);
+    if (!game_loop_ctx.isPaused()) {
+      game_loop_ctx.incrementFrame();
+    }
 
-		if (gameLoopCtx.isPaused()) {
+    delay = game_loop_ctx.isPaused() ? 15 : settings.maxSpeedMs;
 
+    // End loop
+    std::this_thread::sleep_for(
+        std::chrono::duration<double, std::milli>(delay));
 
-			auto path = gameState.getDebugContext().pathfinding;
-			if (path.size() > 0) {
-
-				int pauseFrame = gameLoopCtx.getPauseFrame();
-				if (pauseFrame >= path.size()) {
-					pauseFrame = path.size() - 1;
-				}
-				auto pathfindingIteration = gameState.getDebugContext().pathfinding[pauseFrame];
-				renderService_->renderDebugAI(pathfindingIteration);
-			}
-
-
-			renderService_->renderInputs(gameLoopCtx.getOffsetFrame(), holder, settings);
-		}
-
-		switch (gameState.getPhase()) {
-			case WIN:
-				renderService_->renderWinState();
-				break;
-			case LOSE:
-				renderService_->renderLoseState();
-				break;
-		}
-
-		renderService_->EndDraw();
-
-		// progress = (nextGameState->score[0] / (settings.scoreToWin / 100.0f)) / 100.0f;
-		// delay = paused ? 15 : settings.maxSpeedMs + (settings.initialSpeedMs - settings.maxSpeedMs) * (1 - progress);
-
-		if (!gameLoopCtx.isPaused()) {
-			gameLoopCtx.incrementFrame();
-		}
-
-		delay = gameLoopCtx.isPaused() ? 15 : settings.maxSpeedMs;
-
-		// End loop
-		std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(delay));
-
-    } while (_running);
+  } while (running_);
 }
-
-} // namespace snake
+}  // namespace snake

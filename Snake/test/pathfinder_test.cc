@@ -12,10 +12,10 @@ BOOST_AUTO_TEST_CASE(testPathfinder) {
     Pathfinder pathfinder;
 
     // act
-    Path path1 = pathfinder.findPath(Coord{ 1, 1 }, Coord{ 2, 1 });
-    Path path2 = pathfinder.findPath(Coord{ 1, 1 }, Coord{ 0, 1 });
-    Path path3 = pathfinder.findPath(Coord{ 1, 1 }, Coord{ 1, 0 });
-    Path path4 = pathfinder.findPath(Coord{ 1, 1 }, Coord{ 1, 2 });
+    Path path1 = pathfinder.FindPath(Coord{1, 1}, Coord{2, 1});
+    Path path2 = pathfinder.FindPath(Coord{1, 1}, Coord{0, 1});
+    Path path3 = pathfinder.FindPath(Coord{1, 1}, Coord{1, 0});
+    Path path4 = pathfinder.FindPath(Coord{1, 1}, Coord{1, 2});
     
     // assert
     BOOST_CHECK(Direction::RIGHT == path1.path[0]);
