@@ -25,12 +25,12 @@ enum class SystemCommand {
     NONE
 };
 
-struct Input {
+struct Input final {
     Direction direction = Direction::NONE;
     SystemCommand command = SystemCommand::NONE;
 };
 
-struct Coord {
+struct Coord final {
    int x;
    int y;
 
@@ -69,7 +69,7 @@ struct Coord {
    }
 };
 
-struct hash_coord {
+struct hash_coord final {
     size_t operator()(const snake::Coord& p) const
     {
         auto hash1 = std::hash<int>{}(p.x);
@@ -88,31 +88,31 @@ enum class DebugMark {
     REACHABLE, EXPLORED, PATH, NONE
 };
 
-struct DebugItem {
+struct DebugItem final {
     Coord coord;
     DebugMark mark;
 };
 
-struct DebugContext {
+struct DebugContext final {
     std::vector<std::vector<DebugItem>> pathfinding;
 };
 
-struct InputDTO {
+struct InputDTO final {
     std::vector<Input> inputs;
     DebugContext ctx;
 };
 
-struct Path {
+struct Path final {
     std::vector<Direction> path;
     DebugContext ctx;
 };
 
-struct Food {
+struct Food final {
     Coord coord;
 };
 
 
-struct GameSettigs {
+struct GameSettigs final {
     int scoreToWin = 50;
     int initialSpeedMs = 100;
     int maxSpeedMs = 100;
@@ -139,7 +139,7 @@ struct GameSettigs {
 };
 
 
-class Snake {
+class Snake final {
 
     std::vector<std::pair<Coord, Direction>> list_;
     Coord leftTop_;
@@ -191,7 +191,7 @@ public:
 
 };
 
-struct GameState {
+struct GameState final {
     
     GameState(
         const int& frame, 
@@ -231,7 +231,7 @@ private:
 };
 
 template <typename T>
-class GameStateBuffer {
+class GameStateBuffer final {
 
     int cursor_ = -1;
     int size_;

@@ -1,7 +1,7 @@
 #ifndef SNAKE_SNAKE_RENDER_SERVICE_H_
 #define SNAKE_SNAKE_RENDER_SERVICE_H_
 
-#include "GameModels.h"
+#include "game_models.h"
 
 
 #include <d2d1.h>

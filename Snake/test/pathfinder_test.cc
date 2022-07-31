@@ -1,6 +1,6 @@
 #define BOOST_TEST_MODULE SolutionTest
 
-#include "../src/service/Pathfinder.h"
+#include "../src/service/pathfinder.h"
 #include <boost/test/included/unit_test.hpp>
 
 

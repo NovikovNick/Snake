@@ -1,4 +1,4 @@
-#include "../GameModels.h"
+#include "../game_models.h"
 
 namespace snake {
 
@@ -32,7 +32,7 @@ Snake* Snake::move(const Direction& dir, const bool& gain) const noexcept {
 
 	dstParts.push_back(std::make_pair(srcParts[0].first + previous, previous));
 
-	for (size_t i = 1; i < srcParts.size(); i++) {
+	for (int i = 1, size = srcParts.size(); i < size; ++i) {
 		dstParts.push_back(std::make_pair(srcParts[i].first + srcParts[i].second, previous));
 		previous = srcParts[i].second;
 	}

@@ -13,40 +13,40 @@ add_definitions( -DBOOST_ALL_DYN_LINK )
 include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB SRC_SERVICE "Snake/src/service/*.h")
-file(GLOB SRC_SERVICE_IMPL "Snake/src/service/impl/*.cpp")
-file(GLOB SRC_UTIL "Snake/src/util/*.h" "Snake/src/util/*.cpp")
-file(GLOB SRC_WIN "Snake/src/win32/*.h" "Snake/src/win32/*.cpp")
+file(GLOB SRC_SERVICE_IMPL "Snake/src/service/impl/*.cc")
+file(GLOB SRC_UTIL "Snake/src/util/*.h" "Snake/src/util/*.cc")
+file(GLOB SRC_WIN "Snake/src/win32/*.h" "Snake/src/win32/*.cc")
 file(GLOB SRC_FILES ${SRC_SERVICE} ${SRC_SERVICE_IMPL} ${SRC_UTIL} ${SRC_WIN})
 
-add_executable (Snake WIN32  "Snake/main.cpp" ${SRC_FILES})
+add_executable (Snake WIN32  "Snake/main.cc" ${SRC_FILES})
 
 # unit tests
 
-add_executable(CoordOperationTest "Snake/test/CoordOperationTest.cpp" ${SRC_FILES})
+add_executable(CoordOperationTest "Snake/test/coord_operation_test.cc" ${SRC_FILES})
 target_include_directories(CoordOperationTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_coord_operations COMMAND CoordOperationTest)
 
-add_executable(SnakeMoveTest "Snake/test/SnakeMoveTest.cpp" ${SRC_FILES})
+add_executable(SnakeMoveTest "Snake/test/snake_move_test.cc" ${SRC_FILES})
 target_include_directories(SnakeMoveTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_SnakeMove COMMAND SnakeMoveTest)
 
-add_executable(GameStateBufferTest "Snake/test/GameStateBufferTest.cpp" ${SRC_FILES})
+add_executable(GameStateBufferTest "Snake/test/game_state_buffer_test.cc" ${SRC_FILES})
 target_include_directories(GameStateBufferTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_GameStateBuffer COMMAND GameStateBufferTest)
 
-add_executable(SnakeIsInBoundTest "Snake/test/SnakeIsInBoundTest.cpp" ${SRC_FILES})
+add_executable(SnakeIsInBoundTest "Snake/test/snake_is_in_bound_test.cc" ${SRC_FILES})
 target_include_directories(SnakeIsInBoundTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_SnakeIsInBound COMMAND SnakeIsInBoundTest)
 
-add_executable(SnakeIsCollideTest "Snake/test/SnakeIsCollideTest.cpp" ${SRC_FILES})
+add_executable(SnakeIsCollideTest "Snake/test/snake_is_collide_test.cc" ${SRC_FILES})
 target_include_directories(SnakeIsCollideTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_SnakeIsCollide COMMAND SnakeIsCollideTest)
 
-add_executable(PathfinderTest "Snake/test/PathfinderTest.cpp" ${SRC_FILES})
+add_executable(PathfinderTest "Snake/test/pathfinder_test.cc" ${SRC_FILES})
 target_include_directories(PathfinderTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_Pathfinder COMMAND PathfinderTest)
 
-add_executable(SnakeIsValidTest "Snake/test/SnakeIsValidTest.cpp" ${SRC_FILES})
+add_executable(SnakeIsValidTest "Snake/test/snake_is_valid_test.cc" ${SRC_FILES})
 target_include_directories(SnakeIsValidTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_SnakeIsValid COMMAND SnakeIsValidTest)
 

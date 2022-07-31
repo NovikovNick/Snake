@@ -1,4 +1,4 @@
-#include "MainWindow.h"
+#include "main_window.h"
 
 namespace snake {
 
@@ -11,31 +11,31 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         switch (wParam)
         {
         case VK_LEFT:
-            inputService_->addInput({ Direction::LEFT, SystemCommand::NONE});
+            inputService_->AddInput({ Direction::LEFT, SystemCommand::NONE});
             break;
         case VK_RIGHT:
-            inputService_->addInput({ Direction::RIGHT, SystemCommand::NONE });
+            inputService_->AddInput({ Direction::RIGHT, SystemCommand::NONE });
             break;
         case VK_UP:
-            inputService_->addInput({ Direction::UP, SystemCommand::NONE });
+            inputService_->AddInput({ Direction::UP, SystemCommand::NONE });
             break;
         case VK_DOWN:
-            inputService_->addInput({ Direction::DOWN, SystemCommand::NONE });
+            inputService_->AddInput({ Direction::DOWN, SystemCommand::NONE });
             break;
         case VK_SPACE:
-            inputService_->addInput({ Direction::NONE, SystemCommand::PAUSE });
+            inputService_->AddInput({ Direction::NONE, SystemCommand::PAUSE });
             break;
         case VK_F1:
-            inputService_->addInput({ Direction::NONE, SystemCommand::STEP_BACKWARD });
+            inputService_->AddInput({ Direction::NONE, SystemCommand::STEP_BACKWARD });
             break;
         case VK_F2:
-            inputService_->addInput({ Direction::NONE, SystemCommand::STEP_FORWARD });
+            inputService_->AddInput({ Direction::NONE, SystemCommand::STEP_FORWARD });
             break;
         case VK_F3:
-            inputService_->addInput({ Direction::NONE, SystemCommand::AI_STEP_BACKWARD });
+            inputService_->AddInput({ Direction::NONE, SystemCommand::AI_STEP_BACKWARD });
             break;
         case VK_F4:
-            inputService_->addInput({ Direction::NONE, SystemCommand::AI_STEP_FORWARD });
+            inputService_->AddInput({ Direction::NONE, SystemCommand::AI_STEP_FORWARD });
             break;
         case VK_ESCAPE:
             PostQuitMessage(0);

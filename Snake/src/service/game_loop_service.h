@@ -5,11 +5,11 @@
 #include <thread>
 #include <iostream>
 
-#include "GameModels.h"
-#include "RenderService.h"
-#include "InputService.h"
-#include "GameLogicService.h"
-#include "AIService.h"
+#include "game_models.h"
+#include "render_service.h"
+#include "input_service.h"
+#include "game_logic_service.h"
+#include "ai_service.h"
 
 
 namespace snake {

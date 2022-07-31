@@ -1,4 +1,4 @@
-#include "../GameLogicService.h"
+#include "../game_logic_service.h"
 
 #include <stdlib.h>
 #include <time.h>

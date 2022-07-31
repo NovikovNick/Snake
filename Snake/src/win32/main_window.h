@@ -1,9 +1,9 @@
-#include "BaseWindow.h"
+#include "base_window.h"
 
 #include <deque>
 
-#include "../service/GameModels.h"
-#include "../service/InputService.h"
+#include "../service/game_models.h"
+#include "../service/input_service.h"
 
 namespace snake {
 

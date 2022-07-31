@@ -8,8 +8,8 @@
 #include <iostream>
 #include <deque>
 
-#include "src/win32/MainWindow.h"
-#include "src/service/GameLoopService.h"
+#include "src/win32/main_window.h"
+#include "src/service/game_loop_service.h"
 
 
 

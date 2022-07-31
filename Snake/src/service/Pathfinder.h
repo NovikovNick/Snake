@@ -1,7 +1,7 @@
 #ifndef SNAKE_PATHFINDER_H_
 #define SNAKE_PATHFINDER_H_
 
-#include "GameModels.h"
+#include "game_models.h"
 
 #include <vector>
 

@@ -1,4 +1,4 @@
-#include "../GameLoopService.h"
+#include "../game_loop_service.h"
 #include <unordered_set>
 
 namespace snake {
@@ -184,7 +184,7 @@ void GameLoopService::_startGameLoop() {
     do {
 
 		// get inputs
-		inputs[0] = inputService_->popInputs();
+		inputs[0] = inputService_->PopInputs();
 		updateGameLoopContext(gameLoopCtx, inputs[0]);
 
 		// Calculating...
