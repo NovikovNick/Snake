@@ -24,10 +24,10 @@ struct CoordCompare {
 
 std::vector<std::pair<Coord, Direction>> getNextPossibleCoord(
     const Coord& coord) {
-  return {std::make_pair(coord + Direction::RIGHT, Direction::RIGHT),
-          std::make_pair(coord + Direction::LEFT, Direction::LEFT),
-          std::make_pair(coord + Direction::UP, Direction::UP),
-          std::make_pair(coord + Direction::DOWN, Direction::DOWN)};
+  return {std::make_pair(coord + Direction::kRight, Direction::kRight),
+          std::make_pair(coord + Direction::kLeft, Direction::kLeft),
+          std::make_pair(coord + Direction::kUp, Direction::kUp),
+          std::make_pair(coord + Direction::kDown, Direction::kDown)};
 }
 }  // namespace
 
@@ -86,7 +86,7 @@ Path Pathfinder::FindPath(const Coord& start, const Coord& to,
     reachable.extract(cursor);
   }
 
-  return Path{{Direction::RIGHT}};
+  return Path{{Direction::kRight}};
 }
 
 }  // namespace snake

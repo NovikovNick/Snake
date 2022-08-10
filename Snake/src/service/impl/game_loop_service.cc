@@ -81,19 +81,19 @@ struct GameLoopContext final {
 
 void UpdateGameLoopContext(GameLoopContext& gameLoopCtx, const Input& input) {
   switch (input.command) {
-    case SystemCommand::PAUSE:
+    case SystemCommand::kPause:
       gameLoopCtx.switchPause();
       break;
-    case SystemCommand::STEP_FORWARD:
+    case SystemCommand::kStepForward:
       gameLoopCtx.frameForward();
       break;
-    case SystemCommand::STEP_BACKWARD:
+    case SystemCommand::kStepBackward:
       gameLoopCtx.frameBackward();
       break;
-    case SystemCommand::AI_STEP_BACKWARD:
+    case SystemCommand::kAIStepBackward:
       gameLoopCtx.pauseFrameBackward();
       break;
-    case SystemCommand::AI_STEP_FORWARD:
+    case SystemCommand::kAIStepForward:
       gameLoopCtx.pauseFrameForward();
       break;
     default:
@@ -141,7 +141,7 @@ void GameLoopService::StartGameLoop() {
       0,
       InitPlayer(settings.startPlayedXCoord, settings.startPlayedYCoord,
                  settings.startLenght, settings.startPlayedDirection),
-      InitPlayer(10, 13, 3, Direction::RIGHT));
+      InitPlayer(10, 13, 3, Direction::kRight));
   init_game_state->setFood(
       {settings.startFoodXCoord, settings.startFoodYCoord});
 
@@ -208,8 +208,8 @@ void GameLoopService::StartGameLoop() {
 
       holder.add(next_game_state);
 
-      if (next_game_state->getPhase() == WIN ||
-          next_game_state->getPhase() == LOSE) {
+      if (next_game_state->getPhase() == GamePhase::kWin ||
+          next_game_state->getPhase() == GamePhase::kLose) {
         game_loop_ctx.pause();
       }
     }
@@ -239,10 +239,10 @@ void GameLoopService::StartGameLoop() {
     }
 
     switch (gameState.getPhase()) {
-      case WIN:
+      case GamePhase::kWin:
         render_service_->renderWinState();
         break;
-      case LOSE:
+      case GamePhase::kLose:
         render_service_->renderLoseState();
         break;
     }

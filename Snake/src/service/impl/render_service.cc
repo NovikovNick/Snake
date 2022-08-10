@@ -95,13 +95,13 @@ void RenderService::renderDebugAI(std::vector<DebugItem> debugCtx) {
         size * item.coord.x + margin, size * item.coord.y + margin);
 
     switch (item.mark) {
-      case DebugMark::EXPLORED:
+      case DebugMark::kExplored:
         _pRT->FillRectangle(rect, _pCoralBrush);
         break;
-      case DebugMark::REACHABLE:
+      case DebugMark::kReachable:
         _pRT->FillRectangle(rect, _pLightSlateGrayBrush);
         break;
-      case DebugMark::PATH:
+      case DebugMark::kPath:
         _pRT->FillRectangle(rect, _pLightSlateGrayBrush);
         break;
       default:
@@ -192,25 +192,25 @@ void RenderService::DrawInput(float x, float y, Direction dir,
     pSink->SetFillMode(D2D1_FILL_MODE_ALTERNATE);
 
     switch (dir) {
-      case Direction::UP:
+      case Direction::kUp:
         pSink->BeginFigure(D2D1::Point2F(x, y + arrowBlockSize),
                            D2D1_FIGURE_BEGIN_FILLED);
         pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y + arrowBlockSize));
         pSink->AddLine(D2D1::Point2F(x + arrowBlockSize / 2, y));
         break;
-      case Direction::DOWN:
+      case Direction::kDown:
         pSink->BeginFigure(D2D1::Point2F(x, y), D2D1_FIGURE_BEGIN_FILLED);
         pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y));
         pSink->AddLine(
             D2D1::Point2F(x + arrowBlockSize / 2, y + arrowBlockSize));
         break;
-      case Direction::LEFT:
+      case Direction::kLeft:
         pSink->BeginFigure(D2D1::Point2F(x + arrowBlockSize, y),
                            D2D1_FIGURE_BEGIN_FILLED);
         pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y + arrowBlockSize));
         pSink->AddLine(D2D1::Point2F(x, y + arrowBlockSize / 2));
         break;
-      case Direction::RIGHT:
+      case Direction::kRight:
         pSink->BeginFigure(D2D1::Point2F(x, y), D2D1_FIGURE_BEGIN_FILLED);
         pSink->AddLine(D2D1::Point2F(x, y + arrowBlockSize));
         pSink->AddLine(

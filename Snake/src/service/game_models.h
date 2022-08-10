@@ -10,28 +10,30 @@
 
 namespace snake {
 
-enum GamePhase { IN_PROCESS, WIN, LOSE, PAUSED };
+enum class GamePhase : std::uint8_t { kInProcess, kWin, kLose, kPaused };
 
-enum class Direction {
-  UP,
-  DOWN,
-  LEFT,
-  RIGHT,
-  NONE,
+enum class Direction : std::uint8_t {
+  kUp,
+  kDown,
+  kLeft,
+  kRight,
+  kNone,
 };
 
-enum class SystemCommand {
-  PAUSE,
-  STEP_FORWARD,
-  STEP_BACKWARD,
-  AI_STEP_FORWARD,
-  AI_STEP_BACKWARD,
-  NONE
+enum class SystemCommand : std::int8_t {
+  kPause,
+  kStepForward,
+  kStepBackward,
+  kAIStepForward,
+  kAIStepBackward,
+  kNone
 };
+
+enum class DebugMark : std::int8_t { kReachable, kExplored, kPath, kNone };
 
 struct Input final {
-  Direction direction = Direction::NONE;
-  SystemCommand command = SystemCommand::NONE;
+  Direction direction = Direction::kNone;
+  SystemCommand command = SystemCommand::kNone;
 };
 
 struct Coord final {
@@ -40,13 +42,13 @@ struct Coord final {
 
   Coord operator+(const Direction& dir) const {
     switch (dir) {
-      case Direction::LEFT:
+      case Direction::kLeft:
         return {x - 1, y};
-      case Direction::RIGHT:
+      case Direction::kRight:
         return {x + 1, y};
-      case Direction::UP:
+      case Direction::kUp:
         return {x, y - 1};
-      case Direction::DOWN:
+      case Direction::kDown:
         return {x, y + 1};
       default:
         return {x, y};
@@ -55,13 +57,13 @@ struct Coord final {
 
   Coord operator-(const Direction& dir) const {
     switch (dir) {
-      case Direction::LEFT:
+      case Direction::kLeft:
         return {x + 1, y};
-      case Direction::RIGHT:
+      case Direction::kRight:
         return {x - 1, y};
-      case Direction::UP:
+      case Direction::kUp:
         return {x, y + 1};
-      case Direction::DOWN:
+      case Direction::kDown:
         return {x, y - 1};
       default:
         return {x, y};
@@ -86,8 +88,6 @@ struct hash_coord final {
     return hash1;
   }
 };
-
-enum class DebugMark { REACHABLE, EXPLORED, PATH, NONE };
 
 struct DebugItem final {
   Coord coord;
@@ -125,7 +125,7 @@ struct GameSettigs final {
   int startPlayedXCoord = 9;
   int startPlayedYCoord = 9;
   int startLenght = 5;
-  Direction startPlayedDirection = Direction::RIGHT;
+  Direction startPlayedDirection = Direction::kRight;
 
   int startFoodXCoord = 10;
   int startFoodYCoord = 14;
@@ -171,11 +171,15 @@ class Snake final {
     std::cout << "move constructor " << this << std::endl;
   }
   ~Snake() noexcept {
+
+    if (std::uncaught_exceptions()) {
+      std::cerr << "dtor called in unwinding" << std::endl;
+    }
     std::cout << "destructor "
               << " : " << this << std::endl;
   }
 
-  Snake* move(const Direction& dir = Direction::NONE,
+  Snake* move(const Direction& dir = Direction::kNone,
               const bool& gain = false) const noexcept;
 
   void gain() noexcept;
@@ -211,7 +215,7 @@ struct GameState final {
   }
   const DebugContext& getDebugContext() const noexcept { return ctx_; }
   const std::vector<Input>& GetInputs() const noexcept { return input_; }
-  const int& getSize() const noexcept { return players_.size(); }
+  int getSize() const noexcept { return static_cast<int>(players_.size()); }
 
   void setFood(const Coord& food) noexcept { food_ = food; }
   void setPhase(const GamePhase& gamePhase) noexcept { gamePhase_ = gamePhase; }
@@ -223,7 +227,7 @@ struct GameState final {
 
  private:
   int frame_ = 0;
-  GamePhase gamePhase_ = IN_PROCESS;
+  GamePhase gamePhase_ = GamePhase::kInProcess;
 
   std::vector<std::unique_ptr<Snake>> players_;
   std::vector<Input> input_ = {Input{}, Input{}};

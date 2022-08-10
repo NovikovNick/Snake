@@ -7,35 +7,35 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
     case WM_KEYDOWN:
       switch (wParam) {
         case VK_LEFT:
-          inputService_->AddInput({Direction::LEFT, SystemCommand::NONE});
+          inputService_->AddInput({Direction::kLeft, SystemCommand::kNone});
           break;
         case VK_RIGHT:
-          inputService_->AddInput({Direction::RIGHT, SystemCommand::NONE});
+          inputService_->AddInput({Direction::kRight, SystemCommand::kNone});
           break;
         case VK_UP:
-          inputService_->AddInput({Direction::UP, SystemCommand::NONE});
+          inputService_->AddInput({Direction::kUp, SystemCommand::kNone});
           break;
         case VK_DOWN:
-          inputService_->AddInput({Direction::DOWN, SystemCommand::NONE});
+          inputService_->AddInput({Direction::kDown, SystemCommand::kNone});
           break;
         case VK_SPACE:
-          inputService_->AddInput({Direction::NONE, SystemCommand::PAUSE});
+          inputService_->AddInput({Direction::kNone, SystemCommand::kPause});
           break;
         case VK_F1:
           inputService_->AddInput(
-              {Direction::NONE, SystemCommand::STEP_BACKWARD});
+              {Direction::kNone, SystemCommand::kStepBackward});
           break;
         case VK_F2:
           inputService_->AddInput(
-              {Direction::NONE, SystemCommand::STEP_FORWARD});
+              {Direction::kNone, SystemCommand::kStepForward});
           break;
         case VK_F3:
           inputService_->AddInput(
-              {Direction::NONE, SystemCommand::AI_STEP_BACKWARD});
+              {Direction::kNone, SystemCommand::kAIStepBackward});
           break;
         case VK_F4:
           inputService_->AddInput(
-              {Direction::NONE, SystemCommand::AI_STEP_FORWARD});
+              {Direction::kNone, SystemCommand::kAIStepForward});
           break;
         case VK_ESCAPE:
           PostQuitMessage(0);

@@ -34,6 +34,10 @@ add_executable(GameStateBufferTest "Snake/test/game_state_buffer_test.cc" ${SRC_
 target_include_directories(GameStateBufferTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_game_state_buffer COMMAND GameStateBufferTest)
 
+add_executable(GameStateBufferExceptionSafetyTest "Snake/test/game_state_buffer_exception_safety_test.cc" ${SRC_FILES})
+target_include_directories(GameStateBufferExceptionSafetyTest PRIVATE Boost::unit_test_framework)
+add_test(NAME test_game_state_buffer_exception_safety COMMAND GameStateBufferExceptionSafetyTest)
+
 add_executable(SnakeIsInBoundTest "Snake/test/snake_is_in_bound_test.cc" ${SRC_FILES})
 target_include_directories(SnakeIsInBoundTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_snake_is_inbound COMMAND SnakeIsInBoundTest)
