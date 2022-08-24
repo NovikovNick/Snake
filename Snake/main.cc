@@ -12,8 +12,6 @@
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine,
                     int nCmdShow) {
-  snake::log("Main loop started");
-
   // init window
   snake::MainWindow win;
   if (!win.Create(L"Snake The Game", WS_OVERLAPPEDWINDOW)) {
@@ -27,10 +25,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine,
 
   auto render_srv = std::make_shared<snake::RenderService>(win.Window());
   auto game_logic_srv = std::make_shared<snake::GameLogicService>();
+  auto snake_srv = std::make_shared<snake::SnakeService>();
+  auto game_state_srv = std::make_shared<snake::GameStateService>(snake_srv);
   auto ai_srv = std::make_shared<snake::AIService>();
 
   auto game_loop_srv = std::make_shared<snake::GameLoopService>(
-      input_srv, render_srv, game_logic_srv, ai_srv);
+      input_srv, render_srv, game_logic_srv, ai_srv, game_state_srv);
 
   // start the game
   game_loop_srv->Start();
@@ -40,6 +40,5 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine,
 
   game_loop_srv->Stop();
 
-  snake::log("Main loop ended. Deleting...");
   return 0;
 }

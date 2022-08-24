@@ -31,8 +31,11 @@ std::vector<std::pair<Coord, Direction>> getNextPossibleCoord(
 }
 }  // namespace
 
-Path Pathfinder::FindPath(const Coord& start, const Coord& to,
-                          const std::vector<Coord>& barriers) {
+Path Pathfinder::FindPath(const IPathFindRequest& req) {
+  const Coord& start = req.getFrom();
+  const Coord& to = req.getTo();
+  const std::vector<Coord>& barriers = req.getBarriers();
+
   std::unordered_map<Coord, std::deque<Direction>, hash_coord> reachable = {
       {start, {}}};
   std::unordered_set<Coord, hash_coord> explored(barriers.begin(),

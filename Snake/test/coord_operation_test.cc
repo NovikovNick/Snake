@@ -1,86 +1,74 @@
 #define BOOST_TEST_MODULE SolutionTest
 
-#include "../src/service/game_models.h"
 #include <boost/test/included/unit_test.hpp>
 
+#include "../src/service/game_models.h"
+
+namespace snake {
 BOOST_AUTO_TEST_CASE(testMovingCoordToLeftDirection) {
+  // arrange
+  Coord a = {1, 1};
+  Direction dir = Direction::kLeft;
 
-    using namespace snake;
+  // act
+  Coord b = a + dir;
 
-    // arrange
-    Coord a = { 1, 1 };
-    Direction dir = snake::Direction::LEFT;
-
-    // act 
-    Coord b = a + dir;
-
-    // assert 
-    BOOST_CHECK_EQUAL(b.x, 0);
-    BOOST_CHECK_EQUAL(b.y, 1);
+  // assert
+  BOOST_CHECK_EQUAL(b.x, 0);
+  BOOST_CHECK_EQUAL(b.y, 1);
 }
 
 BOOST_AUTO_TEST_CASE(testMovingCoordToRightDirection) {
+  // arrange
+  Coord a = {1, 1};
+  Direction dir = Direction::kRight;
 
-    using namespace snake;
+  // act
+  Coord b = a + dir;
 
-    // arrange
-    Coord a = { 1, 1 };
-    Direction dir = snake::Direction::RIGHT;
-
-    // act 
-    Coord b = a + dir;
-
-    // assert 
-    BOOST_CHECK_EQUAL(b.x, 2);
-    BOOST_CHECK_EQUAL(b.y, 1);
+  // assert
+  BOOST_CHECK_EQUAL(b.x, 2);
+  BOOST_CHECK_EQUAL(b.y, 1);
 }
 
 BOOST_AUTO_TEST_CASE(testMovingCoordToTopDirection) {
+  // arrange
+  Coord a = {1, 1};
+  Direction dir = Direction::kUp;
 
-    using namespace snake;
+  // act
+  Coord b = a + dir;
 
-    // arrange
-    Coord a = { 1, 1 };
-    Direction dir = snake::Direction::UP;
-
-    // act 
-    Coord b = a + dir;
-
-    // assert 
-    BOOST_CHECK_EQUAL(b.x, 1);
-    BOOST_CHECK_EQUAL(b.y, 0);
+  // assert
+  BOOST_CHECK_EQUAL(b.x, 1);
+  BOOST_CHECK_EQUAL(b.y, 0);
 }
 
 BOOST_AUTO_TEST_CASE(testMovingCoordToDownDirection) {
+  // arrange
+  Coord a = {1, 1};
+  Direction dir = Direction::kDown;
 
-    using namespace snake;
+  // act
+  Coord b = a + dir;
 
-    // arrange
-    Coord a = { 1, 1 };
-    Direction dir = snake::Direction::DOWN;
-
-    // act 
-    Coord b = a + dir;
-
-    // assert 
-    BOOST_CHECK_EQUAL(b.x, 1);
-    BOOST_CHECK_EQUAL(b.y, 2);
+  // assert
+  BOOST_CHECK_EQUAL(b.x, 1);
+  BOOST_CHECK_EQUAL(b.y, 2);
 }
 
 BOOST_AUTO_TEST_CASE(testCoordEqualOperator) {
+  // arrange
+  Coord a = {1, 1};
+  Coord b = {1, 1};
+  Coord c = {2, 1};
+  Coord d = {1, 2};
 
-    using namespace snake;
-
-    // arrange
-    Coord a = { 1, 1 };
-    Coord b = { 1, 1 };
-    Coord c = { 2, 1 };
-    Coord d = { 1, 2 };
-
-    // act
-    // assert 
-    BOOST_CHECK_EQUAL(true, a == b);
-    BOOST_CHECK_EQUAL(false, b == c);
-    BOOST_CHECK_EQUAL(false, a == c);
-    BOOST_CHECK_EQUAL(false, c == d);
+  // act
+  // assert
+  BOOST_CHECK_EQUAL(true, a == b);
+  BOOST_CHECK_EQUAL(false, b == c);
+  BOOST_CHECK_EQUAL(false, a == c);
+  BOOST_CHECK_EQUAL(false, c == d);
 }
+}  // namespace snake

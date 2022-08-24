@@ -6,8 +6,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../util/log.h"
-
 namespace snake {
 
 enum class GamePhase : std::uint8_t { kInProcess, kWin, kLose, kPaused };
@@ -136,135 +134,74 @@ struct GameSettigs final {
   long foodGenerationSeed = 1658772641;
 };
 
-class Snake final {
-  std::vector<std::pair<Coord, Direction>> list_;
-  Coord leftTop_;
-  Coord rightBottom_;
-  std::unordered_map<Coord, Direction, hash_coord> map_;
-  bool validState_ = true;
-
+template <typename T>
+class GameBufferAllocator {
  public:
-  Snake(std::vector<std::pair<Coord, Direction>> list)
-      : list_(list), leftTop_(list_[0].first), rightBottom_(list_[0].first) {
-    for (auto const& item : list_) {
-      leftTop_.x = leftTop_.x < item.first.x ? leftTop_.x : item.first.x;
-      leftTop_.y = leftTop_.y < item.first.y ? leftTop_.y : item.first.y;
+  T* arr_;
+  int size_ = 0, capacity_;
 
-      rightBottom_.x =
-          rightBottom_.x > item.first.x ? rightBottom_.x : item.first.x;
-      rightBottom_.y =
-          rightBottom_.y > item.first.y ? rightBottom_.y : item.first.y;
+  explicit GameBufferAllocator(int capacity = 0)
+      : capacity_(capacity),
+        arr_(capacity == 0
+                 ? nullptr
+                 : static_cast<T*>(::operator new(sizeof(T) * capacity))) {}
 
-      if (validState_) {
-        validState_ = map_.find(item.first) == map_.end();
-      }
-
-      map_[item.first] = item.second;
+  ~GameBufferAllocator() {
+    int used = size_ > capacity_ ? capacity_ : size_;
+    while (--used >= 0) {
+      (arr_ + used)->~T();
     }
-
-    std::cout << "Snake direct constructor " << this << std::endl;
-  }
-  Snake(Snake const& src) : Snake(src.list_) {
-    std::cout << "copy constructor " << this << std::endl;
-  }
-  Snake(Snake&&) noexcept {
-    std::cout << "move constructor " << this << std::endl;
-  }
-  ~Snake() noexcept {
-
-    if (std::uncaught_exceptions()) {
-      std::cerr << "dtor called in unwinding" << std::endl;
-    }
-    std::cout << "destructor "
-              << " : " << this << std::endl;
+    ::operator delete(arr_);
   }
 
-  Snake* move(const Direction& dir = Direction::kNone,
-              const bool& gain = false) const noexcept;
+  GameBufferAllocator(const GameBufferAllocator& rhs) = delete;
+  GameBufferAllocator& operator=(const GameBufferAllocator& rhs) = delete;
 
-  void gain() noexcept;
-
-  bool isInBound(const Coord& leftTop, const Coord& rightBottom) const noexcept;
-
-  const Coord& getHeadCoord() const noexcept;
-
-  bool isCollide(const Coord& coord) const noexcept;
-
-  bool isValid() const noexcept { return validState_; };
-
-  const std::vector<std::pair<Coord, Direction>>& getParts() const {
-    return list_;
-  };
-};
-
-struct GameState final {
-  GameState(const int& frame, Snake* player, Snake* enemy) : frame_(frame) {
-    players_.resize(2);
-    players_[0] = std::unique_ptr<Snake>(player);
-    players_[1] = std::unique_ptr<Snake>(enemy);
-  }
-
-  const Snake& getPlayer(const int& index) const noexcept {
-    return *(players_[index].get());
-  }
-
-  const Coord& getFood() const noexcept { return food_; }
-  const GamePhase& getPhase() const noexcept { return gamePhase_; }
-  const int& getScore(const int& index) const noexcept {
-    return scores_[index];
-  }
-  const DebugContext& getDebugContext() const noexcept { return ctx_; }
-  const std::vector<Input>& GetInputs() const noexcept { return input_; }
-  int getSize() const noexcept { return static_cast<int>(players_.size()); }
-
-  void setFood(const Coord& food) noexcept { food_ = food; }
-  void setPhase(const GamePhase& gamePhase) noexcept { gamePhase_ = gamePhase; }
-  void setDebugContext(const DebugContext& ctx) noexcept { ctx_ = ctx; }
-  void setInputs(const std::vector<Input>& inputs) noexcept { input_ = inputs; }
-  void setScore(const int& index, int score) noexcept {
-    scores_[index] = score;
-  }
-
- private:
-  int frame_ = 0;
-  GamePhase gamePhase_ = GamePhase::kInProcess;
-
-  std::vector<std::unique_ptr<Snake>> players_;
-  std::vector<Input> input_ = {Input{}, Input{}};
-  std::vector<int> scores_ = {0, 0};
-  Coord food_ = {0, 0};
-
-  DebugContext ctx_;
+  GameBufferAllocator(GameBufferAllocator&& rhs) = delete;
+  GameBufferAllocator operator=(GameBufferAllocator&& rhs) = delete;
 };
 
 template <typename T>
-class GameStateBuffer final {
+class GameStateBuffer final : private GameBufferAllocator<T> {
+ private:
   int cursor_ = -1;
-  int size_;
-  bool overlaped = false;
-  std::vector<std::unique_ptr<T>> data_;
+  using GameBufferAllocator::arr_;
+  using GameBufferAllocator::capacity_;
+  using GameBufferAllocator::size_;
 
  public:
-  GameStateBuffer(int size) : size_(size) { data_.resize(size); }
+  explicit GameStateBuffer(const int& capacity = 0)
+      : GameBufferAllocator(capacity){};
 
-  void add(T* item) noexcept {
-    cursor_ = (cursor_ + 1) % size_;
-    data_[cursor_] = std::unique_ptr<T>(item);
-
-    if (!overlaped && (cursor_ + 1) == size_) {
-      overlaped = true;
+  void add(const T& item) {
+    cursor_ = (cursor_ + 1) % capacity_;
+    T* p = arr_ + cursor_;
+    if (size_ >= capacity_) {
+      (p)->~T();
     }
-  }
+    new (p) T(item);
+    ++size_;
+  };
 
-  const T& head() const noexcept { return *(data_[cursor_].get()); }
+  void add(T&& item) {
+    cursor_ = (cursor_ + 1) % capacity_;
+    T* p = arr_ + cursor_;
+    if (size_ >= capacity_) {
+      (p)->~T();
+    }
+    new (p) T(std::forward(item));
+    ++size_;
+  };
 
-  const T& operator[](const int& index) const noexcept {
-    int offset = (cursor_ - index) % size_;
-    return *(data_[offset < 0 ? size_ + offset : offset].get());
+  const T& head() const noexcept { return arr_[cursor_]; }
+
+  const T& operator[](const int& index) const {
+    int offset = (cursor_ - index) % capacity_;
+    return arr_[offset < 0 ? capacity_ + offset : offset];
   }
 
   int getSize() const noexcept {
-    return overlaped ? data_.size() : cursor_ + 1;
+    return size_ < capacity_ ? cursor_ + 1 : capacity_;
   }
 };
 

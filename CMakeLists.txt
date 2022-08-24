@@ -14,11 +14,16 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB SRC_SERVICE "Snake/src/service/*.h")
 file(GLOB SRC_SERVICE_IMPL "Snake/src/service/impl/*.cc")
-file(GLOB SRC_UTIL "Snake/src/util/*.h" "Snake/src/util/*.cc")
 file(GLOB SRC_WIN "Snake/src/win32/*.h" "Snake/src/win32/*.cc")
-file(GLOB SRC_FILES ${SRC_SERVICE} ${SRC_SERVICE_IMPL} ${SRC_UTIL} ${SRC_WIN})
 
-add_executable (Snake WIN32  "Snake/main.cc" ${SRC_FILES})
+file(GLOB SRC_AI_HEADERS  "Snake/src/ai/*.h")
+file(GLOB SRC_AI_IMPL "Snake/src/ai/impl/*.cc")
+
+file(GLOB SRC_FILES ${SRC_SERVICE} ${SRC_SERVICE_IMPL} ${SRC_WIN} ${SRC_AI_HEADERS} ${SRC_AI_IMPL})
+
+
+
+add_executable (Snake WIN32  "Snake/main.cc" "Snake/src/model/common_models.h" ${SRC_FILES})
 
 # unit tests
 
@@ -46,7 +51,7 @@ add_executable(SnakeIsCollideTest "Snake/test/snake_is_collide_test.cc" ${SRC_FI
 target_include_directories(SnakeIsCollideTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_snake_is_collide COMMAND SnakeIsCollideTest)
 
-add_executable(PathfinderTest "Snake/test/pathfinder_test.cc" ${SRC_FILES})
+add_executable(PathfinderTest "Snake/test/pathfinder_test.cc" ${SRC_AI_HEADERS} ${SRC_AI_IMPL})
 target_include_directories(PathfinderTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_pathfinder COMMAND PathfinderTest)
 

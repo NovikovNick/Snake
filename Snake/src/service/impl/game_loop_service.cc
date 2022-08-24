@@ -6,18 +6,6 @@ namespace snake {
 
 namespace {
 
-Snake* InitPlayer(const int& x, const int& y, const int& lenght,
-                  const Direction& dir) {
-  std::vector<std::pair<Coord, Direction>> list{
-      std::make_pair(Coord{x, y}, dir)};
-
-  for (int i = 0; i < lenght; ++i) {
-    list.push_back(std::make_pair(list.back().first - dir, dir));
-  }
-
-  return new Snake(list);
-}
-
 struct GameLoopContext final {
   GameLoopContext(const int& capacity) : capacity_(capacity) {}
 
@@ -101,25 +89,50 @@ void UpdateGameLoopContext(GameLoopContext& gameLoopCtx, const Input& input) {
   }
 }
 
-Coord GenerateNewFood(const GameState& gameState, GameSettigs& settings) {
-  std::unordered_set<Coord, hash_coord> set;
+/* Conversion GameState to API of AI service */
 
-  for (size_t i = 0; i < 2; i++) {
-    for (auto part : gameState.getPlayer(i).getParts()) {
-      set.insert(part.first);
-    }
+struct PathFindRequest : public IPathFindRequest {
+ private:
+  Coord from_;
+  Coord to_;
+  std::vector<Coord> barriers_;
+
+ public:
+  PathFindRequest(const Coord& from, const Coord& to,
+                  const std::vector<Coord>& barriers = {})
+      : from_(from), to_(to), barriers_(barriers){};
+
+  virtual const Coord& getFrom() const override { return from_; };
+  virtual const Coord& getTo() const override { return to_; };
+  virtual const std::vector<Coord>& getBarriers() const override {
+    return barriers_;
+  };
+};
+
+PathFindRequest toPathFindRequest(const GameState& gameState,
+                                  const GameSettigs& settings) {
+  const Snake& player = gameState.getPlayer(0);
+  const Snake& bot = gameState.getPlayer(1);
+  const Coord& bot_head_coord = bot.getHeadCoord();
+  const Coord& food = gameState.getFood();
+
+  std::vector<Coord> barriers;
+  for (auto snakePart : player.getParts()) {
+    barriers.push_back(snakePart.first);
+  }
+  for (auto snakePart : bot.getParts()) {
+    barriers.push_back(snakePart.first);
+  }
+  for (int x = settings.leftBoundaries; x <= settings.rightBoundaries; x++) {
+    barriers.push_back({x, settings.topBoundaries - 1});
+    barriers.push_back({x, settings.bottomBoundaries});
+  }
+  for (int y = settings.topBoundaries; y <= settings.bottomBoundaries; y++) {
+    barriers.push_back({settings.leftBoundaries - 1, y});
+    barriers.push_back({settings.rightBoundaries, y});
   }
 
-  Coord res;
-  do {
-    res.x = settings.leftBoundaries +
-            rand() % (settings.rightBoundaries - settings.leftBoundaries);
-    res.y = settings.topBoundaries +
-            rand() % (settings.bottomBoundaries - settings.topBoundaries);
-
-  } while (set.find(res) != set.end());
-
-  return res;
+  return PathFindRequest(bot_head_coord, food, barriers);
 }
 
 }  // namespace
@@ -136,14 +149,7 @@ void GameLoopService::Stop() {
 
 void GameLoopService::StartGameLoop() {
   GameSettigs settings = {};
-
-  GameState* init_game_state = new GameState(
-      0,
-      InitPlayer(settings.startPlayedXCoord, settings.startPlayedYCoord,
-                 settings.startLenght, settings.startPlayedDirection),
-      InitPlayer(10, 13, 3, Direction::kRight));
-  init_game_state->setFood(
-      {settings.startFoodXCoord, settings.startFoodYCoord});
+  GameState init_game_state = game_state_service_->initState(settings);
 
   GameStateBuffer<GameState> holder(32);
   holder.add(init_game_state);
@@ -152,12 +158,10 @@ void GameLoopService::StartGameLoop() {
 
   int64_t delay = settings.initialSpeedMs;
   float progress = 0;
-  std::vector<Input> inputs;
-  inputs.resize(2);
+  std::vector<Input> inputs(2);
+  std::vector<DebugContext> debug_ctx(32);
 
-  std::vector<DebugContext> debug_ctx;
-  debug_ctx.resize(32);
-
+  // todo: move it to state service
   srand(settings.foodGenerationSeed);
 
   do {
@@ -170,52 +174,27 @@ void GameLoopService::StartGameLoop() {
     if (!game_loop_ctx.isPaused()) {
       const GameState& prev_game_state = holder.head();
 
-      InputDTO botInput = ai_service_->GetInputs(prev_game_state, settings);
+      InputDTO botInput =
+          ai_service_->findPath(toPathFindRequest(prev_game_state, settings));
       inputs[1] = botInput.inputs.empty() ? Input{} : botInput.inputs.front();
 
-      const Snake& prevPlayer = prev_game_state.getPlayer(0);
-      const Snake& prevBot = prev_game_state.getPlayer(1);
+      auto next_game_state = game_state_service_->applyForces(
+          prev_game_state, {inputs[0].direction, inputs[1].direction});
 
-      Snake* next_player = prevPlayer.move(inputs[0].direction);
-      Snake* next_bot = prevBot.move(inputs[1].direction);
-
-      bool is_player_gained =
-          next_player->getHeadCoord() == prev_game_state.getFood();
-      bool is_bot_gained =
-          next_bot->getHeadCoord() == prev_game_state.getFood();
-
-      GameState* next_game_state =
-          new GameState(game_loop_ctx.getFrame() + 1, next_player, next_bot);
-      next_game_state->setDebugContext(botInput.ctx);
-      next_game_state->setFood(prev_game_state.getFood());
-      next_game_state->setInputs(inputs);
-      next_game_state->setScore(0, prev_game_state.getScore(0));
-      next_game_state->setScore(1, prev_game_state.getScore(1));
-
-      if (is_player_gained) {
-        next_player->gain();
-        next_game_state->setFood(GenerateNewFood(*next_game_state, settings));
-
-        next_game_state->setScore(0, prev_game_state.getScore(0) + 1);
-      } else if (is_bot_gained) {
-        next_bot->gain();
-        next_game_state->setFood(GenerateNewFood(*next_game_state, settings));
-        next_game_state->setScore(1, prev_game_state.getScore(1) + 1);
-      }
-
-      next_game_state->setPhase(
-          game_logic_service_->check(*next_game_state, settings));
+      next_game_state.setPhase(
+          game_logic_service_->check(next_game_state, settings));
 
       holder.add(next_game_state);
 
-      if (next_game_state->getPhase() == GamePhase::kWin ||
-          next_game_state->getPhase() == GamePhase::kLose) {
+      if (next_game_state.getPhase() == GamePhase::kWin ||
+          next_game_state.getPhase() == GamePhase::kLose) {
         game_loop_ctx.pause();
       }
     }
 
     const GameState& gameState = holder[game_loop_ctx.getOffsetFrame()];
 
+#if 1
     render_service_->BeginDraw();
     render_service_->renderSelf(gameState, 0, settings);
     render_service_->renderEnemy(gameState, 1, settings);
@@ -248,6 +227,7 @@ void GameLoopService::StartGameLoop() {
     }
 
     render_service_->EndDraw();
+#endif
 
 #if 0 
     progress =

@@ -16,20 +16,19 @@ struct Dummy {
 private:
     int id_;
 };
-}
+}  // namespace
 
 BOOST_AUTO_TEST_CASE(testGameStateBufferOneElem) {
     using namespace snake;
     // arrange
     GameStateBuffer<Dummy> data(3);
-    data.add(new Dummy(42));
+    data.add(Dummy(42));
 
     // act
     // arrange
     BOOST_CHECK_EQUAL(1, data.getSize());
     BOOST_CHECK_EQUAL(42, data[0].getId());
 }
-
 BOOST_AUTO_TEST_CASE(testGameStateBufferSize) {
     using namespace snake;
     // arrange
@@ -50,7 +49,7 @@ BOOST_AUTO_TEST_CASE(testGameStateBufferErasion) {
     GameStateBuffer<Dummy> data(bufferSize);
 
     for (size_t i = 0; i < elemCount; i++) {
-        data.add(new Dummy(i));
+        data.add(Dummy(i));
     }
 
     // act
@@ -61,16 +60,17 @@ BOOST_AUTO_TEST_CASE(testGameStateBufferErasion) {
     BOOST_CHECK_EQUAL(3, data[2].getId());
 }
 
+
 BOOST_AUTO_TEST_CASE(testGameStateForEachWithOverlap) {
     using namespace snake;
     // arrange
     int bufferSize = 3;
 
     GameStateBuffer<Dummy> data(bufferSize);
-    data.add(new Dummy(1));
-    data.add(new Dummy(2));
-    data.add(new Dummy(3));
-    data.add(new Dummy(4));
+    data.add(Dummy(1));
+    data.add(Dummy(2));
+    data.add(Dummy(3));
+    data.add(Dummy(4));
 
 
     for (int i = 0; i < data.getSize(); i++) {
@@ -91,10 +91,10 @@ BOOST_AUTO_TEST_CASE(testGameStateForEachWithSpase) {
     int bufferSize = 6;
 
     GameStateBuffer<Dummy> data(bufferSize);
-    data.add(new Dummy(1));
-    data.add(new Dummy(2));
-    data.add(new Dummy(3));
-    data.add(new Dummy(4));
+    data.add(Dummy(1));
+    data.add(Dummy(2));
+    data.add(Dummy(3));
+    data.add(Dummy(4));
 
 
     for (int i = 0; i < data.getSize(); i++) {

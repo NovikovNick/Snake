@@ -3,14 +3,15 @@
 
 #include <vector>
 
-#include "game_models.h"
+#include "../model/common_models.h"
+#include "../service/game_models.h"
+#include "i_path_find_request.h"
 
 namespace snake {
 
 class Pathfinder final {
  public:
-  Path FindPath(const Coord& start, const Coord& to,
-                const std::vector<Coord>& barriers = {});
+  Path FindPath(const IPathFindRequest& req);
 };
 
 }  // namespace snake

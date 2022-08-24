@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "game_models.h"
+#include "../model/common_models.h"
 
 namespace snake {
 

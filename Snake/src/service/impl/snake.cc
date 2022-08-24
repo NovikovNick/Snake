@@ -1,4 +1,6 @@
+#include "../../model/common_models.h"
 #include "../game_models.h"
+#include "../snake_service.h"
 
 namespace snake {
 
@@ -19,10 +21,11 @@ Direction opporite(const Direction& dir) {
 }
 }  // namespace
 
-Snake* Snake::move(const Direction& dir, const bool& gain) const noexcept {
+Snake SnakeService::move(const Snake& snake, const Direction& dir,
+                         const bool& gain) const {
   std::cout << "Snake [" << this << "]  move" << std::endl;
 
-  std::vector<std::pair<Coord, Direction>> srcParts = getParts();
+  std::vector<std::pair<Coord, Direction>> srcParts = snake.getParts();
   std::vector<std::pair<Coord, Direction>> dstParts;
 
   Direction previous =
@@ -45,26 +48,7 @@ Snake* Snake::move(const Direction& dir, const bool& gain) const noexcept {
     dstParts.push_back(std::make_pair(srcTail.first, srcTail.second));
   }
 
-  return new Snake(dstParts);
-}
-
-bool Snake::isInBound(const Coord& leftTop,
-                      const Coord& rightBottom) const noexcept {
-  return leftTop.x < leftTop_.x && leftTop.y < leftTop_.y &&
-         rightBottom.x > rightBottom_.x && rightBottom.y > rightBottom_.y;
-}
-
-bool Snake::isCollide(const Coord& coord) const noexcept {
-  return map_.find(coord) != map_.end();
-}
-
-const Coord& Snake::getHeadCoord() const noexcept {
-  return getParts()[0].first;
-}
-
-void Snake::gain() noexcept {
-  std::pair<Coord, Direction> last = getParts().back();
-  list_.push_back({last.first - last.second, last.second});
+  return Snake(dstParts);
 }
 
 }  // namespace snake

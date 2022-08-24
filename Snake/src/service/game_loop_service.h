@@ -4,9 +4,11 @@
 #include <iostream>
 #include <thread>
 
-#include "ai_service.h"
+#include "../model/common_models.h"
+#include "../ai/ai_service.h"
 #include "game_logic_service.h"
 #include "game_models.h"
+#include "game_state_service.h"
 #include "input_service.h"
 #include "render_service.h"
 
@@ -19,18 +21,20 @@ class GameLoopService final {
   GameLoopService(std::shared_ptr<InputService> input_service,
                   std::shared_ptr<RenderService> render_service,
                   std::shared_ptr<GameLogicService> game_logic_service,
-                  std::shared_ptr<AIService> ai_service) {
-    input_service_ = input_service;
-    render_service_ = render_service;
-    game_logic_service_ = game_logic_service;
-    ai_service_ = ai_service;
-  }
+                  std::shared_ptr<AIService> ai_service,
+                  std::shared_ptr<GameStateService> game_state_service)
+      : input_service_(input_service),
+        render_service_(render_service),
+        game_logic_service_(game_logic_service),
+        ai_service_(ai_service),
+        game_state_service_(game_state_service) {}
 
  private:
   std::shared_ptr<InputService> input_service_;
   std::shared_ptr<RenderService> render_service_;
   std::shared_ptr<GameLogicService> game_logic_service_;
   std::shared_ptr<AIService> ai_service_;
+  std::shared_ptr<GameStateService> game_state_service_;
 
   std::thread render_thread_;
   bool running_ = false;
