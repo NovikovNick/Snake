@@ -23,7 +23,7 @@ Snake newSnake(const int& x, const int& y, const int& lenght,
 }
 
 Coord GenerateNewFood(const GameState& gameState, GameSettigs& settings) {
-  std::unordered_set<Coord, hash_coord> set;
+  std::unordered_set<Coord> set;
 
   for (size_t i = 0; i < 2; i++) {
     for (auto part : gameState.getPlayer(i).getParts()) {

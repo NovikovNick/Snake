@@ -36,9 +36,9 @@ Path Pathfinder::FindPath(const IPathFindRequest& req) {
   const Coord& to = req.getTo();
   const std::vector<Coord>& barriers = req.getBarriers();
 
-  std::unordered_map<Coord, std::deque<Direction>, hash_coord> reachable = {
+  std::unordered_map<Coord, std::deque<Direction>> reachable = {
       {start, {}}};
-  std::unordered_set<Coord, hash_coord> explored(barriers.begin(),
+  std::unordered_set<Coord> explored(barriers.begin(),
                                                  barriers.end());
 
   CoordCompare comp(to);

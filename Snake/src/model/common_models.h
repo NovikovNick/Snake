@@ -18,7 +18,7 @@ class Snake final {
   std::vector<std::pair<Coord, Direction>> list_;
   Coord leftTop_;
   Coord rightBottom_;
-  std::unordered_map<Coord, Direction, hash_coord> map_;
+  std::unordered_map<Coord, Direction> map_;
   bool validState_ = true;
 
  public:
