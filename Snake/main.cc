@@ -14,7 +14,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine,
                     int nCmdShow) {
   // init window
   snake::MainWindow win;
-  if (!win.Create(L"Snake The Game", WS_OVERLAPPEDWINDOW)) {
+  if (!win.Create(L"snake The Game", WS_OVERLAPPEDWINDOW, 0, 0, 0, 1400, 750)) {
     return 0;
   }
   ShowWindow(win.Window(), nCmdShow);

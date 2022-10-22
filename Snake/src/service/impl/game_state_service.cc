@@ -73,15 +73,16 @@ GameState GameStateService::applyForces(
 
   // next_state.setDebugContext(botInput.ctx);
   // next_state.setInputs(inputs);
+  GameSettigs emptySettings;
 
   if (is_player_gained) {
     next_player.gain();
-    next_state.setFood(GenerateNewFood(prev_state, GameSettigs{}));
+    next_state.setFood(GenerateNewFood(prev_state, emptySettings));
 
     next_state.setScore(0, prev_state.getScore(0) + 1);
   } else if (is_bot_gained) {
     next_enemy.gain();
-    next_state.setFood(GenerateNewFood(prev_state, GameSettigs{}));
+    next_state.setFood(GenerateNewFood(prev_state, emptySettings));
     next_state.setScore(1, prev_state.getScore(1) + 1);
   }
 

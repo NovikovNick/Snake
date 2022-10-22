@@ -151,13 +151,13 @@ template <typename T>
 class GameStateBuffer final : private GameBufferAllocator<T> {
  private:
   int cursor_ = -1;
-  using GameBufferAllocator::arr_;
-  using GameBufferAllocator::capacity_;
-  using GameBufferAllocator::size_;
+  using GameBufferAllocator<T>::arr_;
+  using GameBufferAllocator<T>::capacity_;
+  using GameBufferAllocator<T>::size_;
 
  public:
   explicit GameStateBuffer(const int& capacity = 0)
-      : GameBufferAllocator(capacity){};
+      : GameBufferAllocator<T>(capacity){};
 
   void add(const T& item) {
     cursor_ = (cursor_ + 1) % capacity_;

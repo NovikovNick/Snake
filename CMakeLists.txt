@@ -3,7 +3,8 @@ project ("Snake")
 
 enable_testing()
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+set(BOOST_ROOT "C:\\local\\boost_1_80_0")
 set(Boost_DEBUG ON)
 
 find_package(Boost REQUIRED COMPONENTS unit_test_framework)
@@ -58,6 +59,10 @@ add_test(NAME test_pathfinder COMMAND PathfinderTest)
 add_executable(SnakeIsValidTest "Snake/test/snake_is_valid_test.cc" ${SRC_FILES})
 target_include_directories(SnakeIsValidTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_snake_is_valid COMMAND SnakeIsValidTest)
+
+add_executable(AStarAlgorithm "Snake/test/a_star_pathfinder_test.cc" ${SRC_AI_HEADERS} ${SRC_AI_IMPL})
+target_include_directories(AStarAlgorithm PRIVATE Boost::unit_test_framework)
+add_test(NAME test_AStarAlgorithm COMMAND AStarAlgorithm)
 
 message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
 message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
