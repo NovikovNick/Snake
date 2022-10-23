@@ -1,32 +1,29 @@
 #ifndef SNAKE_A_STAR_H_
 #define SNAKE_A_STAR_H_
 
+#include "../model/common_models.h"
+#include "../service/game_models.h"
+#include "i_path_find_request.h"
+
 namespace snake {
 
-//template <typename N>
-//concept node_concept = std::is_class_v<N>;
-
-
-/*
-&& requires(N n) {
+// is default constructor required?	
+// if set fields as const then need to define operator=?
+template <typename N>
+concept grid_2d_cell = requires(N n) {
   n.GetX();
-};*/
-
-struct TestNode {
- private:
-  int x_, y_;
-
- public:
-  TestNode(int x, int y) : x_(x), y_(y){};
-  int GetX() const { return x_; };
-  int GetY() const { return y_; };
+  n.GetY();
 };
 
+template <typename G>
+concept grid_2d = requires(G g) {
+  g.FindAdjacents(std::int32_t(), std::int32_t());
+};
+
+template <grid_2d_cell N, grid_2d G, std::output_iterator<N> I>
 class AStarPathfinder final {
  public:
-  void FindPath(TestNode start);
+  void FindPath(const N& start, const N& goal, const G& grid, I out);
 };
-
 }  // namespace snake
-
 #endif  // SNAKE_A_STAR_H_
