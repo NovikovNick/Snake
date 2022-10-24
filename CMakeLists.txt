@@ -5,7 +5,7 @@ enable_testing()
 
 set(CMAKE_CXX_STANDARD 20)
 set(BOOST_ROOT "C:\\local\\boost_1_80_0")
-set(Boost_DEBUG ON)
+set(Boost_DEBUG OFF)
 
 find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 add_definitions( -DBOOST_ALL_NO_LIB )
