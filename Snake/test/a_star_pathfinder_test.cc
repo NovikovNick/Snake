@@ -1,4 +1,5 @@
 #define BOOST_TEST_MODULE SolutionTest
+#define SNAKE_DEBUG 1
 
 #include <boost/test/included/unit_test.hpp>
 
@@ -34,15 +35,14 @@ struct Grid2d {
  public:
   Grid2d(int width, int height)
       : width_(width), height_(height), grid_(std::vector<N>(width * height)) {
-    for (int row = 0; row < width; ++row) {
-      for (int col = 0; col < height; ++col) {
-        grid_[row * width + col] = N(row, col);
+    for (int row = 0; row < height; ++row) {
+      for (int col = 0; col < width; ++col) {
+        grid_[row * width + col] = N(col, row);
       }
     }
   };
 
   void FindAdjacents(int x, int y, std::vector<N>::iterator out) const {
-    std::cout << "find anjacents" << std::endl;
     if (y + 1 < height_) *(out++) = grid_[width_ * (y + 1) + (x + 0)];
     if (x + 1 < width_) *(out++) = grid_[width_ * (y + 0) + (x + 1)];
     if (y - 1 >= 0) *(out++) = grid_[width_ * (y - 1) + (x + 0)];
@@ -50,23 +50,88 @@ struct Grid2d {
   }
 };
 
+float getDistance(const TestNode& n1, const TestNode& n2) {
+  auto [x0, x1] = std::minmax(n1.GetX(), n2.GetX());
+  auto [y0, y1] = std::minmax(n1.GetY(), n2.GetY());
+  return std::sqrt(std::pow(x1 - x0, 2) + std::pow(y1 - y0, 2));
+}
+
 BOOST_AUTO_TEST_CASE(case1) {
   // arrange
-  std::vector<TestNode> out(100);
+  std::vector<TestNode> out(5);
   TestNode start(0, 0);
-  TestNode goal(9, 9);
+  TestNode goal(0, 4);
   Grid2d<TestNode> grid(10, 10);
   AStarPathfinder<TestNode, Grid2d<TestNode>, decltype(out.begin())> pathfinder;
 
   // act
-  pathfinder.FindPath(start, goal, grid, out.begin());
+  pathfinder.FindPath(start, goal, grid, out.begin(), out.end());
 
   // assert
-  TestNode empty;
-  std::cout << "path: ";
-  for (auto it : out) {
-    if (it != empty) std::cout << it.ToString() << " => ";
+  auto itFst = out.begin();
+  auto itSnd = itFst + 1;
+
+  while (itSnd != out.end()) {
+#if SNAKE_DEBUG
+    std::cout << "checking distance benween " << (*itFst).ToString() << " and "
+              << (*itSnd).ToString() << std::endl;
+#endif
+    BOOST_CHECK_EQUAL(1, getDistance(*itFst, *itSnd));
+    ++itFst;
+    ++itSnd;
   }
+  BOOST_CHECK(goal == *out.rbegin());
 }
 
+BOOST_AUTO_TEST_CASE(case2) {
+  // arrange
+  std::vector<TestNode> out(5);
+  TestNode start(0, 0);
+  TestNode goal(4, 0);
+  Grid2d<TestNode> grid(10, 10);
+  AStarPathfinder<TestNode, Grid2d<TestNode>, decltype(out.begin())> pathfinder;
+
+  // act
+  pathfinder.FindPath(start, goal, grid, out.begin(), out.end());
+
+  // assert
+  auto itFst = out.begin();
+  auto itSnd = itFst + 1;
+  while (itSnd != out.end()) {
+#if SNAKE_DEBUG
+    std::cout << "checking distance benween " << (*itFst).ToString() << " and "
+              << (*itSnd).ToString() << std::endl;
+#endif
+    BOOST_CHECK_EQUAL(1, getDistance(*itFst, *itSnd));
+    ++itFst;
+    ++itSnd;
+  }
+  BOOST_CHECK(goal == *out.rbegin());
+}
+
+BOOST_AUTO_TEST_CASE(case3) {
+  // arrange
+  std::vector<TestNode> out(9);
+  TestNode start(0, 0);
+  TestNode goal(4, 4);
+  Grid2d<TestNode> grid(10, 10);
+  AStarPathfinder<TestNode, Grid2d<TestNode>, decltype(out.begin())> pathfinder;
+
+  // act
+  pathfinder.FindPath(start, goal, grid, out.begin(), out.end());
+
+  // assert
+  auto itFst = out.begin();
+  auto itSnd = itFst + 1;
+  while (itSnd != out.end()) {
+#if SNAKE_DEBUG
+    std::cout << "checking distance benween " << (*itFst).ToString() << " and "
+              << (*itSnd).ToString() << std::endl;
+#endif
+    BOOST_CHECK_EQUAL(1, getDistance(*itFst, *itSnd));
+    ++itFst;
+    ++itSnd;
+  }
+  BOOST_CHECK(goal == *out.rbegin());
+}
 }  // namespace snake

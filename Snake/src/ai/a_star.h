@@ -7,9 +7,9 @@
 
 namespace snake {
 
-// is default constructor required?	
+// is default constructor required?
 // if set fields as const then need to define operator=?
-//  operator== 
+//  operator==
 template <typename N>
 concept grid_2d_cell = requires(N n) {
   n.GetX();
@@ -24,7 +24,8 @@ concept grid_2d = requires(G g) {
 template <grid_2d_cell N, grid_2d<N> G, std::output_iterator<N> I>
 class AStarPathfinder final {
  public:
-  void FindPath(const N& start, const N& goal, const G& grid, I out);
+  void FindPath(const N& start, const N& goal, const G& grid, I out,
+                I sentinel);
 };
 }  // namespace snake
 #endif  // SNAKE_A_STAR_H_

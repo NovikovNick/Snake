@@ -15,7 +15,6 @@ class NodePath {
  private:
   N start_;
   N end_;
-  N head_;
   std::deque<N> path_;
   float distanceFromStart_;
   float distanceToEnd_;
@@ -29,35 +28,32 @@ class NodePath {
  public:
   NodePath(const N& start, const N& end)
       : start_(start),
-        head_(start),
         end_(end),
         distanceFromStart_(0.0),
-        distanceToEnd_(getDistance(head_, end_)){};
+        distanceToEnd_(getDistance(start, end)) {
+    path_.push_back(start);
+  };
+
   void AddNode(const N& node) {
     distanceFromStart_ = getDistance(start_, node);
     distanceToEnd_ = getDistance(end_, node);
     path_.push_back(node);
-
-    std::cout << "new node added" << std::endl;
-    head_ = node;
   };
 
-  N GetHead() const { return head_; };
+  N GetHead() const { return path_.back(); };
 
   float GetDistanceFromStart() const { return distanceFromStart_; };
   float GetDistanceToEnd() const { return distanceToEnd_; };
+  float GetLength() const { return path_.size(); };
   std::deque<N>::const_iterator begin() const { return path_.cbegin(); };
   std::deque<N>::const_iterator end() const { return path_.cend(); };
   std::string ToString() const {
-    auto res = "head: " + head_.ToString();
-
-    res += std::format(" from start - {:2.1f}, to end - {:2.1f} ",
-                       distanceFromStart_, distanceToEnd_);
-    res += "{ ";
+    std::string res =
+        std::format("path [distance to goal {:2.1f}, length {:2d}]",
+                    distanceToEnd_, path_.size());
     for (auto it : path_) {
       res += " " + it.ToString();
     }
-    res += "}";
     return res;
   }
 };
@@ -67,11 +63,10 @@ struct NodePathComparator {
   bool operator()(const NodePath<N>& p1, const NodePath<N>& p2) {
     float distToEnd1 = p1.GetDistanceToEnd();
     float distToEnd2 = p2.GetDistanceToEnd();
-    if (distToEnd1 == distToEnd2) {
-      return p1.GetDistanceFromStart() > p2.GetDistanceFromStart();
-    } else {
-      return distToEnd1 > distToEnd2;
-    }
+
+    if (distToEnd1 > distToEnd2) return true;
+    if (distToEnd1 == distToEnd2) return p1.GetLength() > p2.GetLength();
+    return false;
   };
 };
 
@@ -91,17 +86,23 @@ template <typename N>
 struct NodeEquals {
   bool operator()(const N& n1, const N& n2) const { return n1 == n2; };
 };
+
+template <typename... Args>
+void debug(const std::string_view& str, Args&&... args) {
+#if SNAKE_DEBUG
+  std::cout << std::vformat(str, std::make_format_args(args...));
+#endif
+}
 }  // namespace
 
 namespace snake {
 
 template <grid_2d_cell N, grid_2d<N> G, std::output_iterator<N> I>
 void AStarPathfinder<N, G, I>::FindPath(const N& start, const N& goal,
-                                        const G& grid, I out) {
-  std::cout << std::format("Start [{:2d},{:2d}]...", start.GetX(), start.GetY())
-            << std::endl;
-  std::cout << std::format("Goal [{:2d},{:2d}]...", goal.GetX(), goal.GetY())
-            << std::endl;
+                                        const G& grid, I out, I sentinel) {
+  debug("A* pathfinding from [{:2d},{:2d}] to [{:2d},{:2d}]\n", start.GetX(),
+        start.GetY(), goal.GetX(), goal.GetY());
+
   N empty;
   NodePathComparator<N> comp;
   NodeHashcode<N> hashcode;
@@ -119,30 +120,39 @@ void AStarPathfinder<N, G, I>::FindPath(const N& start, const N& goal,
     reacheable.pop();
     auto node = path.GetHead();
 
-    std::cout << "Checking " << node.ToString() << std::endl;
+    debug("Checking {}\n", path.ToString());
     grid.FindAdjacents(node.GetX(), node.GetY(), adjacents.begin());
 
     for (auto adjacent : adjacents) {
+      debug("Adjacent ");
+
       if (adjacent == empty) {
+        debug("is empty\n");
         continue;
       }
-      std::cout << "Adjacent " << adjacent.ToString();
+      debug("{} ", adjacent.ToString());
+
       if (explored.find(adjacent) != explored.end()) {
-        std::cout << " is explored." << std::endl;
+        debug("is explored\n");
         continue;
       }
-      std::cout << " is not explored. " << std::endl;
-      
+
       if (adjacent == goal) {
-        std::cout << "Is a goal! " << std::endl;
-        for (auto it : path) {
-          *(out++) = it;
+        debug("is a goal!\n");
+        path.AddNode(adjacent);
+
+        auto it = path.begin();
+        while (out != sentinel && it != path.end()) {
+          *out = *it;
+          ++it;
+          ++out;
         }
         return;
       } else {
-        std::cout << "Is not a goal. Added to reacheable " << std::endl;
-        path.AddNode(adjacent);
-        reacheable.push(path);
+        debug("is not a goal. Add it to reacheable!\n");
+        auto nextPath = path;
+        nextPath.AddNode(adjacent);
+        reacheable.push(nextPath);
       }
     }
     std::fill(adjacents.begin(), adjacents.end(), empty);
