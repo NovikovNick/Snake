@@ -10,34 +10,54 @@
 
 namespace {
 
-template <typename... Args>
-void debug(const std::string_view& str, Args&&... args) {
-#if SNAKE_DEBUG
-  std::cout << std::vformat(str, std::make_format_args(args...));
-#endif
-}
+//template <typename... Args>
+//void debug(const std::string_view& str, Args&&... args) {
+//#if SNAKE_DEBUG
+//  std::cout << std::vformat(str, std::make_format_args(args...));
+//#endif
+//}
 }  // namespace
 
 namespace snake {
 
-using COORD = std::pair<int, int>;
+struct MyCoord {
+ private:
+  int x_, y_;
+
+ public:
+  MyCoord() : x_(-1), y_(-1){};
+  MyCoord(const int x, const int y) : x_(x), y_(y){};
+  int GetX() const { return x_; };
+  int GetY() const { return y_; };
+  bool operator==(const MyCoord& other) const {
+    return (x_ == other.GetX()) && (y_ == other.GetY());
+  };
+  bool operator!=(const MyCoord& other) const { return !(*this == other); };
+  std::string ToString() const {
+    return std::format("[{:2d},{:2d}]", GetX(), GetY());
+  }
+};
+
 using SNAKE_PART = std::tuple<int, int, int>;
 using GAME_OBJECT = std::tuple<int, int, int>;
 using SNAKE_DATA = std::deque<SNAKE_PART>;
 using SNAKE_DATA_CONST_ITERATOR = SNAKE_DATA::const_iterator;
 using SNAKE_DATA_ITERATOR = SNAKE_DATA::iterator;
-using GRID_DATA = std::vector<COORD>;
-using COORD_ITERATOR = GRID_DATA::iterator;
 using GAME_OBJECT_ITERATOR = std::vector<GAME_OBJECT>::iterator;
 
+template <typename T>
 class Grid2d {
+  using COORD = T;
+  using GRID_DATA = std::vector<COORD>;
+  using COORD_ITERATOR = GRID_DATA::iterator;
+
   std::vector<SNAKE_DATA> snakes_ = std::vector<SNAKE_DATA>(2);
   std::vector<int> snake_length_ = std::vector<int>(2);
   std::vector<COORD> grid_;
   int width_, height_;
 
  public:
-  std::pair<int, int> food;
+  COORD food;
 
   Grid2d(int width, int height)
       : width_(width), height_(height), grid_(GRID_DATA(width * height)) {
@@ -81,22 +101,22 @@ class Grid2d {
 
   void copy(GAME_OBJECT_ITERATOR out) {
     auto hash = [](const COORD& o) {
-      auto h1 = std::hash<int>{}(o.first);
-      auto h2 = std::hash<int>{}(o.second);
+      auto h1 = std::hash<int>{}(o.GetX());
+      auto h2 = std::hash<int>{}(o.GetY());
       if (h1 == h2) return h1;
       return h1 ^ h2;
     };
     auto equals = [](const COORD& o1, const COORD& o2) {
-      return o1.first == o2.first && o1.second == o2.second;
+      return o1.GetX() == o2.GetX() && o1.GetY() == o2.GetY();
     };
     std::unordered_set<COORD, decltype(hash), decltype(equals)> filled(32, hash,
                                                                        equals);
-    filled.emplace(food.first, food.second);
+    filled.emplace(food.GetX(), food.GetY());
     for (auto snake : snakes_) {
       std::transform(snake.cbegin(), snake.cend(),
                      std::inserter(filled, filled.begin()), [](const auto& it) {
                        auto [fst, snd, thd] = it;
-                       return std::make_pair(fst, snd);
+                       return COORD(fst, snd);
                      });
     }
 

@@ -65,7 +65,7 @@ add_executable(AStarAlgorithm "Snake/test/a_star_pathfinder_test.cc" ${SRC_AI_HE
 target_include_directories(AStarAlgorithm PRIVATE Boost::unit_test_framework)
 add_test(NAME test_AStarAlgorithm COMMAND AStarAlgorithm)
 
-add_executable(grid2d "Snake/test/grid.cc" ${SRC_MODEL})
+add_executable(grid2d "Snake/test/grid.cc" ${SRC_MODEL} ${SRC_AI_HEADERS} ${SRC_AI_IMPL})
 target_include_directories(grid2d PRIVATE Boost::unit_test_framework)
 add_test(NAME test_grid2d COMMAND grid2d)
 
