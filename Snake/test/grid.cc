@@ -7,10 +7,6 @@
 
 namespace snake {
 
-using NODE = std::tuple<int, int, int>;
-using NODE_DATA = std::deque<NODE>;
-using NODE_ITER = NODE_DATA::iterator;
-
 std::vector<std::pair<int, int>> dirs{
     {1, 0},   // right
     {-1, 0},  // left
@@ -18,28 +14,17 @@ std::vector<std::pair<int, int>> dirs{
     {0, -1}   // top
 };
 
-NODE moveSnake(NODE_ITER begin, NODE_ITER end, NODE_ITER out) {
-  auto [prevX, prevY, prevDir] = *begin;
-
-  while (begin != end) {
+void moveSnake(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end,
+               SNAKE_DATA_ITERATOR out) {
+  for (auto [_, __, prevDir] = *begin; begin != end; ++begin) {
     auto [x, y, dir] = *begin;
     *out = std::make_tuple(x + dirs[dir].first, y + dirs[dir].second, prevDir);
     prevDir = dir;
     ++out;
-    ++begin;
   }
-  return std::make_tuple(prevX, prevY, prevDir);
 }
 
-NODE moveSnake(NODE_ITER begin, NODE_ITER end, NODE_ITER out,
-               auto inserter) {
-  auto lst = moveSnake(begin, end, out);
-  auto [x, y, dir] = lst;
-  inserter = std::make_tuple(x, y, dir);
-  return lst;
-}
-
-void print(NODE_ITER begin, NODE_ITER end) {
+void print(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end) {
   for (; begin != end; ++begin) {
     auto [x, y, dir] = *begin;
     std::cout << std::format("[{:2d},{:2d},{:2d}]\n", x, y, dir);
@@ -48,42 +33,39 @@ void print(NODE_ITER begin, NODE_ITER end) {
 
 BOOST_AUTO_TEST_CASE(case1) {
   // arrange
-  Grid2d grid(10, 10);
+  int width = 40, height = 10;
+  Grid2d grid(width, height);
   grid.food = {1, 8};
-  NODE_DATA snake0{{2, 0, 0}, {1, 0, 0}, {0, 0, 0}};
-  NODE_DATA snake1(snake0.size());
-  NODE_DATA snake2(snake0.size());
 
+  SNAKE_DATA snake0{{2, 0, 0}, {1, 0, 0}, {0, 0, 0}};
   grid.AddSnake(0, snake0.begin(), snake0.end());
 
-  // act
+  std::vector<GAME_OBJECT> gameObjects(width * height);
 
-  grid.print();
   int rht = 0, lft = 1, btm = 2, top = 3;
-  auto ins = std::back_inserter(snake0);
-  for (auto dir : {btm, lft, btm, btm, btm, btm, btm, btm, btm, btm}) {
-    auto [foodX, foodY] = grid.food;
+  for (auto dir :
+       {btm, lft, btm, btm, btm, btm, btm, btm, btm, rht, rht, rht}) {
+    // act
     grid.CopySnake(0, snake0.begin());
 
+    auto [tailX, tailY, tailDir] = snake0[snake0.size() - 1];
     auto& [headX, headY, headDir] = snake0[0];
     headDir = dir;
+    moveSnake(snake0.begin(), snake0.end(), snake0.begin());
 
-    std::cout << " ------ \n";
+    auto [foodX, foodY] = grid.food;
+    if (foodX == headX && foodY == headY)
+      snake0.emplace_back(tailX, tailY, tailDir);
 
-    if (foodX == headX && foodY == headY) {
-      moveSnake(snake0.begin(), snake0.end(), snake0.begin(),
-                std::front_inserter(snake0));
-    } else {
-      moveSnake(snake0.begin(), snake0.end(), snake0.begin());
-    }
+    // assert
     print(snake0.begin(), snake0.end());
-
     grid.AddSnake(0, snake0.begin(), snake0.end());
-    grid.print();
+
+    grid.copy(gameObjects.begin());
+    for (int i = 0; auto [x, y, type] : gameObjects) {
+      std::cout << (type == 0 ? "[]" : "::");
+      std::cout << (++i % width == 0 ? "\n" : "");
+    }
   }
-
-  // assert
-  // print(snake1.begin(), snake1.end());
 }
-
 }  // namespace snake

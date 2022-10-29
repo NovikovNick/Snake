@@ -3,10 +3,10 @@
 
 #include <format>
 #include <iostream>
+#include <queue>
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include <queue>
 
 namespace {
 
@@ -20,34 +20,35 @@ void debug(const std::string_view& str, Args&&... args) {
 
 namespace snake {
 
-class Grid2d {
-  using COORD = std::pair<int, int>;
-  using SNAKE_DATA = std::deque<std::tuple<int, int, int>>;
-  using SNAKE_DATA_CONST_ITERATOR = SNAKE_DATA::const_iterator;
-  using SNAKE_DATA_ITERATOR = SNAKE_DATA::iterator;
-  using GRID_DATA = std::vector<SNAKE_DATA>;
+using COORD = std::pair<int, int>;
+using SNAKE_PART = std::tuple<int, int, int>;
+using GAME_OBJECT = std::tuple<int, int, int>;
+using SNAKE_DATA = std::deque<SNAKE_PART>;
+using SNAKE_DATA_CONST_ITERATOR = SNAKE_DATA::const_iterator;
+using SNAKE_DATA_ITERATOR = SNAKE_DATA::iterator;
+using GRID_DATA = std::vector<COORD>;
+using COORD_ITERATOR = GRID_DATA::iterator;
+using GAME_OBJECT_ITERATOR = std::vector<GAME_OBJECT>::iterator;
 
-  GRID_DATA snakes_ = GRID_DATA(2);
+class Grid2d {
+  std::vector<SNAKE_DATA> snakes_ = std::vector<SNAKE_DATA>(2);
   std::vector<int> snake_length_ = std::vector<int>(2);
-  std::vector<std::string> grid_;
+  std::vector<COORD> grid_;
   int width_, height_;
 
  public:
   std::pair<int, int> food;
 
   Grid2d(int width, int height)
-      : width_(width),
-        height_(height),
-        grid_(std::vector<std::string>(width * height)) {
+      : width_(width), height_(height), grid_(GRID_DATA(width * height)) {
     for (int row = 0; row < height; ++row) {
       for (int col = 0; col < width; ++col) {
-        grid_[row * width + col] = std::format("[{:2d},{:2d}]", col, row);
+        grid_[row * width + col] = COORD(col, row);
       }
     }
   };
 
   void AddSnake(const int& index, auto begin, auto end) {
-    
     snakes_[index].clear();
     snake_length_[index] = 0;
 
@@ -71,7 +72,14 @@ class Grid2d {
     }
   };
 
-  void print() {
+  void FindAdjacents(int x, int y, COORD_ITERATOR out) const {
+    if (y + 1 < height_) *(out++) = grid_[width_ * (y + 1) + (x + 0)];
+    if (x + 1 < width_) *(out++) = grid_[width_ * (y + 0) + (x + 1)];
+    if (y - 1 >= 0) *(out++) = grid_[width_ * (y - 1) + (x + 0)];
+    if (x - 1 >= 0) *(out) = grid_[width_ * (y + 0) + (x - 1)];
+  }
+
+  void copy(GAME_OBJECT_ITERATOR out) {
     auto hash = [](const COORD& o) {
       auto h1 = std::hash<int>{}(o.first);
       auto h2 = std::hash<int>{}(o.second);
@@ -92,16 +100,11 @@ class Grid2d {
                      });
     }
 
-    bool isFilled = false;
-    for (auto i = 0; auto it : grid_) {
+    for (int i = 0, size = width_ * height_; i < size; ++i) {
       int row = i / width_;
       int col = i % width_;
-
-      isFilled = filled.find({col, row}) != filled.end();
-
-      // debug((isFilled) ? ":::::::" : "{}", it);
-      debug((isFilled) ? "::" : "[]");
-      debug((++i % width_) == 0 ? "\n" : "");
+      *out = std::make_tuple(col, row, filled.find({col, row}) != filled.end());
+      ++out;
     }
   };
 };
