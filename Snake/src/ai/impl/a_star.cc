@@ -98,7 +98,7 @@ void debug(const std::string_view& str, Args&&... args) {
 namespace snake {
 
 template <grid_2d_cell N, grid_2d<N> G, std::output_iterator<N> I>
-void AStarPathfinder<N, G, I>::FindPath(const N& start, const N& goal,
+bool AStarPathfinder<N, G, I>::FindPath(const N& start, const N& goal,
                                         const G& grid, I out, I sentinel) {
   debug("A* pathfinding from [{:2d},{:2d}] to [{:2d},{:2d}]\n", start.GetX(),
         start.GetY(), goal.GetX(), goal.GetY());
@@ -112,6 +112,8 @@ void AStarPathfinder<N, G, I>::FindPath(const N& start, const N& goal,
   std::unordered_set<N, decltype(hashcode), decltype(equals)> explored(
       32, hashcode, equals);
   std::vector<N> adjacents(4);
+
+  int maxDistance = std::distance(out, sentinel);
 
   reacheable.push(NodePath(start, goal));
 
@@ -147,16 +149,23 @@ void AStarPathfinder<N, G, I>::FindPath(const N& start, const N& goal,
           ++it;
           ++out;
         }
-        return;
+        return true;
       } else {
-        debug("is not a goal. Add it to reacheable!\n");
-        auto nextPath = path;
-        nextPath.AddNode(adjacent);
-        reacheable.push(nextPath);
+       
+        if (path.GetLength() < maxDistance) {
+          auto nextPath = path;
+          nextPath.AddNode(adjacent);
+          reacheable.push(nextPath);
+          debug("is not a goal. Add it to reacheable!\n");
+        } else {
+          debug("is not a goal. Out of range {}!\n", maxDistance);
+        }
+        
       }
     }
     std::fill(adjacents.begin(), adjacents.end(), empty);
     explored.insert(node);
   }
+  return false;
 };
 }  // namespace snake

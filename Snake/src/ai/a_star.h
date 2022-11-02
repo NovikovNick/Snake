@@ -24,7 +24,7 @@ concept grid_2d = requires(G g) {
 template <grid_2d_cell N, grid_2d<N> G, std::output_iterator<N> I>
 class AStarPathfinder final {
  public:
-  void FindPath(const N& start, const N& goal, const G& grid, I out,
+  bool FindPath(const N& start, const N& goal, const G& grid, I out,
                 I sentinel);
 };
 }  // namespace snake

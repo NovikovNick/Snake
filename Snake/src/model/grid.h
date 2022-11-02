@@ -83,6 +83,7 @@ class Grid2d {
       }
     }
   };
+  int GetSnakeLength(const int& index) { return snake_length_[index]; }
 
   void AddSnake(const int& index, auto begin, auto end) {
     snakes_[index].clear();
@@ -110,16 +111,16 @@ class Grid2d {
   };
 
   void FindAdjacents(int x, int y, COORD_ITERATOR out) const {
-    if (y + 1 < height_ && !IsFilled(x, y + 1))
+    if (y + 1 < height_ && !IsSnake(x, y + 1))
       *(out++) = grid_[width_ * (y + 1) + (x + 0)];
 
-    if (x + 1 < width_ && !IsFilled(x + 1, y))
+    if (x + 1 < width_ && !IsSnake(x + 1, y))
       *(out++) = grid_[width_ * (y + 0) + (x + 1)];
 
-    if (y - 1 >= 0 && !IsFilled(x, y - 1))
+    if (y - 1 >= 0 && !IsSnake(x, y - 1))
       *(out++) = grid_[width_ * (y - 1) + (x + 0)];
 
-    if (x - 1 >= 0 && !IsFilled(x - 1, y))
+    if (x - 1 >= 0 && !IsSnake(x - 1, y))
       *(out) = grid_[width_ * (y + 0) + (x - 1)];
   }
 
@@ -131,6 +132,14 @@ class Grid2d {
       ++out;
     }
   };
+
+  bool IsSnake(const int& x, const int& y) const {
+    return filled_.find({x, y}) != filled_.end();
+  }
+
+  bool IsOutOfBound(const int& x, const int& y) const {
+    return x < 0 || y < 0 || x >= width_ || y >= height_;
+  }
 
  private:
   void RebuildFilled() {
@@ -145,13 +154,9 @@ class Grid2d {
     }
   }
 
-  bool IsFilled(const int& x, const int& y) const {
-    return filled_.find({x, y}) != filled_.end();
-  }
-
   int GetType(const int& x, const int& y) const {
     if (food.GetX() == x && food.GetY() == y) return 2;
-    if (IsFilled(x, y)) return 1;
+    if (IsSnake(x, y)) return 1;
     return 0;
   }
 };
