@@ -8,16 +8,6 @@
 #include <unordered_set>
 #include <vector>
 
-namespace {
-
-// template <typename... Args>
-// void debug(const std::string_view& str, Args&&... args) {
-//#if SNAKE_DEBUG
-//   std::cout << std::vformat(str, std::make_format_args(args...));
-//#endif
-// }
-}  // namespace
-
 namespace snake {
 
 struct MyCoord {
@@ -94,7 +84,6 @@ class Grid2d {
       snakes_[index].push_back(std::make_tuple(x, y, dir));
       ++snake_length_[index];
     }
-    RebuildFilled();
   };
 
   std::pair<int, SNAKE_DATA_CONST_ITERATOR> GetSnake(const int& index) {
@@ -141,7 +130,6 @@ class Grid2d {
     return x < 0 || y < 0 || x >= width_ || y >= height_;
   }
 
- private:
   void RebuildFilled() {
     filled_.clear();
     for (auto snake : snakes_) {
@@ -154,6 +142,7 @@ class Grid2d {
     }
   }
 
+ private:
   int GetType(const int& x, const int& y) const {
     if (food.GetX() == x && food.GetY() == y) return 2;
     if (IsSnake(x, y)) return 1;

@@ -61,7 +61,7 @@ add_executable(SnakeIsValidTest "Snake/test/snake_is_valid_test.cc" ${SRC_FILES}
 target_include_directories(SnakeIsValidTest PRIVATE Boost::unit_test_framework)
 add_test(NAME test_snake_is_valid COMMAND SnakeIsValidTest)
 
-add_executable(AStarAlgorithm "Snake/test/a_star_pathfinder_test.cc" ${SRC_AI_HEADERS} ${SRC_AI_IMPL})
+add_executable(AStarAlgorithm "Snake/test/a_star_pathfinder_test.cc" ${SRC_MODEL} ${SRC_AI_HEADERS} ${SRC_AI_IMPL})
 target_include_directories(AStarAlgorithm PRIVATE Boost::unit_test_framework)
 add_test(NAME test_AStarAlgorithm COMMAND AStarAlgorithm)
 

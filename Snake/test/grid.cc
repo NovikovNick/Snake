@@ -8,7 +8,8 @@
 #include <stack>
 
 #include "../src/ai/a_star.h"
-#include "../src/ai/impl/a_star.cc"
+#include "../src/ai/impl/a_star_dp.cc"
+#include "../src/model/util.h"
 
 namespace snake {
 
@@ -49,15 +50,23 @@ void print(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end) {
   }
 }
 
-void print(const int width, GAME_OBJECT_ITERATOR begin,
-           GAME_OBJECT_ITERATOR end) {
-  std::vector<std::string> signes{"[]", "::", "**", "XX"};
-  std::cout << std::string(width * 2, '-') << "\n";
-  for (int i = 0; begin != end; ++begin) {
-    auto [x, y, type] = *begin;
-    std::cout << signes[type] << (++i % width == 0 ? "\n" : "");
-  }
-}
+class RenderService {
+ private:
+  std::vector<GAME_OBJECT> gameObjects_;
+  int width_;
+  std::vector<std::string> signes_{"[]", "::", "**", "XX"};
+
+ public:
+  RenderService(const int width, const int height)
+      : width_(width), gameObjects_(std::vector<GAME_OBJECT>(width * height)) {}
+  GAME_OBJECT_ITERATOR GetOutput() { return gameObjects_.begin(); }
+  void render() {
+    std::cout << std::string(width_ * 2, '-') << "\n";
+    for (auto i = 0; auto [x, y, type] : gameObjects_) {
+      std::cout << signes_[type] << (++i % width_ == 0 ? "\n" : "");
+    }
+  };
+};
 
 class AIService {
  private:
@@ -102,11 +111,11 @@ class AIService {
 
 BOOST_AUTO_TEST_CASE(case1) {
   // arrange
-  int width = 4, height = 4;
+  int width = 20, height = 20;
   Grid2d grid(width, height);
   // todo add ring buffer
 
-  std::stack<MyCoord> foods = GenerateFoods(width, height);
+  std::stack<MyCoord> foods_sequence = GenerateFoods(width, height);
 
   SNAKE_DATA snake0{{2, 2, 2}, {2, 1, 2}, {2, 0, 2}};
   // SNAKE_DATA snake1{{2, 5, 1}, {3, 5, 1}, {4, 5, 1}};
@@ -114,18 +123,18 @@ BOOST_AUTO_TEST_CASE(case1) {
   grid.AddSnake(0, snake0.begin(), snake0.end());
   // grid.AddSnake(1, snake1.begin(), snake1.end());
 
-  std::vector<GAME_OBJECT> gameObjects(width * height);
-
+  RenderService renderService(width, height);
   AIService aiService(width, height);
 
   // act
-  grid.food = foods.top();
-  foods.pop();
+  grid.food = foods_sequence.top();
+  foods_sequence.pop();
   bool isCollide = false;
 
+  // service?
   SNAKE_DATA snake(width * height);
 
-  while (!isCollide && !foods.empty()) {
+  while (!isCollide && !foods_sequence.empty()) {
     bool isFoodConsumed = false;
 
     for (int playerId = 0; playerId < 1; ++playerId) {
@@ -141,35 +150,42 @@ BOOST_AUTO_TEST_CASE(case1) {
 
       moveSnake(snake.begin(), snake.end(), snake.begin());
 
-      // 1. check border collision
+      // 1. check collision
       isCollide = grid.IsOutOfBound(headX, headY) || grid.IsSnake(headX, headY);
       if (isCollide) {
         debug("Snake was collided\n");
       }
 
-      // 2. check food consumed
+      // 2. check food consumption
       if (!isFoodConsumed && grid.food == head) {
         snake[length] = prevTail;
         ++length;
         isFoodConsumed = true;
       }
 
-      // 4. check player score
+      // 3. todo check player score
+
       print(snake.begin(), snake.begin() + length);
       grid.AddSnake(playerId, snake.begin(), snake.begin() + length);
     }
 
-    while (isFoodConsumed) {
-      grid.food = foods.top();
-      foods.pop();
-      isFoodConsumed = grid.IsSnake(grid.food.GetX(), grid.food.GetX());
-      debug("Placing food into [{:2d},{:2d}] only {} foods has left\n",
-            grid.food.GetX(), grid.food.GetX(), foods.size());
+    grid.RebuildFilled();
+
+    while (isFoodConsumed && !foods_sequence.empty()) {
+      grid.food = foods_sequence.top();
+      foods_sequence.pop();
+
+      // todo IsSnake doesn't work properly
+      isFoodConsumed = grid.IsSnake(grid.food.GetX(), grid.food.GetY());
+      debug(isFoodConsumed
+                ? "Food into snake [{:2d},{:2d}] only {} foods has left\n"
+                : "Empty space [{:2d},{:2d}] only {} foods has left\n",
+            grid.food.GetX(), grid.food.GetY(), foods_sequence.size());
     }
 
     // assert
-    grid.copy(gameObjects.begin());
-    print(width, gameObjects.begin(), gameObjects.end());
+    grid.copy(renderService.GetOutput());
+    renderService.render();
   }
 }
 }  // namespace snake
