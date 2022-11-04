@@ -69,5 +69,10 @@ add_executable(grid2d "Snake/test/grid.cc" ${SRC_MODEL} ${SRC_AI_HEADERS} ${SRC_
 target_include_directories(grid2d PRIVATE Boost::unit_test_framework)
 add_test(NAME test_grid2d COMMAND grid2d)
 
+add_executable(grid_find_adjacents "Snake/test/grid_find_adjacents.cc" ${SRC_MODEL})
+target_include_directories(grid_find_adjacents PRIVATE Boost::unit_test_framework)
+add_test(NAME test_grid_find_adjacents COMMAND grid_find_adjacents)
+
+
 message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
 message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")

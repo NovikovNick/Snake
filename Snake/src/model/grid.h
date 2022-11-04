@@ -100,17 +100,24 @@ class Grid2d {
   };
 
   void FindAdjacents(int x, int y, COORD_ITERATOR out) const {
-    if (y + 1 < height_ && !IsSnake(x, y + 1))
-      *(out++) = grid_[width_ * (y + 1) + (x + 0)];
-
-    if (x + 1 < width_ && !IsSnake(x + 1, y))
-      *(out++) = grid_[width_ * (y + 0) + (x + 1)];
-
-    if (y - 1 >= 0 && !IsSnake(x, y - 1))
-      *(out++) = grid_[width_ * (y - 1) + (x + 0)];
-
-    if (x - 1 >= 0 && !IsSnake(x - 1, y))
-      *(out) = grid_[width_ * (y + 0) + (x - 1)];
+    int index;
+    if (y + 1 < height_ && !IsSnake(x, y + 1)) {
+      // todo fix out of bound!
+      index = width_ * (y + 1) + (x + 0);
+      *(out++) = grid_[index];
+    }
+    if (x + 1 < width_ && !IsSnake(x + 1, y)) {
+      index = width_ * (y + 0) + (x + 1);
+      *(out++) = grid_[index];
+    }
+    if (y - 1 >= 0 && !IsSnake(x, y - 1)) {
+      index = width_ * (y - 1) + (x + 0);
+      *(out++) = grid_[index];
+    }
+    if (x - 1 >= 0 && !IsSnake(x - 1, y)) {
+      index = width_ * (y + 0) + (x - 1);
+      *(out) = grid_[index];
+    }
   }
 
   void copy(GAME_OBJECT_ITERATOR out) {
