@@ -73,7 +73,7 @@ class Grid2d {
       }
     }
   };
-  int GetSnakeLength(const int& index) { return snake_length_[index]; }
+  int GetSnakeLength(const int& index) const { return snake_length_[index]; }
 
   void AddSnake(const int& index, auto begin, auto end) {
     snakes_[index].clear();
@@ -86,11 +86,11 @@ class Grid2d {
     }
   };
 
-  std::pair<int, SNAKE_DATA_CONST_ITERATOR> GetSnake(const int& index) {
+  std::pair<int, SNAKE_DATA_CONST_ITERATOR> GetSnake(const int& index) const {
     return std::make_pair(snake_length_[index], snakes_[index].cbegin());
   };
 
-  void CopySnake(const int& index, SNAKE_DATA_ITERATOR out) {
+  void CopySnake(const int& index, SNAKE_DATA_ITERATOR out) const {
     auto [length, iter] = GetSnake(index);
     for (int i = 0; i < length; ++i) {
       *out = *iter;

@@ -1,5 +1,6 @@
 ﻿#define BOOST_TEST_MODULE SolutionTest
-#define SNAKE_DEBUG 1
+#define CASE_1 1
+#define SNAKE_DEBUG 0
 
 #include "../src/model/grid.h"
 
@@ -9,6 +10,7 @@
 
 #include "../src/ai/a_star.h"
 #include "../src/ai/impl/a_star_dp.cc"
+#include "../src/model/ring_buffer.h"
 #include "../src/model/util.h"
 
 namespace snake {
@@ -24,22 +26,6 @@ std::stack<MyCoord> GenerateFoods(const int width, const int height) {
   std::mt19937 g(rd());
   std::shuffle(f.begin(), f.end(), g);
   return std::stack<MyCoord>(f);
-}
-
-void moveSnake(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end,
-               SNAKE_DATA_ITERATOR out) {
-  std::vector<MyCoord> dirs{
-      {1, 0},   // right
-      {-1, 0},  // left
-      {0, 1},   // bottom
-      {0, -1}   // top
-  };
-  for (auto [_, __, prevDir] = *begin; begin != end; ++begin) {
-    auto [x, y, dir] = *begin;
-    *out = std::make_tuple(x + dirs[dir].GetX(), y + dirs[dir].GetY(), prevDir);
-    prevDir = dir;
-    ++out;
-  }
 }
 
 void print(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end) {
@@ -83,22 +69,27 @@ class AIService {
   AIService(const int width, const int height)
       : out_(std::vector<MyCoord>(width * height)) {}
 
+  // todo split to 2 methods!
   int FindPath(const MyCoord& start, const MyCoord& goal, const Grid2d& grid) {
     if (grid.food != start &&
         pathfinder_.FindPath(start, goal, grid, out_.begin(), out_.end())) {
       return GetDirection(out_[1], start);
     } else {
-      for (int dir = 0; auto vector : dirs_) {
-        int nextX = start.GetX() + vector.GetX();
-        int nextY = start.GetY() + vector.GetY();
-        if (!grid.IsOutOfBound(nextX, nextY) && !grid.IsSnake(nextX, nextY)) {
-          return dir;
-        }
-        ++dir;
+      return FindPath(start, grid);
+    }
+  };
+
+  int FindPath(const MyCoord& start, const Grid2d& grid) {
+    for (int dir = 0; auto vector : dirs_) {
+      int nextX = start.GetX() + vector.GetX();
+      int nextY = start.GetY() + vector.GetY();
+      if (!grid.IsOutOfBound(nextX, nextY) && !grid.IsSnake(nextX, nextY)) {
+        return dir;
       }
+      ++dir;
     }
     return 0;
-  };
+  }
 
  private:
   int GetDirection(const MyCoord& o1, const MyCoord& o2) {
@@ -113,105 +104,150 @@ class AIService {
   }
 };
 
-struct RingBuffer {
-  std::vector<Grid2d> buffer_;
+struct GameStateV2 {
+  Grid2d grid;
+  std::vector<int> inputs;
+  std::vector<int> score;
+  bool is_score_reached;
+  bool is_collide;
+  bool is_food_consumed;
+
+  GameStateV2(const int snake_count, Grid2d&& grid)
+      : grid(std::move(grid)),
+        inputs(std::vector<int>(snake_count)),
+        score(std::vector<int>(snake_count)),
+        is_collide(false),
+        is_food_consumed(false) {}
 };
 
-//struct SnakeContext {
-//  SNAKE_DATA snake(width* height);
-//  int length;
-//  SNAKE_PART prevTail;
-//};
+struct SnakeContextService {
+ private:
+  SNAKE_DATA snake_;
+  std::shared_ptr<AIService> ai_service;
 
+  void moveSnake(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end,
+                 SNAKE_DATA_ITERATOR out) {
+    std::vector<MyCoord> dirs{
+        {1, 0},   // right
+        {-1, 0},  // left
+        {0, 1},   // bottom
+        {0, -1}   // top
+    };
+    for (auto [_, __, prevDir] = *begin; begin != end; ++begin) {
+      auto [x, y, dir] = *begin;
+      *out = SNAKE_PART(x + dirs[dir].GetX(), y + dirs[dir].GetY(), prevDir);
+      prevDir = dir;
+      ++out;
+    }
+  }
+
+ public:
+  SnakeContextService(const int& width, const int& height,
+                      std::shared_ptr<AIService> ai_service)
+      : snake_(SNAKE_DATA(width * height)), ai_service(ai_service){};
+
+  void SetInputs(const GameStateV2& prev, GameStateV2& out) {
+    for (int botId = 0; botId < out.inputs.size(); ++botId) {
+      prev.grid.CopySnake(botId, snake_.begin());
+      auto [x, y, _] = snake_[0];
+
+      MyCoord head(x, y);
+      out.inputs[botId] = ai_service->FindPath(head, prev.grid.food, prev.grid);
+    }
+  }
+
+  void ApplyInputs(const GameStateV2& prev, GameStateV2& out) {
+    for (int snake_id = 0; snake_id < prev.inputs.size(); ++snake_id) {
+      // load snake to buffer and arrange data
+      prev.grid.CopySnake(snake_id, snake_.begin());
+      int length = prev.grid.GetSnakeLength(snake_id);
+      auto& [head_x_ref, head_y_ref, head_dir_ref] = snake_[0];
+      MyCoord head(head_x_ref, head_y_ref);
+      auto prev_tail = snake_[length - 1];
+      // movement
+      head_dir_ref = out.inputs[snake_id];
+      moveSnake(snake_.begin(), snake_.end(), snake_.begin());
+      // check collision
+      out.is_collide = out.grid.IsOutOfBound(head_x_ref, head_y_ref) ||
+                       out.grid.IsSnake(head_x_ref, head_y_ref);
+      // check food consumption
+      if (out.grid.food == head) {
+        out.is_food_consumed = true;
+        snake_[length] = prev_tail;
+        ++out.score[snake_id];
+        ++length;
+      }
+      // save snake into next state
+      out.grid.AddSnake(snake_id, snake_.begin(), snake_.begin() + length);
+      out.grid.RebuildFilled();
+    }
+  }
+};
+
+#if CASE_1
 BOOST_AUTO_TEST_CASE(case1) {
   // arrange
   // services
-  int width = 10, height = 10, winScore = 5;
+  int width = 20, height = 20, snake_count = 2, winScore = 10;
   RenderService renderService(width, height);
-  AIService aiService(width, height);
+  auto ai_service = std::make_shared<AIService>(width, height);
+  SnakeContextService ctx(width, height, ai_service);
 
   std::stack<MyCoord> foods_sequence = GenerateFoods(width, height);
   SNAKE_DATA snake0{{2, 2, 2}, {2, 1, 2}, {2, 0, 2}};
-  SNAKE_DATA snake1{{1, 2, 2}, {1, 1, 2}, {1, 0, 2}};
+  SNAKE_DATA snake1{{5, 2, 2}, {5, 1, 2}, {5, 0, 2}};
 
-  // 1. init fst state
-  // todo add ring buffer
+  RingBuffer<GameStateV2> buffer(3);
 
-  Grid2d grid(width, height);
-  grid.AddSnake(0, snake0.begin(), snake0.end());
-  grid.AddSnake(1, snake1.begin(), snake1.end());
-
-  grid.food = foods_sequence.top();
+  // init fst state
+  buffer.add(GameStateV2(snake_count, Grid2d(width, height)));
+  auto& state = buffer.head();
+  state.grid.AddSnake(0, snake0.begin(), snake0.end());
+  state.grid.AddSnake(1, snake1.begin(), snake1.end());
+  state.grid.food = foods_sequence.top();
   foods_sequence.pop();
 
   // act
-  bool isCollide = false;
-  bool isFoodConsumed = false;
-  bool isReachedScore = false;
+  bool running = !foods_sequence.empty();
+  while (running) {
+    auto& prev = buffer.head();
+    buffer.add(GameStateV2(snake_count, Grid2d(width, height)));
+    auto& next = buffer.head();
+    next.grid.food = prev.grid.food;
+    next.score = prev.score;
 
-  std::vector<int> score(2);
 
-  SNAKE_DATA snake(width * height);  // todo move to separate service
-  int length;
-  SNAKE_PART prevTail;
-  while (!isReachedScore && !isCollide && !foods_sequence.empty()) {
-    isFoodConsumed = false;
+    ctx.SetInputs(prev, next);
+    ctx.ApplyInputs(prev, next);
 
-    for (int playerId = 0; playerId < 2 && !isCollide; ++playerId) {
-      // load snake to buffer
-      grid.CopySnake(playerId, snake.begin());
-      length = grid.GetSnakeLength(playerId);
-
-      auto& [headXRef, headYRef, headDirRef] = snake[0];
-      prevTail = snake[length - 1];
-
-      MyCoord head(headXRef, headYRef);
-      headDirRef = aiService.FindPath(head, grid.food, grid);
-
-      moveSnake(snake.begin(), snake.end(), snake.begin());
-
-      // 1. check collision
-      // need to remove snake and stop the game!
-      isCollide = grid.IsOutOfBound(headXRef, headYRef) ||
-                  grid.IsSnake(headXRef, headYRef);
-      if (isCollide) {
-        debug("Snake was collided\n");
-      }
-
-      // 2. check food consumption
-      if (!isFoodConsumed && grid.food == head) {
-        snake[length] = prevTail;
-        ++length;
-        isFoodConsumed = true;
-        ++score[playerId];
-      }
-
-      // 3. todo check player score
-      if (score[playerId] >= winScore) {
-        isReachedScore = true;
-        debug("Player {} win!\n", playerId);
-      }
-
-      // print(snake.begin(), snake.begin() + length);
-      grid.AddSnake(playerId, snake.begin(), snake.begin() + length);
-      grid.RebuildFilled();
+    if (next.is_collide) {
+      debug("Snake was collided\n");
+      running = false;
     }
 
-    while (isFoodConsumed && !foods_sequence.empty()) {
-      grid.food = foods_sequence.top();
+    if (next.score[0] > winScore) {
+      debug("Score is reached!\n");
+      running = false;
+    }
+
+    while (next.is_food_consumed && !foods_sequence.empty()) {
+      next.grid.food = foods_sequence.top();
       foods_sequence.pop();
 
-      // todo IsSnake doesn't work properly
-      isFoodConsumed = grid.IsSnake(grid.food.GetX(), grid.food.GetY());
-      debug(isFoodConsumed
+      next.is_food_consumed =
+          next.grid.IsSnake(next.grid.food.GetX(), next.grid.food.GetY());
+      debug(next.is_food_consumed
                 ? "There is a snake on [{:2d},{:2d}] only {} foods has left\n"
                 : "Added food to [{:2d},{:2d}] only {} foods has left\n",
-            grid.food.GetX(), grid.food.GetY(), foods_sequence.size());
+            next.grid.food.GetX(), next.grid.food.GetY(),
+            foods_sequence.size());
     }
+    running = running && !foods_sequence.empty();
 
-    // assert
-    grid.copy(renderService.GetOutput());
+    // assert (render to console)
+    next.grid.copy(renderService.GetOutput());
     renderService.render();
   }
 }
+#endif
 }  // namespace snake
