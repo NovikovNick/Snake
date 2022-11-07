@@ -10,23 +10,11 @@
 
 #include "../src/ai/a_star.h"
 #include "../src/ai/impl/a_star_dp.cc"
+#include "../src/model/game_state.h"
 #include "../src/model/ring_buffer.h"
 #include "../src/model/util.h"
 
 namespace snake {
-
-std::stack<MyCoord> GenerateFoods(const int width, const int height) {
-  std::deque<MyCoord> f;
-  for (int x = 0; x < width; ++x) {
-    for (int y = 0; y < height; ++y) {
-      f.push_back(MyCoord(x, y));
-    }
-  }
-  std::random_device rd;
-  std::mt19937 g(rd());
-  std::shuffle(f.begin(), f.end(), g);
-  return std::stack<MyCoord>(f);
-}
 
 void print(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end) {
   std::cout << std::string(4, '-') << "snake" << std::string(4, '-') << "\n";
@@ -35,6 +23,46 @@ void print(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end) {
     std::cout << std::format("[{:2d},{:2d},{:2d}]\n", x, y, dir);
   }
 }
+
+class FoodService {
+  std::stack<MyCoord> foods_sequence_;
+
+ public:
+  FoodService(const int width, const int height)
+      : foods_sequence_(GenerateFoods(width, height)) {}
+
+  bool SetFood(GameStateV2& state) {
+    bool is_food_not_added = true;
+    while (is_food_not_added && !foods_sequence_.empty()) {
+      state.grid.food = foods_sequence_.top();
+      foods_sequence_.pop();
+
+      is_food_not_added =
+          state.grid.IsSnake(state.grid.food.GetX(), state.grid.food.GetY());
+
+      debug(state.is_food_consumed
+                ? "There is a snake on [{:2d},{:2d}] only {} foods has left\n"
+                : "Added food to [{:2d},{:2d}] only {} foods has left\n",
+            state.grid.food.GetX(), state.grid.food.GetY(),
+            foods_sequence_.size());
+    }
+    return !foods_sequence_.empty();
+  }
+
+ private:
+  std::stack<MyCoord> GenerateFoods(const int width, const int height) {
+    std::deque<MyCoord> f;
+    for (int x = 0; x < width; ++x) {
+      for (int y = 0; y < height; ++y) {
+        f.push_back(MyCoord(x, y));
+      }
+    }
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(f.begin(), f.end(), g);
+    return std::stack<MyCoord>(f);
+  }
+};
 
 class RenderService {
  private:
@@ -104,22 +132,6 @@ class AIService {
   }
 };
 
-struct GameStateV2 {
-  Grid2d grid;
-  std::vector<int> inputs;
-  std::vector<int> score;
-  bool is_score_reached;
-  bool is_collide;
-  bool is_food_consumed;
-
-  GameStateV2(const int snake_count, Grid2d&& grid)
-      : grid(std::move(grid)),
-        inputs(std::vector<int>(snake_count)),
-        score(std::vector<int>(snake_count)),
-        is_collide(false),
-        is_food_consumed(false) {}
-};
-
 struct SnakeContextService {
  private:
   SNAKE_DATA snake_;
@@ -168,7 +180,8 @@ struct SnakeContextService {
       head_dir_ref = out.inputs[snake_id];
       moveSnake(snake_.begin(), snake_.end(), snake_.begin());
       // check collision
-      out.is_collide = out.grid.IsOutOfBound(head_x_ref, head_y_ref) ||
+      out.is_collide = out.is_collide ||
+                       out.grid.IsOutOfBound(head_x_ref, head_y_ref) ||
                        out.grid.IsSnake(head_x_ref, head_y_ref);
       // check food consumption
       if (out.grid.food == head) {
@@ -187,35 +200,33 @@ struct SnakeContextService {
 #if CASE_1
 BOOST_AUTO_TEST_CASE(case1) {
   // arrange
-  // services
-  int width = 20, height = 20, snake_count = 2, winScore = 10;
-  RenderService renderService(width, height);
-  auto ai_service = std::make_shared<AIService>(width, height);
-  SnakeContextService ctx(width, height, ai_service);
-
-  std::stack<MyCoord> foods_sequence = GenerateFoods(width, height);
+  int width = 20, height = 20, snake_count = 2, winScore = 30, frame = 0;
   SNAKE_DATA snake0{{2, 2, 2}, {2, 1, 2}, {2, 0, 2}};
   SNAKE_DATA snake1{{5, 2, 2}, {5, 1, 2}, {5, 0, 2}};
+
+  RenderService renderService(width, height);
+  FoodService foodService(width, height);
+  auto ai_service = std::make_shared<AIService>(width, height);
+  SnakeContextService ctx(width, height, ai_service);
 
   RingBuffer<GameStateV2> buffer(3);
 
   // init fst state
-  buffer.add(GameStateV2(snake_count, Grid2d(width, height)));
+  buffer.add(GameStateV2(frame, snake_count, Grid2d(width, height)));
   auto& state = buffer.head();
   state.grid.AddSnake(0, snake0.begin(), snake0.end());
   state.grid.AddSnake(1, snake1.begin(), snake1.end());
-  state.grid.food = foods_sequence.top();
-  foods_sequence.pop();
+
+  foodService.SetFood(state);
 
   // act
-  bool running = !foods_sequence.empty();
+  bool running = true;
   while (running) {
     auto& prev = buffer.head();
-    buffer.add(GameStateV2(snake_count, Grid2d(width, height)));
+    buffer.add(GameStateV2(++frame, snake_count, Grid2d(width, height)));
     auto& next = buffer.head();
     next.grid.food = prev.grid.food;
     next.score = prev.score;
-
 
     ctx.SetInputs(prev, next);
     ctx.ApplyInputs(prev, next);
@@ -230,19 +241,10 @@ BOOST_AUTO_TEST_CASE(case1) {
       running = false;
     }
 
-    while (next.is_food_consumed && !foods_sequence.empty()) {
-      next.grid.food = foods_sequence.top();
-      foods_sequence.pop();
-
-      next.is_food_consumed =
-          next.grid.IsSnake(next.grid.food.GetX(), next.grid.food.GetY());
-      debug(next.is_food_consumed
-                ? "There is a snake on [{:2d},{:2d}] only {} foods has left\n"
-                : "Added food to [{:2d},{:2d}] only {} foods has left\n",
-            next.grid.food.GetX(), next.grid.food.GetY(),
-            foods_sequence.size());
+    if (next.is_food_consumed) {
+      bool is_food_left = foodService.SetFood(next);
+      running = running && is_food_left;
     }
-    running = running && !foods_sequence.empty();
 
     // assert (render to console)
     next.grid.copy(renderService.GetOutput());

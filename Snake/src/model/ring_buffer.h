@@ -18,7 +18,14 @@ struct RingBuffer {
     }
   };
 
+  int size() & { return buffer_.size(); };
+
   T& head() & { return buffer_[cursor_]; };
+
+  T& operator[](const int i) & {
+    int offset = (cursor_ - i) % capacity_;
+    return buffer_[offset < 0 ? capacity_ + offset : offset];
+  }
 
  private:
   std::deque<T> buffer_;
