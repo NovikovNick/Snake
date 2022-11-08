@@ -16,14 +16,6 @@
 
 namespace snake {
 
-void print(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end) {
-  std::cout << std::string(4, '-') << "snake" << std::string(4, '-') << "\n";
-  for (; begin != end; ++begin) {
-    auto [x, y, dir] = *begin;
-    std::cout << std::format("[{:2d},{:2d},{:2d}]\n", x, y, dir);
-  }
-}
-
 class FoodService {
   std::stack<MyCoord> foods_sequence_;
 
@@ -68,7 +60,7 @@ class RenderService {
  private:
   std::vector<GAME_OBJECT> gameObjects_;
   int width_;
-  std::vector<std::string> signes_{"[]", "::", "**", "XX"};
+  std::vector<std::string> signes_{"[]", "**", "::", "``"};
 
  public:
   RenderService(const int width, const int height)
@@ -169,7 +161,7 @@ struct SnakeContextService {
   }
 
   void ApplyInputs(const GameStateV2& prev, GameStateV2& out) {
-    for (int snake_id = 0; snake_id < prev.inputs.size(); ++snake_id) {
+    for (int snake_id = 0; snake_id < prev.grid.snake_count; ++snake_id) {
       // load snake to buffer and arrange data
       prev.grid.CopySnake(snake_id, snake_.begin());
       int length = prev.grid.GetSnakeLength(snake_id);
@@ -192,7 +184,18 @@ struct SnakeContextService {
       }
       // save snake into next state
       out.grid.AddSnake(snake_id, snake_.begin(), snake_.begin() + length);
-      out.grid.RebuildFilled();
+      out.grid.RebuildFilled(snake_id);
+
+      Print(snake_id, snake_.begin(), snake_.begin() + length);
+    }
+  }
+
+  void Print(const int snake_id, SNAKE_DATA_ITERATOR begin,
+             SNAKE_DATA_ITERATOR end) {
+    debug("--------- {} ---------\n", snake_id);
+    for (; begin != end; ++begin) {
+      auto [x, y, dir] = *begin;
+      debug("[{:2d},{:2d},{:2d}]\n", x, y, dir);
     }
   }
 };
@@ -200,7 +203,7 @@ struct SnakeContextService {
 #if CASE_1
 BOOST_AUTO_TEST_CASE(case1) {
   // arrange
-  int width = 20, height = 20, snake_count = 2, winScore = 30, frame = 0;
+  int width = 10, height = 10, snake_count = 2, winScore = 5, frame = 0;
   SNAKE_DATA snake0{{2, 2, 2}, {2, 1, 2}, {2, 0, 2}};
   SNAKE_DATA snake1{{5, 2, 2}, {5, 1, 2}, {5, 0, 2}};
 
@@ -212,7 +215,8 @@ BOOST_AUTO_TEST_CASE(case1) {
   RingBuffer<GameStateV2> buffer(3);
 
   // init fst state
-  buffer.add(GameStateV2(frame, snake_count, Grid2d(width, height)));
+  buffer.add(
+      GameStateV2(frame, snake_count, Grid2d(width, height, snake_count)));
   auto& state = buffer.head();
   state.grid.AddSnake(0, snake0.begin(), snake0.end());
   state.grid.AddSnake(1, snake1.begin(), snake1.end());
@@ -223,11 +227,13 @@ BOOST_AUTO_TEST_CASE(case1) {
   bool running = true;
   while (running) {
     auto& prev = buffer.head();
-    buffer.add(GameStateV2(++frame, snake_count, Grid2d(width, height)));
+    buffer.add(
+        GameStateV2(++frame, snake_count, Grid2d(width, height, snake_count)));
     auto& next = buffer.head();
     next.grid.food = prev.grid.food;
     next.score = prev.score;
 
+    debug("Start processing {} frame\n", next.frame);
     ctx.SetInputs(prev, next);
     ctx.ApplyInputs(prev, next);
 

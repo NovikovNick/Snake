@@ -5,6 +5,7 @@
 #include <iostream>
 #include <queue>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -55,18 +56,25 @@ class Grid2d {
     }
   };
   using COORD_SET = std::unordered_set<COORD, CoordHash, CoordEquals>;
-  COORD_SET filled_ = COORD_SET(32, CoordHash(), CoordEquals());
 
-  std::vector<SNAKE_DATA> snakes_ = std::vector<SNAKE_DATA>(2);
-  std::vector<int> snake_length_ = std::vector<int>(2);
+  std::unordered_map<int, COORD_SET> filled_;
+  std::vector<SNAKE_DATA> snakes_;
+  std::vector<int> snake_length_;
   std::vector<COORD> grid_;
   int width_, height_;
 
  public:
   COORD food;
+  int snake_count;
 
-  Grid2d(int width, int height)
-      : width_(width), height_(height), grid_(GRID_DATA(width * height)) {
+  Grid2d(int width, int height, int snake_count)
+      : width_(width),
+        height_(height),
+        snake_count(snake_count),
+        snakes_(std::vector<SNAKE_DATA>(snake_count)),
+        snake_length_(std::vector<int>(snake_count)),
+        grid_(GRID_DATA(width * height)),
+        filled_(std::unordered_map<int, COORD_SET>()) {
     for (int row = 0; row < height; ++row) {
       for (int col = 0; col < width; ++col) {
         grid_[row * width + col] = COORD(col, row);
@@ -81,7 +89,7 @@ class Grid2d {
 
     for (; begin < end; ++begin) {
       auto [x, y, dir] = *begin;
-      snakes_[index].push_back(std::make_tuple(x, y, dir));
+      snakes_[index].push_back(SNAKE_PART(x, y, dir));
       ++snake_length_[index];
     }
   };
@@ -124,35 +132,48 @@ class Grid2d {
     for (int i = 0, size = width_ * height_; i < size; ++i) {
       int row = i / width_;
       int col = i % width_;
-      *out = std::make_tuple(col, row, GetType(col, row));
-      ++out;
+      *(out++) = SNAKE_PART(col, row, GetType(col, row));
     }
   };
 
   bool IsSnake(const int& x, const int& y) const {
-    return filled_.find({x, y}) != filled_.end();
+    for (int snake_id = 0; snake_id < snake_count; ++snake_id) {
+      if (IsSnake(x, y, snake_id)) return true;
+    }
+    return false;
+  }
+
+  bool IsSnake(const int& x, const int& y, const int snake_id) const {
+    auto it = filled_.find(snake_id);
+    if (it == filled_.end()) {
+      return false;
+    }
+    auto snake_part_set = it->second;
+    return snake_part_set.find({x, y}) != snake_part_set.end();
   }
 
   bool IsOutOfBound(const int& x, const int& y) const {
     return x < 0 || y < 0 || x >= width_ || y >= height_;
   }
 
-  void RebuildFilled() {
-    filled_.clear();
-    for (auto snake : snakes_) {
-      std::transform(snake.cbegin(), snake.cend(),
-                     std::inserter(filled_, filled_.begin()),
-                     [](const auto& it) {
-                       auto [fst, snd, thd] = it;
-                       return COORD(fst, snd);
-                     });
+  void RebuildFilled(const int snake_id) {
+    if (filled_[snake_id].empty()) {
+      filled_[snake_id] = COORD_SET(32, CoordHash{}, CoordEquals{});
+    } else {
+      filled_[snake_id].clear();
+    }
+    for (const auto& snake : snakes_) {
+      for (const auto [x, y, _] : snake) {
+        filled_[snake_id].emplace(x, y);
+      }
     }
   }
 
  private:
   int GetType(const int& x, const int& y) const {
-    if (food.GetX() == x && food.GetY() == y) return 2;
-    if (IsSnake(x, y)) return 1;
+    if (food.GetX() == x && food.GetY() == y) return 1;
+    if (IsSnake(x, y, 0)) return 2;
+    if (IsSnake(x, y, 1)) return 3;
     return 0;
   }
 };

@@ -13,22 +13,26 @@ namespace snake {
 #if CASE_1
 BOOST_AUTO_TEST_CASE(case1) {
   // arrange
-  int size = 6;
-  RingBuffer<int> buffer(size);
+  Grid2d grid(3, 3, 1);
+  SNAKE_DATA snake0{{2, 2, 2}, {2, 1, 2}, {2, 0, 2}};
+  int snake_id = 0;
 
   // act
-  for (int i = 0; i < 100; ++i) {
-    buffer.add(i + 0);
-    auto& head = buffer.head();
-    debug("{:3d}: ", head);
-    for (int j = 0; j < buffer.size(); ++j) {
-      debug("{:2d} ", buffer[j]);
-    }
-    debug("\n");
-  }
+  grid.AddSnake(snake_id, snake0.begin(), snake0.end());
+  grid.RebuildFilled(snake_id);
 
   // assert
-  debug("end\n");
+  BOOST_CHECK(grid.IsSnake(2, 2));
+  BOOST_CHECK(grid.IsSnake(2, 1));
+  BOOST_CHECK(grid.IsSnake(2, 0));
+
+  BOOST_CHECK(!grid.IsSnake(1, 2));
+  BOOST_CHECK(!grid.IsSnake(1, 1));
+  BOOST_CHECK(!grid.IsSnake(1, 0));
+
+  BOOST_CHECK(!grid.IsSnake(0, 2));
+  BOOST_CHECK(!grid.IsSnake(0, 1));
+  BOOST_CHECK(!grid.IsSnake(0, 0));
 }
 #endif
 }  // namespace snake
