@@ -1,10 +1,6 @@
 #ifndef SNAKE_A_STAR_H_
 #define SNAKE_A_STAR_H_
 
-#include "../model/common_models.h"
-#include "../service/game_models.h"
-#include "i_path_find_request.h"
-
 namespace snake {
 
 // is default constructor required?

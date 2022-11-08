@@ -1,14 +1,14 @@
-#include "../a_star.h"
-
 #include <algorithm>
 #include <format>
 #include <iostream>
+#include <map>
 #include <numeric>
 #include <queue>
 #include <unordered_set>
 #include <vector>
 
-#include "../../model/util.h"
+#include "../a_star.h"
+#include "../util.h"
 
 namespace {
 
@@ -22,9 +22,8 @@ class NodePath {
   float distanceToEnd_;
 
   float getDistance(const N& n1, const N& n2) const {
-    auto [x0, x1] = std::minmax(n1.GetX(), n2.GetX());
-    auto [y0, y1] = std::minmax(n1.GetY(), n2.GetY());
-    return std::sqrt(std::pow(x1 - x0, 2) + std::pow(y1 - y0, 2));
+    return std::sqrt(std::pow(n1.GetX() - n2.GetX(), 2) +
+                     std::pow(n1.GetY() - n2.GetY(), 2));
   }
 
  public:
@@ -88,6 +87,26 @@ template <typename N>
 struct NodeEquals {
   bool operator()(const N& n1, const N& n2) const { return n1 == n2; };
 };
+
+template <typename N>
+struct NodePathHash {
+  std::size_t operator()(const NodePath<N>& o) const {
+    auto hash1 = std::hash<int>{}(o.GetHead().GetX());
+    auto hash2 = std::hash<int>{}(o.GetHead().GetY());
+    if (hash1 != hash2) {
+      return hash1 ^ hash2;
+    }
+    return hash1;
+  };
+};
+
+template <typename N>
+struct NodePathEquals {
+  bool operator()(const NodePath<N>& n1, const NodePath<N>& n2) const {
+    return n1.GetHead() == n2.GetHead();
+  };
+};
+
 }  // namespace
 
 namespace snake {
@@ -95,22 +114,31 @@ namespace snake {
 template <grid_2d_cell N, grid_2d<N> G, std::output_iterator<N> I>
 bool AStarPathfinder<N, G, I>::FindPath(const N& start, const N& goal,
                                         const G& grid, I out, I sentinel) {
-  debug("A* pathfinding from [{:2d},{:2d}] to [{:2d},{:2d}]. Max distance {}\n",
-        start.GetX(), start.GetY(), goal.GetX(), goal.GetY(),
-        std::distance(out, sentinel));
+  int maxDistance = std::distance(out, sentinel);
+
+  debug(
+      "A* pathfinding (with dp) from [{:2d},{:2d}] to [{:2d},{:2d}]. Max "
+      "distance {}\n",
+      start.GetX(), start.GetY(), goal.GetX(), goal.GetY(), maxDistance);
 
   N empty;
   NodePathComparator<N> comp;
   NodeHashcode<N> hashcode;
+  NodePathHash<N> pathHash;
+  NodePathEquals<N> pathEquals;
   NodeEquals<N> equals;
   std::priority_queue<NodePath<N>, std::vector<NodePath<N>>, decltype(comp)>
       reacheable(comp);
   std::unordered_set<N, decltype(hashcode), decltype(equals)> explored;
   std::vector<N> adjacents(4);
 
-  int maxDistance = std::distance(out, sentinel);
+  std::unordered_map<NodePath<N>, int, decltype(pathHash), decltype(pathEquals)>
+      pathes;
 
-  reacheable.push(NodePath(start, goal));
+  auto path = NodePath(start, goal);
+  reacheable.push(path);
+  pathes[path] = path.GetLength();
+
   int attempt = 0;
   while (!reacheable.empty()) {
     auto path = reacheable.top();
@@ -149,8 +177,14 @@ bool AStarPathfinder<N, G, I>::FindPath(const N& start, const N& goal,
         if (path.GetLength() < maxDistance) {
           auto nextPath = path;
           nextPath.AddNode(adjacent);
-          reacheable.push(nextPath);
-          debug("is not a goal. Add it to reacheable!\n");
+          auto p = pathes.find(nextPath);
+          if (p == pathes.end() || p->second > nextPath.GetLength()) {
+            reacheable.push(nextPath);
+            pathes[nextPath] = nextPath.GetLength();
+            debug("is not a goal. Add it to reacheable!\n");
+          } else {
+            debug("is not a goal. There is a shorter way. Skiped\n");
+          }
         } else {
           debug("is not a goal. Out of range {}!\n", maxDistance);
         }
