@@ -1,13 +1,13 @@
 ﻿#define BOOST_TEST_MODULE SolutionTest
 #define CASE_1 1
-#define SNAKE_DEBUG 1
+#define SNAKE_DEBUG 0
 
 #include "../src/v2/model/grid.h"
 
 #include <boost/test/included/unit_test.hpp>
 
 #include "../src/v2/a_star.h"
-#include "../src/v2/impl/a_star_dp.cc"
+// #include "../src/v2/impl/a_star_dp.cc"
 #include "../src/v2/model/game_state.h"
 #include "../src/v2/model/ring_buffer.h"
 #include "../src/v2/util.h"
@@ -38,7 +38,7 @@ class RenderService {
 #if CASE_1
 BOOST_AUTO_TEST_CASE(case1) {
   // arrange
-  int width = 10, height = 10, snake_count = 2, winScore = 5, frame = 0;
+  int width = 30, height = 15, snake_count = 2, winScore = 25, frame = 0;
   SNAKE_DATA snake0{{2, 2, 2}, {2, 1, 2}, {2, 0, 2}};
   SNAKE_DATA snake1{{5, 2, 2}, {5, 1, 2}, {5, 0, 2}};
 

@@ -2,7 +2,9 @@
 #define SNAKE_SNAKE_STATE_SERVICE_H_
 #include <vector>
 
+#include "model/game_state.h"
 #include "model/grid.h"
+#include "util.h"
 #include "v2_ai_service.h"
 
 namespace snake {
@@ -34,7 +36,7 @@ class GameStateService {
       : snake_(SNAKE_DATA(width * height)), ai_service(ai_service){};
 
   void SetInputs(const GameStateV2& prev, GameStateV2& out) {
-    for (int botId = 0; botId < out.inputs.size(); ++botId) {
+    for (int botId = 1; botId < out.inputs.size(); ++botId) {
       prev.grid.CopySnake(botId, snake_.begin());
       auto [x, y, _] = snake_[0];
 

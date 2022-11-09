@@ -2,7 +2,10 @@
 #define SNAKE_SNAKE_AI_SERVICE_H_
 #include <vector>
 
+#include "a_star.h"
+#include "impl/a_star_dp.cc"
 #include "model/grid.h"
+#include "util.h"
 
 namespace snake {
 

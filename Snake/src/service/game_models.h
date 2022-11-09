@@ -97,9 +97,16 @@ struct Food final {
 };
 
 struct GameSettigs final {
+  // v2
+  int width = 30;
+  int height = 15;
+  int snake_count = 2;
+  int winScore = 20;
+
+  // v1
   int scoreToWin = 50;
   int initialSpeedMs = 100;
-  int maxSpeedMs = 100;
+  int maxSpeedMs = 500;
 
   int leftBoundaries = 1;
   int rightBoundaries = 34;

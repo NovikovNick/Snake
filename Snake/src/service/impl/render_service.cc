@@ -2,43 +2,6 @@
 
 namespace snake {
 
-RenderService::RenderService(HWND hwnd) {
-  _hwnd = hwnd;
-
-  // 2. --------------------------
-  HRESULT hr =
-      D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &_pD2DFactory);
-
-  // 3. --------------------------
-  // Obtain the size of the drawing area.
-
-  GetClientRect(_hwnd, &_rc);
-
-  // Create a Direct2D render target
-  hr = _pD2DFactory->CreateHwndRenderTarget(
-      D2D1::RenderTargetProperties(),
-      D2D1::HwndRenderTargetProperties(
-          hwnd, D2D1::SizeU(_rc.right - _rc.left, _rc.bottom - _rc.top)),
-      &_pRT);
-
-  // 4. --------------------------
-
-  if (SUCCEEDED(hr)) {
-    _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black),
-                                &_pBlackBrush);
-    _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Aqua),
-                                &_pLightSlateGrayBrush);
-    _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Crimson),
-                                &_pRedBrush);
-    _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Green),
-                                &_pGreenBrush);
-    _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::LightGray),
-                                &_pGrayBrush);
-    _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Coral),
-                                &_pCoralBrush);
-  }
-}
-
 RenderService::~RenderService() {
   SafeRelease(&_pRT);
   SafeRelease(&_pBlackBrush);
@@ -238,6 +201,40 @@ void RenderService::DrawInput(float x, float y, Direction dir,
     pPathGeometry->Release();
     pSink->Release();
   }
+}
+
+// v2
+GAME_OBJECT_ITERATOR RenderService::GetOutput() {
+  return game_objects_.begin();
+}
+
+void RenderService::Render() {
+  BeginDraw();
+  for (auto [x, y, type] : game_objects_) {
+    switch (type) {
+      case 1:
+        _pRT->FillRectangle(
+            D2D1::RectF(x * size, y * size, (x + 1) * size, (y + 1) * size),
+            _pGreenBrush);
+        break;
+      case 2:
+        _pRT->FillRectangle(
+            D2D1::RectF(x * size, y * size, (x + 1) * size, (y + 1) * size),
+            _pRedBrush);
+        break;
+      case 3:
+        _pRT->FillRectangle(
+            D2D1::RectF(x * size, y * size, (x + 1) * size, (y + 1) * size),
+            _pCoralBrush);
+        break;
+      default:
+        _pRT->DrawRectangle(
+            D2D1::RectF(size * (x + 1), size * (y + 1), size * x, size * y),
+            _pGrayBrush);
+        break;
+    }
+  }
+  EndDraw();
 }
 
 }  // namespace snake
