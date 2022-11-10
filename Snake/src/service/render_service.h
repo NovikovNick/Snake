@@ -60,29 +60,10 @@ class RenderService final {
 
   ~RenderService();
 
-  void renderSelf(const GameState& gameState, const int& index,
-                  const GameSettigs& settings);
-
-  void renderEnemy(const GameState& gameState, const int& index,
-                   const GameSettigs& settings);
-
-  void renderPlayer(const GameState& gameState, const int& index,
-                    const GameSettigs& settings, ID2D1SolidColorBrush* _pBrush);
-
-  void renderBoard(const GameSettigs& settings);
-
-  void renderFood(const Coord& food, const GameSettigs& settings);
-
   void renderInputs(const int& frame, const GameStateBuffer<GameState>& holder,
                     const GameSettigs& settings);
 
   void renderWinState();
-
-  void renderLoseState();
-
-  void renderPauseState();
-
-  void renderDebugAI(std::vector<DebugItem> debugCtx);
 
   void BeginDraw();
 

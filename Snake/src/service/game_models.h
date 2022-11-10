@@ -100,7 +100,7 @@ struct GameSettigs final {
   // v2
   int width = 17;
   int height = 10;
-  int snake_count = 2;
+  int snake_count = 1;
   int winScore = 20;
 
   // v1

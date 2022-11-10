@@ -13,74 +13,6 @@ RenderService::~RenderService() {
   SafeRelease(&_pD2DFactory);
 }
 
-void RenderService::renderEnemy(const GameState& gameState, const int& index,
-                                const GameSettigs& settings) {
-  renderPlayer(gameState, index, settings, _pRedBrush);
-}
-
-void RenderService::renderSelf(const GameState& gameState, const int& index,
-                               const GameSettigs& settings) {
-  renderPlayer(gameState, index, settings, _pGreenBrush);
-}
-
-void RenderService::renderPlayer(const GameState& gameState, const int& index,
-                                 const GameSettigs& settings,
-                                 ID2D1SolidColorBrush* _pBrush) {
-  int margin = 5;
-
-  for (auto part : gameState.getPlayer(index).getParts()) {
-    _pRT->FillRectangle(
-        D2D1::RectF(size * (part.first.x + 1) - settings.snakeSize - margin,
-                    size * (part.first.y + 1) - settings.snakeSize - margin,
-                    margin + size * part.first.x + settings.snakeSize,
-                    margin + size * part.first.y + settings.snakeSize),
-        _pBrush);
-  }
-}
-
-void RenderService::renderBoard(const GameSettigs& settings) {
-  for (size_t x = settings.leftBoundaries; x < settings.rightBoundaries; ++x) {
-    for (size_t y = settings.topBoundaries; y < settings.bottomBoundaries;
-         ++y) {
-      _pRT->DrawRectangle(
-          D2D1::RectF(size * (x + 1), size * (y + 1), size * x, size * y),
-          _pGrayBrush);
-    }
-  }
-}
-
-void RenderService::renderDebugAI(std::vector<DebugItem> debugCtx) {
-  int margin = 16;
-
-  for (DebugItem item : debugCtx) {
-    auto rect = D2D1::RectF(
-        size * (item.coord.x + 1) - margin, size * (item.coord.y + 1) - margin,
-        size * item.coord.x + margin, size * item.coord.y + margin);
-
-    switch (item.mark) {
-      case DebugMark::kExplored:
-        _pRT->FillRectangle(rect, _pCoralBrush);
-        break;
-      case DebugMark::kReachable:
-        _pRT->FillRectangle(rect, _pLightSlateGrayBrush);
-        break;
-      case DebugMark::kPath:
-        _pRT->FillRectangle(rect, _pLightSlateGrayBrush);
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void RenderService::renderFood(const Coord& food, const GameSettigs& settings) {
-  _pRT->FillRectangle(D2D1::RectF(size * (food.x + 1) - settings.foodSize,
-                                  size * (food.y + 1) - settings.foodSize,
-                                  size * food.x + settings.foodSize,
-                                  size * food.y + settings.foodSize),
-                      _pLightSlateGrayBrush);
-}
-
 void RenderService::renderInputs(const int& frame,
                                  const GameStateBuffer<GameState>& holder,
                                  const GameSettigs& settings) {
@@ -121,24 +53,6 @@ void RenderService::renderWinState() {
                       _pGreenBrush);
   _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, 0, _rc.bottom - size),
                       _pGreenBrush);
-}
-
-void RenderService::renderLoseState() {
-  _pRT->FillRectangle(D2D1::RectF(size, _rc.bottom, 0, 0), _pRedBrush);
-  _pRT->FillRectangle(D2D1::RectF(_rc.right, size, 0, 0), _pRedBrush);
-  _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, _rc.right - size, 0),
-                      _pRedBrush);
-  _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, 0, _rc.bottom - size),
-                      _pRedBrush);
-}
-
-void RenderService::renderPauseState() {
-  _pRT->FillRectangle(D2D1::RectF(size, _rc.bottom, 0, 0), _pGrayBrush);
-  _pRT->FillRectangle(D2D1::RectF(_rc.right, size, 0, 0), _pGrayBrush);
-  _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, _rc.right - size, 0),
-                      _pGrayBrush);
-  _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, 0, _rc.bottom - size),
-                      _pGrayBrush);
 }
 
 void RenderService::DrawInput(float x, float y, Direction dir,

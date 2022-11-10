@@ -43,9 +43,10 @@ class GameStateService {
       // check collision
       out.is_collide = out.is_collide ||
                        out.grid.IsOutOfBound(head_x_ref, head_y_ref) ||
-                       out.grid.IsSnake(head_x_ref, head_y_ref);
+                       prev.grid.IsSnake(head_x_ref, head_y_ref);
       // check food consumption
-      if (out.grid.food == head) {
+      if (out.grid.food.GetX() == head_x_ref &&
+          out.grid.food.GetY() == head_y_ref) {
         out.is_food_consumed = true;
         snake_[length] = prev_tail;
         ++out.score[snake_id];

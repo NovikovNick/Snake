@@ -1,6 +1,6 @@
 ﻿#define BOOST_TEST_MODULE SolutionTest
 #define CASE_2 1
-#define CASE_1 0
+#define CASE_1 1
 #define SNAKE_DEBUG 1
 
 #include <boost/test/included/unit_test.hpp>
