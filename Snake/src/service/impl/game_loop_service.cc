@@ -18,6 +18,8 @@ int AdaptToV2(const Direction dir) {
       return 1;
     case Direction::kRight:
       return 0;
+    case Direction::kNone:
+      return -1;
     default:
       return -1;
   }
@@ -35,42 +37,39 @@ void GameLoopService::Stop() {
 }
 
 void GameLoopService::StartGameLoop() {
-  GameSettigs settings;
+  GameSettigs stg;
   // arrange
-  int width = 10, height = 10, snake_count = 1, winScore = 5, frame = 0;
-  SNAKE_DATA snake0{{2, 2, 2}, {2, 1, 2}, {2, 0, 2}};
-  SNAKE_DATA snake1{{5, 2, 2}, {5, 1, 2}, {5, 0, 2}};
+  int  frame = 0;
+  std::vector<SNAKE_DATA> snakes;
+  for (int i = 0; i < stg.snake_count; ++i)
+    snakes.push_back(SNAKE_DATA{{i, 2, 2}, {i, 1, 2}, {i, 0, 2}});
 
   RingBuffer<GameStateV2> buffer(32);
-  buffer.add(
-      GameStateV2(frame, snake_count, Grid2d(width, height, snake_count)));
+  buffer.add(GameStateV2(frame, stg.snake_count, Grid2d(stg.width, stg.height, stg.snake_count)));
 
   auto& init_game_state = buffer.head();
-  init_game_state.grid.AddSnake(0, snake0.begin(), snake0.end());
-  //init_game_state.grid.AddSnake(1, snake1.begin(), snake1.end());
+
+  for (int i = 0; i < stg.snake_count; ++i)
+    init_game_state.grid.AddSnake(i, snakes[i].begin(), snakes[i].end());
 
   food_srv_->SetFood(init_game_state);
 
   do {
     // 1.
     auto& prev = buffer.head();
-    buffer.add(
-        GameStateV2(++frame, snake_count, Grid2d(width, height, snake_count)));
+    buffer.add(GameStateV2(++frame, stg.snake_count, Grid2d(stg.width, stg.height, stg.snake_count)));
     auto& next = buffer.head();
     next.grid.food = prev.grid.food;
     next.score = prev.score;
     // 2. get inputs
-    auto input = AdaptToV2(input_service_->PopInputs().direction);
-    if (input >= 0) {
-      next.inputs[0] = input;
-    }
+    next.inputs[0] = AdaptToV2(input_service_->PopInputs().direction);
     game_state_service_->SetInputs(prev, next);
     // 3.
     game_state_service_->ApplyInputs(prev, next);
 
     running_ = running_ && !next.is_collide;
-    running_ = running_ && next.score[0] < winScore;
-    // running_ = running_ && next.score[1] < winScore;
+    for (int i = 0; i < stg.snake_count; ++i)
+      running_ = running_ && next.score[i] < stg.scoreToWin;
 
     if (next.is_food_consumed) {
       bool is_food_left = food_srv_->SetFood(next);
@@ -82,7 +81,7 @@ void GameLoopService::StartGameLoop() {
 
     // End loop
     std::this_thread::sleep_for(
-        std::chrono::duration<double, std::milli>(settings.maxSpeedMs));
+        std::chrono::duration<double, std::milli>(stg.maxSpeedMs));
   } while (running_);
 }
 }  // namespace snake

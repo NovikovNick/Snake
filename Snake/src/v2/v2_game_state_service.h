@@ -14,22 +14,6 @@ class GameStateService {
   SNAKE_DATA snake_;
   std::shared_ptr<AIService> ai_service;
 
-  void moveSnake(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end,
-                 SNAKE_DATA_ITERATOR out) {
-    std::vector<MyCoord> dirs{
-        {1, 0},   // right
-        {-1, 0},  // left
-        {0, 1},   // bottom
-        {0, -1}   // top
-    };
-    for (auto [_, __, prevDir] = *begin; begin != end; ++begin) {
-      auto [x, y, dir] = *begin;
-      *out = SNAKE_PART(x + dirs[dir].GetX(), y + dirs[dir].GetY(), prevDir);
-      prevDir = dir;
-      ++out;
-    }
-  }
-
  public:
   GameStateService(const int& width, const int& height,
                    std::shared_ptr<AIService> ai_service)
@@ -54,8 +38,8 @@ class GameStateService {
       MyCoord head(head_x_ref, head_y_ref);
       auto prev_tail = snake_[length - 1];
       // movement
-      head_dir_ref = out.inputs[snake_id];
-      moveSnake(snake_.begin(), snake_.end(), snake_.begin());
+      head_dir_ref = out.inputs[snake_id] >= 0 ? out.inputs[snake_id] : head_dir_ref;
+      MoveSnake(snake_.begin(), snake_.end(), snake_.begin());
       // check collision
       out.is_collide = out.is_collide ||
                        out.grid.IsOutOfBound(head_x_ref, head_y_ref) ||
@@ -70,14 +54,26 @@ class GameStateService {
       // save snake into next state
       out.grid.AddSnake(snake_id, snake_.begin(), snake_.begin() + length);
       out.grid.RebuildFilled(snake_id);
-
-      Print(snake_id, snake_.begin(), snake_.begin() + length);
     }
   }
 
-  void Print(const int snake_id, SNAKE_DATA_ITERATOR begin,
-             SNAKE_DATA_ITERATOR end) {
-    debug("--------- {} ---------\n", snake_id);
+  void MoveSnake(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end,
+                 SNAKE_DATA_ITERATOR out) {
+    std::vector<MyCoord> dirs{
+        {1, 0},   // right
+        {-1, 0},  // left
+        {0, 1},   // bottom
+        {0, -1}   // top
+    };
+    for (auto [_, __, prevDir] = *begin; begin != end; ++begin) {
+      auto [x, y, dir] = *begin;
+      *out = SNAKE_PART(x + dirs[dir].GetX(), y + dirs[dir].GetY(), prevDir);
+      prevDir = dir;
+      ++out;
+    }
+  }
+
+  void Print(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end) {
     for (; begin != end; ++begin) {
       auto [x, y, dir] = *begin;
       debug("[{:2d},{:2d},{:2d}]\n", x, y, dir);

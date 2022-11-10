@@ -172,8 +172,9 @@ class Grid2d {
  private:
   int GetType(const int& x, const int& y) const {
     if (food.GetX() == x && food.GetY() == y) return 1;
-    if (IsSnake(x, y, 0)) return 2;
-    if (IsSnake(x, y, 1)) return 3;
+    for (int snake_id = 0; snake_id < snake_count; ++snake_id) {
+      if (IsSnake(x, y, snake_id)) return snake_id + 2;
+    }
     return 0;
   }
 };

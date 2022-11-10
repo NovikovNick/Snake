@@ -227,6 +227,16 @@ void RenderService::Render() {
             D2D1::RectF(x * size, y * size, (x + 1) * size, (y + 1) * size),
             _pCoralBrush);
         break;
+      case 4:
+        _pRT->FillRectangle(
+            D2D1::RectF(x * size, y * size, (x + 1) * size, (y + 1) * size),
+            _pGrayBrush);
+        break;
+      case 5:
+        _pRT->FillRectangle(
+            D2D1::RectF(x * size, y * size, (x + 1) * size, (y + 1) * size),
+            _pLightSlateGrayBrush);
+        break;
       default:
         _pRT->DrawRectangle(
             D2D1::RectF(size * (x + 1), size * (y + 1), size * x, size * y),
