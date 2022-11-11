@@ -25,7 +25,7 @@ file(GLOB SRC_FILES ${SRC_SERVICE} ${SRC_SERVICE_IMPL} ${SRC_WIN} ${SRC_AI_HEADE
 
 
 
-add_executable (Snake WIN32  "Snake/main.cc" "Snake/src/model/common_models.h" ${SRC_FILES} ${SRC_V2})
+add_executable (Snake WIN32  "Snake/main.cc" ${SRC_FILES} ${SRC_V2})
 
 # unit tests
 add_executable(AStarAlgorithm "Snake/test/a_star_pathfinder_test.cc" ${SRC_MODEL} ${SRC_AI_HEADERS} ${SRC_AI_IMPL})

@@ -13,32 +13,6 @@ RenderService::~RenderService() {
   SafeRelease(&_pD2DFactory);
 }
 
-void RenderService::renderInputs(const int& frame,
-                                 const GameStateBuffer<GameState>& holder,
-                                 const GameSettigs& settings) {
-  const int& capacity = settings.rightBoundaries - settings.leftBoundaries;
-
-  for (int i = holder.getSize() - 1; i >= 0; --i) {
-    const GameState& state = holder[i];
-    const std::vector<Input>& inputs = state.GetInputs();
-
-    if (inputs.empty()) {
-      continue;
-    }
-
-    DrawInput(size * -0.8 + size * settings.leftBoundaries + size * capacity -
-                  size * i,
-              size * 0.2 + settings.bottomBoundaries * size,
-              inputs[0].direction, size * 0.7, i == frame % capacity,
-              _pGreenBrush);
-
-    DrawInput(size * -0.8 + size * settings.leftBoundaries + size * capacity -
-                  size * i,
-              size * 0.2 + size, inputs[1].direction, size * 0.7,
-              i == frame % capacity, _pRedBrush);
-  }
-}
-
 void RenderService::BeginDraw() {
   _pRT->BeginDraw();
   _pRT->Clear();
@@ -55,6 +29,18 @@ void RenderService::renderWinState() {
                       _pGreenBrush);
 }
 
+/*
+DrawInput(size * -0.8 + size * settings.leftBoundaries + size * capacity -
+                  size * i,
+              size * 0.2 + settings.bottomBoundaries * size,
+              inputs[0].direction, size * 0.7, i == frame % capacity,
+              _pGreenBrush);
+
+DrawInput(size * -0.8 + size * settings.leftBoundaries + size * capacity -
+                size * i,
+            size * 0.2 + size, inputs[1].direction, size * 0.7,
+            i == frame % capacity, _pRedBrush);
+*/
 void RenderService::DrawInput(float x, float y, Direction dir,
                               float arrowBlockSize, bool focused,
                               ID2D1SolidColorBrush* _pBrush) {

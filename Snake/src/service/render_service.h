@@ -7,7 +7,6 @@
 #include <iostream>
 #include <thread>
 
-#include "../model/common_models.h"
 #include "../v2/model/grid.h"
 #include "game_models.h"
 #pragma comment(lib, \
@@ -59,9 +58,6 @@ class RenderService final {
   };
 
   ~RenderService();
-
-  void renderInputs(const int& frame, const GameStateBuffer<GameState>& holder,
-                    const GameSettigs& settings);
 
   void renderWinState();
 

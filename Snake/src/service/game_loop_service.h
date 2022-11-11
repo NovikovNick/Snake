@@ -4,7 +4,6 @@
 #include <iostream>
 #include <thread>
 
-#include "../model/common_models.h"
 #include "../v2/v2_ai_service.h"
 #include "../v2/v2_food_service.h"
 #include "../v2/v2_game_state_service.h"
