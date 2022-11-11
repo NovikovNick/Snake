@@ -10,6 +10,9 @@
 namespace snake {
 
 class GameStateService {
+  using COORD = GridCell;
+  using STATE = GameStateV2;
+
  private:
   SNAKE_DATA snake_;
   std::shared_ptr<AIService> ai_service;
@@ -19,26 +22,27 @@ class GameStateService {
                    std::shared_ptr<AIService> ai_service)
       : snake_(SNAKE_DATA(width * height)), ai_service(ai_service){};
 
-  void SetInputs(const GameStateV2& prev, GameStateV2& out) {
+  void SetInputs(const STATE& prev, STATE& out) {
     for (int botId = 1; botId < out.inputs.size(); ++botId) {
       prev.grid.CopySnake(botId, snake_.begin());
       auto [x, y, _] = snake_[0];
 
-      MyCoord head(x, y);
+      COORD head(x, y);
       out.inputs[botId] = ai_service->FindPath(head, prev.grid.food, prev.grid);
     }
   }
 
-  void ApplyInputs(const GameStateV2& prev, GameStateV2& out) {
+  void ApplyInputs(const STATE& prev, STATE& out) {
     for (int snake_id = 0; snake_id < prev.grid.snake_count; ++snake_id) {
       // load snake to buffer and arrange data
       prev.grid.CopySnake(snake_id, snake_.begin());
       int length = prev.grid.GetSnakeLength(snake_id);
       auto& [head_x_ref, head_y_ref, head_dir_ref] = snake_[0];
-      MyCoord head(head_x_ref, head_y_ref);
+      COORD head(head_x_ref, head_y_ref);
       auto prev_tail = snake_[length - 1];
       // movement
-      head_dir_ref = out.inputs[snake_id] >= 0 ? out.inputs[snake_id] : head_dir_ref;
+      head_dir_ref =
+          out.inputs[snake_id] >= 0 ? out.inputs[snake_id] : head_dir_ref;
       MoveSnake(snake_.begin(), snake_.end(), snake_.begin());
       // check collision
       out.is_collide = out.is_collide ||
@@ -60,7 +64,7 @@ class GameStateService {
 
   void MoveSnake(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end,
                  SNAKE_DATA_ITERATOR out) {
-    std::vector<MyCoord> dirs{
+    std::vector<COORD> dirs{
         {1, 0},   // right
         {-1, 0},  // left
         {0, 1},   // bottom

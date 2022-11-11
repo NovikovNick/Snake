@@ -5,15 +5,19 @@
 #include "a_star.h"
 #include "impl/a_star_dp.cc"
 #include "model/grid.h"
+#include "model/grid_cell.h"
 #include "util.h"
 
 namespace snake {
 
 class AIService {
+  using COORD = GridCell;
+  using GRID = Grid2d;
+
  private:
-  std::vector<MyCoord> out_;
-  AStarPathfinder<MyCoord, Grid2d, std::vector<MyCoord>::iterator> pathfinder_;
-  std::vector<MyCoord> dirs_{
+  std::vector<COORD> out_;
+  AStarPathfinder<COORD, GRID, std::vector<COORD>::iterator> pathfinder_;
+  std::vector<COORD> dirs_{
       {1, 0},   // right
       {-1, 0},  // left
       {0, 1},   // bottom
@@ -22,10 +26,10 @@ class AIService {
 
  public:
   AIService(const int width, const int height)
-      : out_(std::vector<MyCoord>(width * height)) {}
+      : out_(std::vector<COORD>(width * height)) {}
 
   // todo split to 2 methods!
-  int FindPath(const MyCoord& start, const MyCoord& goal, const Grid2d& grid) {
+  int FindPath(const COORD& start, const COORD& goal, const GRID& grid) {
     if (grid.food != start &&
         pathfinder_.FindPath(start, goal, grid, out_.begin(), out_.end())) {
       return GetDirection(out_[1], start);
@@ -34,7 +38,7 @@ class AIService {
     }
   };
 
-  int FindPath(const MyCoord& start, const Grid2d& grid) {
+  int FindPath(const COORD& start, const GRID& grid) {
     for (int dir = 0; auto vector : dirs_) {
       int nextX = start.GetX() + vector.GetX();
       int nextY = start.GetY() + vector.GetY();
@@ -47,8 +51,17 @@ class AIService {
   }
 
  private:
-  int GetDirection(const MyCoord& o1, const MyCoord& o2) {
-    MyCoord dir = MyCoord(o1.GetX() - o2.GetX(), o1.GetY() - o2.GetY());
+  int GetDirection(const COORD& o1, const COORD& o2) {
+    /*COORD vector = COORD(o1.GetX() - o2.GetX(), o1.GetY() - o2.GetY());
+    for (int i = 0; const auto& dir : dirs_) {
+      if (dir == vector) {
+        return i;
+      }
+      ++i;
+    }
+    return 0;*/
+
+    COORD dir = COORD(o1.GetX() - o2.GetX(), o1.GetY() - o2.GetY());
     auto it = std::find(dirs_.begin(), dirs_.end(), dir);
 
     if (it == dirs_.end()) {

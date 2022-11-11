@@ -9,25 +9,9 @@
 #include <unordered_set>
 #include <vector>
 
+#include "grid_cell.h"
+
 namespace snake {
-
-struct MyCoord {
- private:
-  int x_, y_;
-
- public:
-  MyCoord() : x_(-1), y_(-1){};
-  MyCoord(const int x, const int y) : x_(x), y_(y){};
-  int GetX() const { return x_; };
-  int GetY() const { return y_; };
-  bool operator==(const MyCoord& other) const {
-    return (x_ == other.GetX()) && (y_ == other.GetY());
-  };
-  bool operator!=(const MyCoord& other) const { return !(*this == other); };
-  std::string ToString() const {
-    return std::format("[{:2d},{:2d}]", GetX(), GetY());
-  }
-};
 
 using SNAKE_PART = std::tuple<int, int, int>;
 using GAME_OBJECT = std::tuple<int, int, int>;
@@ -36,9 +20,9 @@ using SNAKE_DATA_CONST_ITERATOR = SNAKE_DATA::const_iterator;
 using SNAKE_DATA_ITERATOR = SNAKE_DATA::iterator;
 using GAME_OBJECT_ITERATOR = std::vector<GAME_OBJECT>::iterator;
 
-// template <typename T>
-class Grid2d {
-  using COORD = MyCoord;
+// template <typename COORD>
+class Grid2d final {
+  using COORD = GridCell;
   using GRID_DATA = std::vector<COORD>;
   using COORD_ITERATOR = GRID_DATA::iterator;
 
@@ -110,7 +94,6 @@ class Grid2d {
   void FindAdjacents(int x, int y, COORD_ITERATOR out) const {
     int index;
     if (y + 1 < height_ && !IsSnake(x, y + 1)) {
-      // todo fix out of bound!
       index = width_ * (y + 1) + (x + 0);
       *(out++) = grid_[index];
     }

@@ -32,45 +32,6 @@ struct Input final {
   SystemCommand command = SystemCommand::kNone;
 };
 
-struct Coord final {
-  int x;
-  int y;
-
-  Coord operator+(const Direction& dir) const {
-    switch (dir) {
-      case Direction::kLeft:
-        return {x - 1, y};
-      case Direction::kRight:
-        return {x + 1, y};
-      case Direction::kUp:
-        return {x, y - 1};
-      case Direction::kDown:
-        return {x, y + 1};
-      default:
-        return {x, y};
-    }
-  }
-
-  Coord operator-(const Direction& dir) const {
-    switch (dir) {
-      case Direction::kLeft:
-        return {x + 1, y};
-      case Direction::kRight:
-        return {x - 1, y};
-      case Direction::kUp:
-        return {x, y + 1};
-      case Direction::kDown:
-        return {x, y - 1};
-      default:
-        return {x, y};
-    }
-  }
-
-  bool operator==(const Coord& other) const {
-    return x == other.x && y == other.y;
-  }
-};
-
 struct GameSettigs final {
   // v2
   int width = 30;
@@ -103,23 +64,5 @@ struct GameSettigs final {
 };
 
 }  // namespace snake
-
-// we have right to add specialization to std
-namespace std {
-template <>
-struct hash<snake::Coord> {
-  size_t operator()(const snake::Coord& p) const {
-    auto hash1 = std::hash<int>{}(p.x);
-    auto hash2 = std::hash<int>{}(p.y);
-
-    if (hash1 != hash2) {
-      return hash1 ^ hash2;
-    }
-
-    // If hash1 == hash2, their XOR is zero.
-    return hash1;
-  }
-};
-}  // namespace std
 
 #endif  // !SNAKE_SNAKE_GAME_MODEL_H_
