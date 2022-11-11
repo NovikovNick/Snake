@@ -54,10 +54,26 @@ class RenderService final {
                                   &_pGrayBrush);
       _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Coral),
                                   &_pCoralBrush);
+      _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Blue),
+                                  &_pBlueBrush);
+      _pRT->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White),
+                                  &_pWhiteBrush);
     }
   };
 
-  ~RenderService();
+  ~RenderService() {
+    SafeRelease(&_pRT);
+    SafeRelease(&_pBlackBrush);
+    SafeRelease(&_pLightSlateGrayBrush);
+    SafeRelease(&_pRedBrush);
+    SafeRelease(&_pGreenBrush);
+    SafeRelease(&_pGrayBrush);
+    SafeRelease(&_pCoralBrush);
+    SafeRelease(&_pBlueBrush);
+    SafeRelease(&_pWhiteBrush);
+    SafeRelease(&_pD2DFactory);
+  }
+
 
   void renderWinState();
 
@@ -80,6 +96,8 @@ class RenderService final {
   ID2D1SolidColorBrush* _pGreenBrush = NULL;
   ID2D1SolidColorBrush* _pGrayBrush = NULL;
   ID2D1SolidColorBrush* _pCoralBrush = NULL;
+  ID2D1SolidColorBrush* _pBlueBrush = NULL;
+  ID2D1SolidColorBrush* _pWhiteBrush = NULL;
   RECT _rc;
 
   std::vector<GAME_OBJECT> game_objects_;

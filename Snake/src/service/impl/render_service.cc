@@ -2,17 +2,6 @@
 
 namespace snake {
 
-RenderService::~RenderService() {
-  SafeRelease(&_pRT);
-  SafeRelease(&_pBlackBrush);
-  SafeRelease(&_pLightSlateGrayBrush);
-  SafeRelease(&_pRedBrush);
-  SafeRelease(&_pGreenBrush);
-  SafeRelease(&_pGrayBrush);
-  SafeRelease(&_pCoralBrush);
-  SafeRelease(&_pD2DFactory);
-}
-
 void RenderService::BeginDraw() {
   _pRT->BeginDraw();
   _pRT->Clear();
@@ -111,38 +100,40 @@ GAME_OBJECT_ITERATOR RenderService::GetOutput() {
 void RenderService::Render() {
   BeginDraw();
   for (auto [x, y, type] : game_objects_) {
+    ID2D1SolidColorBrush* brush = nullptr;
+
     switch (type) {
       case 1:
-        _pRT->FillRectangle(
-            D2D1::RectF(x * size, y * size, (x + 1) * size, (y + 1) * size),
-            _pGreenBrush);
+        brush = _pWhiteBrush;
         break;
       case 2:
-        _pRT->FillRectangle(
-            D2D1::RectF(x * size, y * size, (x + 1) * size, (y + 1) * size),
-            _pRedBrush);
+        brush = _pGreenBrush;
         break;
       case 3:
-        _pRT->FillRectangle(
-            D2D1::RectF(x * size, y * size, (x + 1) * size, (y + 1) * size),
-            _pCoralBrush);
+        brush = _pRedBrush;
         break;
       case 4:
-        _pRT->FillRectangle(
-            D2D1::RectF(x * size, y * size, (x + 1) * size, (y + 1) * size),
-            _pGrayBrush);
+        brush = _pBlueBrush;
         break;
       case 5:
-        _pRT->FillRectangle(
-            D2D1::RectF(x * size, y * size, (x + 1) * size, (y + 1) * size),
-            _pLightSlateGrayBrush);
+        brush = _pCoralBrush;
         break;
       default:
-        _pRT->DrawRectangle(
-            D2D1::RectF(size * (x + 1), size * (y + 1), size * x, size * y),
-            _pGrayBrush);
+        brush = nullptr;
         break;
     }
+    int lft = x * size;
+    int top = y * size;
+    int rht = (x + 1) * size;
+    int btm = (y + 1) * size;
+
+    if (brush != nullptr) {
+      _pRT->FillRectangle(D2D1::RectF(lft, top, rht, btm), brush);
+    }
+    _pRT->DrawRectangle(
+        D2D1::RectF(lft, top, rht,
+                    btm /*size * (x + 1), size * (y + 1), size * x, size * y*/),
+        _pGrayBrush);
   }
   EndDraw();
 }
