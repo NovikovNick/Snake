@@ -3,9 +3,9 @@
 #include <random>
 #include <stack>
 
-#include "model/game_state.h"
-#include "model/grid.h"
-#include "util.h"
+#include "../model/game_state.h"
+#include "../model/grid.h"
+#include "../util.h"
 
 namespace snake {
 class FoodService {

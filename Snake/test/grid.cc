@@ -2,29 +2,28 @@
 #define CASE_1 1
 #define SNAKE_DEBUG 0
 
-#include "../src/v2/model/grid.h"
+#include "../src/model/grid.h"
 
 #include <boost/test/included/unit_test.hpp>
 
-#include "../src/v2/a_star.h"
-// #include "../src/v2/impl/a_star_dp.cc"
-#include "../src/v2/model/game_state.h"
-#include "../src/v2/model/ring_buffer.h"
-#include "../src/v2/util.h"
-#include "../src/v2/v2_food_service.h"
-#include "../src/v2/v2_ai_service.h"
-#include "../src/v2/v2_game_state_service.h"
+#include "../src/service/ai/a_star.h"
+#include "../src/model/game_state.h"
+#include "../src/model/ring_buffer.h"
+#include "../src/util.h"
+#include "../src/service/v2_food_service.h"
+#include "../src/service/v2_ai_service.h"
+#include "../src/service/v2_game_state_service.h"
 
 namespace snake {
 
-class RenderService {
+class TestRenderService {
  private:
   std::vector<GAME_OBJECT> gameObjects_;
   int width_;
   std::vector<std::string> signes_{"[]", "**", "::", "``"};
 
  public:
-  RenderService(const int width, const int height)
+  TestRenderService(const int width, const int height)
       : width_(width), gameObjects_(std::vector<GAME_OBJECT>(width * height)) {}
   GAME_OBJECT_ITERATOR GetOutput() { return gameObjects_.begin(); }
   void render() {
@@ -42,7 +41,7 @@ BOOST_AUTO_TEST_CASE(case1) {
   SNAKE_DATA snake0{{2, 2, 2}, {2, 1, 2}, {2, 0, 2}};
   SNAKE_DATA snake1{{5, 2, 2}, {5, 1, 2}, {5, 0, 2}};
 
-  RenderService renderService(width, height);
+  TestRenderService renderService(width, height);
   FoodService foodService(width, height);
   auto ai_service = std::make_shared<AIService>(width, height);
   GameStateService ctx(width, height, ai_service);

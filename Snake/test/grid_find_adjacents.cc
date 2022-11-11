@@ -5,10 +5,10 @@
 
 #include <boost/test/included/unit_test.hpp>
 
-#include "../src/v2/model/grid.h"
-#include "../src/v2/model/ring_buffer.h"
-#include "../src/v2/util.h"
-#include "../src/v2/v2_game_state_service.h"
+#include "../src/model/grid.h"
+#include "../src/model/ring_buffer.h"
+#include "../src/service/v2_game_state_service.h"
+#include "../src/util.h"
 
 namespace snake {
 

@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "../a_star.h"
-#include "../util.h"
+#include "../../../util.h"
 
 namespace {
 

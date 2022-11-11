@@ -2,8 +2,8 @@
 
 #include <unordered_set>
 
-#include "../../v2/model/game_state.h"
-#include "../../v2/model/ring_buffer.h"
+#include "../../model/game_state.h"
+#include "../../model/ring_buffer.h"
 
 namespace snake {
 
@@ -39,13 +39,14 @@ void GameLoopService::Stop() {
 void GameLoopService::StartGameLoop() {
   GameSettigs stg;
   // arrange
-  int  frame = 0;
+  int frame = 0;
   std::vector<SNAKE_DATA> snakes;
   for (int i = 0; i < stg.snake_count; ++i)
     snakes.push_back(SNAKE_DATA{{i, 2, 2}, {i, 1, 2}, {i, 0, 2}});
 
   RingBuffer<GameStateV2> buffer(32);
-  buffer.add(GameStateV2(frame, stg.snake_count, Grid2d(stg.width, stg.height, stg.snake_count)));
+  buffer.add(GameStateV2(frame, stg.snake_count,
+                         Grid2d(stg.width, stg.height, stg.snake_count)));
 
   auto& init_game_state = buffer.head();
 
@@ -57,7 +58,8 @@ void GameLoopService::StartGameLoop() {
   do {
     // 1.
     auto& prev = buffer.head();
-    buffer.add(GameStateV2(++frame, stg.snake_count, Grid2d(stg.width, stg.height, stg.snake_count)));
+    buffer.add(GameStateV2(++frame, stg.snake_count,
+                           Grid2d(stg.width, stg.height, stg.snake_count)));
     auto& next = buffer.head();
     next.grid.food = prev.grid.food;
     next.score = prev.score;

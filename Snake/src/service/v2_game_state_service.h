@@ -2,9 +2,9 @@
 #define SNAKE_SNAKE_STATE_SERVICE_H_
 #include <vector>
 
-#include "model/game_state.h"
-#include "model/grid.h"
-#include "util.h"
+#include "../model/game_state.h"
+#include "../model/grid.h"
+#include "../util.h"
 #include "v2_ai_service.h"
 
 namespace snake {

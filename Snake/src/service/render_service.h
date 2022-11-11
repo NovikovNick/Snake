@@ -7,7 +7,7 @@
 #include <iostream>
 #include <thread>
 
-#include "../v2/model/grid.h"
+#include "../model/grid.h"
 #include "game_models.h"
 #pragma comment(lib, \
                 "d2d1")  // This line of code is equivalent to adding d2d1.lib

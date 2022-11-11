@@ -7,9 +7,9 @@
 
 #include <boost/test/included/unit_test.hpp>
 
-#include "../src/v2/a_star.h"
-#include "../src/v2/impl/a_star_dp.cc"
-#include "../src/v2/model/grid.h"
+#include "../src/service/ai/a_star.h"
+#include "../src/service/ai/impl/a_star_dp.cc"
+#include "../src/model/grid.h"
 
 namespace snake {
 
