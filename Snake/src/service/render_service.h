@@ -8,7 +8,7 @@
 #include <thread>
 
 #include "../model/grid.h"
-#include "game_models.h"
+#include "../model/player_input.h"
 #pragma comment(lib, \
                 "d2d1")  // This line of code is equivalent to adding d2d1.lib
                          // in the additional dependency linker options.

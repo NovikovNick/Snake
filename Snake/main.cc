@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "src/service/game_loop_service.h"
+#include "src/model/game_settings.h"
 #include "src/win32/main_window.h"
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine,

@@ -1,6 +1,5 @@
 #include <deque>
 
-#include "../service/game_models.h"
 #include "../service/input_service.h"
 #include "base_window.h"
 

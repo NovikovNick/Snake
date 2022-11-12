@@ -2,6 +2,7 @@
 
 #include <unordered_set>
 
+#include "../../model/game_settings.h"
 #include "../../model/game_state.h"
 #include "../../model/ring_buffer.h"
 
@@ -55,6 +56,7 @@ void GameLoopService::StartGameLoop() {
 
   food_srv_->SetFood(init_game_state);
 
+  auto delay = std::chrono::duration<double, std::milli>(stg.speed);
   do {
     // 1.
     auto& prev = buffer.head();
@@ -63,7 +65,7 @@ void GameLoopService::StartGameLoop() {
     auto& next = buffer.head();
     next.grid.food = prev.grid.food;
     next.score = prev.score;
-    // 2. get inputs
+    // 2.
     next.inputs[0] = AdaptToV2(input_service_->PopInputs().direction);
     game_state_service_->SetInputs(prev, next);
     // 3.
@@ -71,7 +73,7 @@ void GameLoopService::StartGameLoop() {
 
     running_ = running_ && !next.is_collide;
     for (int i = 0; i < stg.snake_count; ++i)
-      running_ = running_ && next.score[i] < stg.scoreToWin;
+      running_ = running_ && next.score[i] < stg.winScore;
 
     if (next.is_food_consumed) {
       bool is_food_left = food_srv_->SetFood(next);
@@ -82,8 +84,7 @@ void GameLoopService::StartGameLoop() {
     render_service_->Render();
 
     // End loop
-    std::this_thread::sleep_for(
-        std::chrono::duration<double, std::milli>(stg.maxSpeedMs));
+    std::this_thread::sleep_for(delay);
   } while (running_);
 }
 }  // namespace snake

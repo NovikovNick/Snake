@@ -101,7 +101,6 @@ void RenderService::Render() {
   BeginDraw();
   for (auto [x, y, type] : game_objects_) {
     ID2D1SolidColorBrush* brush = nullptr;
-
     switch (type) {
       case 1:
         brush = _pWhiteBrush;
@@ -127,13 +126,10 @@ void RenderService::Render() {
     int rht = (x + 1) * size;
     int btm = (y + 1) * size;
 
-    if (brush != nullptr) {
+    if (brush != nullptr)
       _pRT->FillRectangle(D2D1::RectF(lft, top, rht, btm), brush);
-    }
-    _pRT->DrawRectangle(
-        D2D1::RectF(lft, top, rht,
-                    btm /*size * (x + 1), size * (y + 1), size * x, size * y*/),
-        _pGrayBrush);
+
+    _pRT->DrawRectangle(D2D1::RectF(lft, top, rht, btm), _pGrayBrush);
   }
   EndDraw();
 }

@@ -52,23 +52,14 @@ class AIService {
 
  private:
   int GetDirection(const COORD& o1, const COORD& o2) {
-    /*COORD vector = COORD(o1.GetX() - o2.GetX(), o1.GetY() - o2.GetY());
+    COORD vector = COORD(o1.GetX() - o2.GetX(), o1.GetY() - o2.GetY());
     for (int i = 0; const auto& dir : dirs_) {
       if (dir == vector) {
         return i;
       }
       ++i;
     }
-    return 0;*/
-
-    COORD dir = COORD(o1.GetX() - o2.GetX(), o1.GetY() - o2.GetY());
-    auto it = std::find(dirs_.begin(), dirs_.end(), dir);
-
-    if (it == dirs_.end()) {
-      return 0;
-    } else {
-      return std::distance(dirs_.begin(), it);
-    }
+    return 0;
   }
 };
 

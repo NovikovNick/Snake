@@ -2,17 +2,17 @@
 
 namespace snake {
 
-void InputService::AddInput(const Input& input) {
+void InputService::AddInput(const PlayerInput& input) {
   input_queue_.push_front(input);
 }
 
-Input InputService::PopInputs() {
+PlayerInput InputService::PopInputs() {
   if (!input_queue_.empty()) {
-    Input res = input_queue_.front();
+    PlayerInput res = input_queue_.front();
     input_queue_.clear();
     return res;
   }
-  return Input{};
+  return PlayerInput{};
 }
 
 }  // namespace snake

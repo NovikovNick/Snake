@@ -7,7 +7,6 @@
 #include "v2_ai_service.h"
 #include "v2_food_service.h"
 #include "v2_game_state_service.h"
-#include "game_models.h"
 #include "input_service.h"
 #include "render_service.h"
 
