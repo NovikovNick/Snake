@@ -121,10 +121,13 @@ void RenderService::Render() {
         brush = nullptr;
         break;
     }
-    int lft = x * size;
-    int top = y * size;
-    int rht = (x + 1) * size;
-    int btm = (y + 1) * size;
+    int top_padding = 60;
+    int lft_padding = 20;
+
+    int lft = lft_padding + x * size;
+    int top = top_padding + y * size;
+    int rht = lft_padding + (x + 1) * size;
+    int btm = top_padding + (y + 1) * size;
 
     if (brush != nullptr)
       _pRT->FillRectangle(D2D1::RectF(lft, top, rht, btm), brush);

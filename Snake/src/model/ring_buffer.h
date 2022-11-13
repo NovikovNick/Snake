@@ -1,15 +1,16 @@
 #ifndef SNAKE_SNAKE_GAME_RING_BUFFER_H_
 #define SNAKE_SNAKE_GAME_RING_BUFFER_H_
 #include <queue>
+#include <algorithm>
 
 namespace snake {
 template <typename T>
 struct RingBuffer {
  public:
   RingBuffer(const int& capacity)
-      : buffer_(std::deque<T>()), capacity_(capacity), cursor_(-1) {}
+      : buffer_(std::vector<T>()), capacity_(capacity), cursor_(-1) {}
 
-  void add(T&& arg) {
+  void Add(T&& arg) {
     cursor_ = (cursor_ + 1) % capacity_;
     if (buffer_.size() == capacity_) {
       std::swap(buffer_[cursor_], arg);
@@ -18,9 +19,7 @@ struct RingBuffer {
     }
   };
 
-  int size() & { return buffer_.size(); };
-
-  T& head() & { return buffer_[cursor_]; };
+  int Size() & { return buffer_.size(); };
 
   T& operator[](const int i) & {
     int offset = (cursor_ - i) % capacity_;
@@ -28,7 +27,7 @@ struct RingBuffer {
   }
 
  private:
-  std::deque<T> buffer_;
+  std::vector<T> buffer_;
   int capacity_;
   int cursor_;
 };

@@ -32,6 +32,12 @@ void GameLoopService::Start() {
   render_thread_ = std::thread(&GameLoopService::StartGameLoop, this);
 }
 
+void GameLoopService::Render(const int offset, GAME_STATE_HOLDER& holder) {
+  auto& state = holder[offset];
+  state.grid.copy(render_service_->GetOutput());
+  render_service_->Render();
+}
+
 void GameLoopService::Stop() {
   running_ = false;
   render_thread_.join();
@@ -41,15 +47,17 @@ void GameLoopService::StartGameLoop() {
   GameSettigs stg;
   // arrange
   int frame = 0;
+  int buf_capacity = 16;
+
   std::vector<SNAKE_DATA> snakes;
   for (int i = 0; i < stg.snake_count; ++i)
     snakes.push_back(SNAKE_DATA{{i, 2, 2}, {i, 1, 2}, {i, 0, 2}});
 
-  RingBuffer<GameStateV2> buffer(32);
-  buffer.add(GameStateV2(frame, stg.snake_count,
-                         Grid2d(stg.width, stg.height, stg.snake_count)));
+  GAME_STATE_HOLDER buf(buf_capacity);
+  buf.Add(GameState(frame, stg.snake_count,
+                    Grid2d(stg.width, stg.height, stg.snake_count)));
 
-  auto& init_game_state = buffer.head();
+  auto& init_game_state = buf[0];
 
   for (int i = 0; i < stg.snake_count; ++i)
     init_game_state.grid.AddSnake(i, snakes[i].begin(), snakes[i].end());
@@ -57,34 +65,58 @@ void GameLoopService::StartGameLoop() {
   food_srv_->SetFood(init_game_state);
 
   auto delay = std::chrono::duration<double, std::milli>(stg.speed);
+
+  bool paused = false;
+  int frame_offset = 0;
   do {
+    auto t0 = std::chrono::steady_clock::now();
     // 1.
-    auto& prev = buffer.head();
-    buffer.add(GameStateV2(++frame, stg.snake_count,
-                           Grid2d(stg.width, stg.height, stg.snake_count)));
-    auto& next = buffer.head();
-    next.grid.food = prev.grid.food;
-    next.score = prev.score;
-    // 2.
-    next.inputs[0] = AdaptToV2(input_service_->PopInputs().direction);
-    game_state_service_->SetInputs(prev, next);
-    // 3.
-    game_state_service_->ApplyInputs(prev, next);
+    auto player_input = input_service_->PopInputs();
 
-    running_ = running_ && !next.is_collide;
-    for (int i = 0; i < stg.snake_count; ++i)
-      running_ = running_ && next.score[i] < stg.winScore;
-
-    if (next.is_food_consumed) {
-      bool is_food_left = food_srv_->SetFood(next);
-      running_ = running_ && is_food_left;
+    if (player_input.command == SystemCommand::kPause) {
+      paused = !paused;
+      frame_offset = 0;
     }
 
-    next.grid.copy(render_service_->GetOutput());
-    render_service_->Render();
+    if (paused && player_input.command == SystemCommand::kStepForward)
+      frame_offset = std::clamp<int>(frame_offset + 1, 0,
+                                     std::min<int>(frame, buf_capacity) - 1);
+
+    if (paused && player_input.command == SystemCommand::kStepBackward)
+      frame_offset = std::clamp<int>(frame_offset - 1, 0,
+                                     std::min<int>(frame, buf_capacity) - 1);
+
+    // 2.
+    if (!paused) {
+      buf.Add(GameState(++frame, stg.snake_count,
+                        Grid2d(stg.width, stg.height, stg.snake_count)));
+      auto& next = buf[0];
+      auto& prev = buf[1];
+
+      next.grid.food = prev.grid.food;
+      next.score = prev.score;
+      // 2.
+      next.inputs[0] = AdaptToV2(player_input.direction);
+      game_state_service_->SetInputs(prev, next);
+      // 3.
+      game_state_service_->ApplyInputs(prev, next);
+
+      running_ = running_ && !next.is_collide;
+      for (int i = 0; i < stg.snake_count; ++i)
+        running_ = running_ && next.score[i] < stg.winScore;
+
+      if (next.is_food_consumed) {
+        bool is_food_left = food_srv_->SetFood(next);
+        running_ = running_ && is_food_left;
+      }
+    }
+
+    Render(frame_offset, buf);
 
     // End loop
-    std::this_thread::sleep_for(delay);
+    auto t1 = std::chrono::steady_clock::now();
+    auto elapsed = duration_cast<std::chrono::milliseconds>(t0 - t1);
+    std::this_thread::sleep_for(delay - elapsed);
   } while (running_);
 }
 }  // namespace snake

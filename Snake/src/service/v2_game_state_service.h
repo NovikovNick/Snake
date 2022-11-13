@@ -11,7 +11,7 @@ namespace snake {
 
 class GameStateService {
   using COORD = GridCell;
-  using STATE = GameStateV2;
+  using STATE = GameState;
 
  private:
   SNAKE_DATA snake_;

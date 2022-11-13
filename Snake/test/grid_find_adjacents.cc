@@ -1,6 +1,8 @@
 ﻿#define BOOST_TEST_MODULE SolutionTest
-#define CASE_2 1
-#define CASE_1 1
+#define CASE_4 1
+#define CASE_3 0
+#define CASE_2 0
+#define CASE_1 0
 #define SNAKE_DEBUG 1
 
 #include <boost/test/included/unit_test.hpp>
@@ -9,7 +11,6 @@
 #include "../src/model/ring_buffer.h"
 #include "../src/service/v2_game_state_service.h"
 #include "../src/util.h"
-
 namespace snake {
 
 #if CASE_1
@@ -54,6 +55,46 @@ BOOST_AUTO_TEST_CASE(case2) {
   }
 
   // act
+  // assert
+}
+#endif
+
+#if CASE_3
+BOOST_AUTO_TEST_CASE(case2) {
+  // arrange
+  GridCell o1{2, 5}, o2{5, 2};
+
+  // act
+  auto [sum_x, sum_y] = o1 + o2;
+  auto [diff_x, diff_y] = o1 - o2;
+
+  // assert
+  debug("sum  = [{:2d};{:2d}]\n", sum_x, sum_y);
+  BOOST_CHECK_EQUAL(7, sum_x);
+  BOOST_CHECK_EQUAL(7, sum_y);
+
+  debug("diff = [{:2d};{:2d}]\n", diff_x, diff_y);
+  BOOST_CHECK_EQUAL(-3, diff_x);
+  BOOST_CHECK_EQUAL(3, diff_y);
+}
+#endif
+
+#if CASE_4
+BOOST_AUTO_TEST_CASE(case2) {
+  // arrange
+  RingBuffer<int> buf(16);
+
+  // act
+  for (int i = 0; i < 50; ++i) {
+    buf.Add(i + 0);
+    // todo fix iterating and change deque to vector
+    debug("{:2d}: ", i);
+    for (int j = 0; j < buf.Size(); ++j) {
+      debug("{:2d} ", buf[j]);
+    }
+    debug("and head is {}\n", buf[0]);
+  }
+
   // assert
 }
 #endif

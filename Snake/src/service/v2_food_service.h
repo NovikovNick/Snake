@@ -10,7 +10,7 @@
 namespace snake {
 class FoodService {
   using COORD = GridCell;
-  using STATE = GameStateV2;
+  using STATE = GameState;
   std::stack<COORD> foods_sequence_;
 
  public:

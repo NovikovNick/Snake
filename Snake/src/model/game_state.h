@@ -6,7 +6,7 @@
 
 namespace snake {
 
-struct GameStateV2 {
+struct GameState {
   using GRID = Grid2d;
 
   int frame;
@@ -17,7 +17,7 @@ struct GameStateV2 {
   bool is_collide;
   bool is_food_consumed;
 
-  GameStateV2(const int frame, const int snake_count, GRID&& grid)
+  GameState(const int frame, const int snake_count, GRID&& grid)
       : frame(frame),
         grid(std::move(grid)),
         inputs(std::vector<int>(snake_count)),

@@ -6,13 +6,13 @@
 
 #include <boost/test/included/unit_test.hpp>
 
-#include "../src/service/ai/a_star.h"
 #include "../src/model/game_state.h"
 #include "../src/model/ring_buffer.h"
-#include "../src/util.h"
-#include "../src/service/v2_food_service.h"
+#include "../src/service/ai/a_star.h"
 #include "../src/service/v2_ai_service.h"
+#include "../src/service/v2_food_service.h"
 #include "../src/service/v2_game_state_service.h"
+#include "../src/util.h"
 
 namespace snake {
 
@@ -46,11 +46,10 @@ BOOST_AUTO_TEST_CASE(case1) {
   auto ai_service = std::make_shared<AIService>(width, height);
   GameStateService ctx(width, height, ai_service);
 
-  RingBuffer<GameStateV2> buffer(3);
+  RingBuffer<GameState> buffer(3);
 
   // init fst state
-  buffer.add(
-      GameStateV2(frame, snake_count, Grid2d(width, height, snake_count)));
+  buffer.add(GameState(frame, snake_count, Grid2d(width, height, snake_count)));
   auto& state = buffer.head();
   state.grid.AddSnake(0, snake0.begin(), snake0.end());
   state.grid.AddSnake(1, snake1.begin(), snake1.end());
@@ -62,7 +61,7 @@ BOOST_AUTO_TEST_CASE(case1) {
   while (running) {
     auto& prev = buffer.head();
     buffer.add(
-        GameStateV2(++frame, snake_count, Grid2d(width, height, snake_count)));
+        GameState(++frame, snake_count, Grid2d(width, height, snake_count)));
     auto& next = buffer.head();
     next.grid.food = prev.grid.food;
     next.score = prev.score;

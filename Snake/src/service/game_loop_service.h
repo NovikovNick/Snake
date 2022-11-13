@@ -4,15 +4,19 @@
 #include <iostream>
 #include <thread>
 
+#include "../model/game_state.h"
+#include "../model/ring_buffer.h"
+#include "input_service.h"
+#include "render_service.h"
 #include "v2_ai_service.h"
 #include "v2_food_service.h"
 #include "v2_game_state_service.h"
-#include "input_service.h"
-#include "render_service.h"
 
 namespace snake {
 
 class GameLoopService final {
+  using GAME_STATE_HOLDER = RingBuffer<GameState>;
+
  public:
   void Start();
   void Stop();
@@ -38,6 +42,7 @@ class GameLoopService final {
   std::thread render_thread_;
   bool running_ = false;
   void StartGameLoop();
+  void Render(const int offset, GAME_STATE_HOLDER& holder);
 };
 }  // namespace snake
 #endif  // SNAKE_SNAKE_GAME_LOOP_SERVICE_H_
