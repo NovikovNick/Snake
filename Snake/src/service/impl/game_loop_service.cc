@@ -34,8 +34,15 @@ void GameLoopService::Start() {
 
 void GameLoopService::Render(const int offset, GAME_STATE_HOLDER& holder) {
   auto& state = holder[offset];
-  state.grid.copy(render_service_->GetOutput());
-  render_service_->Render();
+
+  auto out = render_service_->GetOutput();
+  state.grid.copy(out);
+  out = out + settings_.width * settings_.height;
+  for (int i = 0; i < holder.Size(); ++i) {
+    *(out + i) = GAME_OBJECT(0, holder[i].inputs[0], 5);
+  }
+
+  render_service_->Render(offset);
 }
 
 void GameLoopService::Stop() {
@@ -47,7 +54,7 @@ void GameLoopService::StartGameLoop() {
   GameSettigs stg;
   // arrange
   int frame = 0;
-  int buf_capacity = 16;
+  int buf_capacity = settings_.buffer_capacity;
 
   std::vector<SNAKE_DATA> snakes;
   for (int i = 0; i < stg.snake_count; ++i)
@@ -58,6 +65,7 @@ void GameLoopService::StartGameLoop() {
                     Grid2d(stg.width, stg.height, stg.snake_count)));
 
   auto& init_game_state = buf[0];
+  init_game_state.inputs[0] = -1;
 
   for (int i = 0; i < stg.snake_count; ++i)
     init_game_state.grid.AddSnake(i, snakes[i].begin(), snakes[i].end());
@@ -78,36 +86,38 @@ void GameLoopService::StartGameLoop() {
       frame_offset = 0;
     }
 
-    if (paused && player_input.command == SystemCommand::kStepForward)
-      frame_offset = std::clamp<int>(frame_offset + 1, 0,
-                                     std::min<int>(frame, buf_capacity) - 1);
-
-    if (paused && player_input.command == SystemCommand::kStepBackward)
-      frame_offset = std::clamp<int>(frame_offset - 1, 0,
-                                     std::min<int>(frame, buf_capacity) - 1);
-
     // 2.
     if (!paused) {
       buf.Add(GameState(++frame, stg.snake_count,
                         Grid2d(stg.width, stg.height, stg.snake_count)));
-      auto& next = buf[0];
-      auto& prev = buf[1];
 
-      next.grid.food = prev.grid.food;
-      next.score = prev.score;
-      // 2.
-      next.inputs[0] = AdaptToV2(player_input.direction);
-      game_state_service_->SetInputs(prev, next);
-      // 3.
-      game_state_service_->ApplyInputs(prev, next);
+      buf[frame_offset].inputs[0] = AdaptToV2(player_input.direction);
+      game_state_service_->Move(buf[1], buf[0]);
 
-      running_ = running_ && !next.is_collide;
-      for (int i = 0; i < stg.snake_count; ++i)
-        running_ = running_ && next.score[i] < stg.winScore;
+    } else {
+      if (player_input.command == SystemCommand::kStepBackward)
+        frame_offset = std::clamp<int>(frame_offset + 1, 0,
+                                       std::min<int>(frame, buf_capacity) - 1);
 
-      if (next.is_food_consumed) {
-        bool is_food_left = food_srv_->SetFood(next);
-        running_ = running_ && is_food_left;
+      if (player_input.command == SystemCommand::kStepForward)
+        frame_offset = std::clamp<int>(frame_offset - 1, 0,
+                                       std::min<int>(frame, buf_capacity) - 1);
+
+      if (player_input.direction != Direction::kNone) {
+        // 1. pull food
+        for (int i = 0; i < frame_offset; ++i) {
+          if (buf[i].is_food_consumed)
+            food_srv_->AddFoodIfAbsent(buf[i].grid.food);
+        }
+
+        // 2. change input for offset state
+        buf[frame_offset].inputs[0] = AdaptToV2(player_input.direction);
+        game_state_service_->Move(buf[frame_offset + 1], buf[frame_offset]);
+
+        // 3. update state of all subsequent -> if state is not invalid
+        for (int i = (frame_offset - 1); i >= 0; --i) {
+          game_state_service_->Move(buf[i + 1], buf[i]);
+        }
       }
     }
 

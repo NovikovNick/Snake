@@ -6,6 +6,7 @@
 #include "../model/grid.h"
 #include "../util.h"
 #include "v2_ai_service.h"
+#include "v2_food_service.h"
 
 namespace snake {
 
@@ -15,20 +16,32 @@ class GameStateService {
 
  private:
   SNAKE_DATA snake_;
-  std::shared_ptr<AIService> ai_service;
+  std::shared_ptr<AIService> ai_srv;
+  std::shared_ptr<FoodService> food_srv;
 
  public:
   GameStateService(const int& width, const int& height,
-                   std::shared_ptr<AIService> ai_service)
-      : snake_(SNAKE_DATA(width * height)), ai_service(ai_service){};
+                   std::shared_ptr<AIService> ai_srv,
+                   std::shared_ptr<FoodService> food_srv)
+      : snake_(SNAKE_DATA(width * height)),
+        ai_srv(ai_srv),
+        food_srv(food_srv){};
+
+  void Move(const STATE& prev, STATE& next) {
+    next.grid.food = prev.grid.food;
+    next.score = prev.score;
+    if (!prev.is_collide) {
+      SetInputs(prev, next);
+      ApplyInputs(prev, next);
+
+      if (next.is_food_consumed) food_srv->SetFood(next);
+    }
+  }
 
   void SetInputs(const STATE& prev, STATE& out) {
     for (int botId = 1; botId < out.inputs.size(); ++botId) {
-      prev.grid.CopySnake(botId, snake_.begin());
-      auto [x, y, _] = snake_[0];
-
-      COORD head(x, y);
-      out.inputs[botId] = ai_service->FindPath(head, prev.grid.food, prev.grid);
+      out.inputs[botId] = ai_srv->FindPath(prev.grid.GetSnakeHead(botId),
+                                           prev.grid.food, prev.grid);
     }
   }
 

@@ -7,8 +7,8 @@
 #include <deque>
 #include <iostream>
 
-#include "src/service/game_loop_service.h"
 #include "src/model/game_settings.h"
+#include "src/service/game_loop_service.h"
 #include "src/win32/main_window.h"
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine,
@@ -17,7 +17,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine,
 
   // init window
   snake::MainWindow win;
-  if (!win.Create(L"snake The Game", WS_OVERLAPPEDWINDOW, 0, 0, 0, 1400, 750)) {
+  if (!win.Create(L"snake The Game", WS_OVERLAPPEDWINDOW, 0, 0, 0,
+                  stg.screen_width, stg.screen_height)) {
     return 0;
   }
   ShowWindow(win.Window(), nCmdShow);
@@ -26,13 +27,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine,
   auto input_srv = std::make_shared<snake::InputService>();
   win.SetInputService(input_srv);
 
-  auto render_srv = std::make_shared<snake::RenderService>(win.Window(), stg.width, stg.height);
+  auto render_srv = std::make_shared<snake::RenderService>(win.Window(), stg);
   auto food_srv = std::make_shared<snake::FoodService>(stg.width, stg.height);
   auto ai_srv = std::make_shared<snake::AIService>(stg.width, stg.height);
-  auto state_srv = std::make_shared<snake::GameStateService>(stg.width, stg.height, ai_srv);
+  auto state_srv = std::make_shared<snake::GameStateService>(
+      stg.width, stg.height, ai_srv, food_srv);
 
   auto game_loop_srv = std::make_shared<snake::GameLoopService>(
-      input_srv, render_srv, food_srv, ai_srv, state_srv);
+      stg, input_srv, render_srv, food_srv, ai_srv, state_srv);
 
   // start the game
   game_loop_srv->Start();

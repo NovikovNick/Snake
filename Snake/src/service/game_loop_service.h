@@ -4,6 +4,7 @@
 #include <iostream>
 #include <thread>
 
+#include "../model/game_settings.h"
 #include "../model/game_state.h"
 #include "../model/ring_buffer.h"
 #include "input_service.h"
@@ -20,18 +21,21 @@ class GameLoopService final {
  public:
   void Start();
   void Stop();
-  GameLoopService(std::shared_ptr<InputService> input_service,
+  GameLoopService(const GameSettigs& settings,
+                  std::shared_ptr<InputService> input_service,
                   std::shared_ptr<RenderService> render_service,
                   std::shared_ptr<FoodService> food_srv,
                   std::shared_ptr<AIService> ai_service,
                   std::shared_ptr<GameStateService> game_state_service)
-      : input_service_(input_service),
+      : settings_(settings),
+        input_service_(input_service),
         render_service_(render_service),
         food_srv_(food_srv),
         ai_service_(ai_service),
         game_state_service_(game_state_service) {}
 
  private:
+  GameSettigs settings_;
   std::shared_ptr<InputService> input_service_;
   std::shared_ptr<RenderService> render_service_;
   std::shared_ptr<FoodService> food_srv_;

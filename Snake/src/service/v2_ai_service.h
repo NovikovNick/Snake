@@ -28,7 +28,6 @@ class AIService {
   AIService(const int width, const int height)
       : out_(std::vector<COORD>(width * height)) {}
 
-  // todo split to 2 methods!
   int FindPath(const COORD& start, const COORD& goal, const GRID& grid) {
     if (grid.food != start &&
         pathfinder_.FindPath(start, goal, grid, out_.begin(), out_.end())) {

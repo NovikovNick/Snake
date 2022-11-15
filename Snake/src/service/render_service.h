@@ -7,8 +7,9 @@
 #include <iostream>
 #include <thread>
 
+#include "../model/game_settings.h"
 #include "../model/grid.h"
-#include "../model/player_input.h"
+
 #pragma comment(lib, \
                 "d2d1")  // This line of code is equivalent to adding d2d1.lib
                          // in the additional dependency linker options.
@@ -17,13 +18,12 @@ namespace snake {
 
 class RenderService final {
  public:
-  RenderService(HWND hwnd, const int width, const int height)
-      : width_(width),
-        height_(height),
-        game_objects_(std::vector<GAME_OBJECT>(width * height)),
-        _hwnd(hwnd){
-  
-      // 2. --------------------------
+  RenderService(HWND hwnd, const GameSettigs& setting)
+      : setting_(setting),
+        game_objects_(std::vector<GAME_OBJECT>(setting.width * setting.height +
+                                               setting.width)),
+        _hwnd(hwnd) {
+    // 2. --------------------------
     HRESULT hr =
         D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &_pD2DFactory);
 
@@ -74,7 +74,6 @@ class RenderService final {
     SafeRelease(&_pD2DFactory);
   }
 
-
   void renderWinState();
 
   void BeginDraw();
@@ -82,9 +81,7 @@ class RenderService final {
   void EndDraw();
 
   GAME_OBJECT_ITERATOR GetOutput();
-  void Render();
-
-  float size = 40.0f;
+  void Render(const int offset);
 
  private:
   HWND _hwnd;
@@ -101,9 +98,9 @@ class RenderService final {
   RECT _rc;
 
   std::vector<GAME_OBJECT> game_objects_;
-  int width_, height_;
+  GameSettigs setting_;
 
-  void DrawInput(float x, float y, Direction dir, float size, bool focused,
+  void DrawInput(float x, float y, int dir, float size, bool focused,
                  ID2D1SolidColorBrush* _pBrush);
 
   template <class T>

@@ -82,6 +82,12 @@ class Grid2d final {
     return std::make_pair(snake_length_[index], snakes_[index].cbegin());
   };
 
+  COORD GetSnakeHead(const int& index) const {
+    auto [length, iter] = GetSnake(index);
+    auto [x, y, dir] = *iter;
+    return COORD(x, y);
+  };
+
   void CopySnake(const int& index, SNAKE_DATA_ITERATOR out) const {
     auto [length, iter] = GetSnake(index);
     for (int i = 0; i < length; ++i) {

@@ -10,6 +10,7 @@ void RenderService::BeginDraw() {
 void RenderService::EndDraw() { _pRT->EndDraw(); }
 
 void RenderService::renderWinState() {
+  auto size = setting_.cell_size;
   _pRT->FillRectangle(D2D1::RectF(size, _rc.bottom, 0, 0), _pGreenBrush);
   _pRT->FillRectangle(D2D1::RectF(_rc.right, size, 0, 0), _pGreenBrush);
   _pRT->FillRectangle(D2D1::RectF(_rc.right, _rc.bottom, _rc.right - size, 0),
@@ -18,21 +19,8 @@ void RenderService::renderWinState() {
                       _pGreenBrush);
 }
 
-/*
-DrawInput(size * -0.8 + size * settings.leftBoundaries + size * capacity -
-                  size * i,
-              size * 0.2 + settings.bottomBoundaries * size,
-              inputs[0].direction, size * 0.7, i == frame % capacity,
-              _pGreenBrush);
-
-DrawInput(size * -0.8 + size * settings.leftBoundaries + size * capacity -
-                size * i,
-            size * 0.2 + size, inputs[1].direction, size * 0.7,
-            i == frame % capacity, _pRedBrush);
-*/
-void RenderService::DrawInput(float x, float y, Direction dir,
-                              float arrowBlockSize, bool focused,
-                              ID2D1SolidColorBrush* _pBrush) {
+void RenderService::DrawInput(float x, float y, int dir, float arrowBlockSize,
+                              bool focused, ID2D1SolidColorBrush* _pBrush) {
   ID2D1PathGeometry* pPathGeometry = NULL;
   ID2D1GeometrySink* pSink = NULL;
 
@@ -44,25 +32,25 @@ void RenderService::DrawInput(float x, float y, Direction dir,
     pSink->SetFillMode(D2D1_FILL_MODE_ALTERNATE);
 
     switch (dir) {
-      case Direction::kUp:
+      case 3:
         pSink->BeginFigure(D2D1::Point2F(x, y + arrowBlockSize),
                            D2D1_FIGURE_BEGIN_FILLED);
         pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y + arrowBlockSize));
         pSink->AddLine(D2D1::Point2F(x + arrowBlockSize / 2, y));
         break;
-      case Direction::kDown:
+      case 2:
         pSink->BeginFigure(D2D1::Point2F(x, y), D2D1_FIGURE_BEGIN_FILLED);
         pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y));
         pSink->AddLine(
             D2D1::Point2F(x + arrowBlockSize / 2, y + arrowBlockSize));
         break;
-      case Direction::kLeft:
+      case 1:
         pSink->BeginFigure(D2D1::Point2F(x + arrowBlockSize, y),
                            D2D1_FIGURE_BEGIN_FILLED);
         pSink->AddLine(D2D1::Point2F(x + arrowBlockSize, y + arrowBlockSize));
         pSink->AddLine(D2D1::Point2F(x, y + arrowBlockSize / 2));
         break;
-      case Direction::kRight:
+      case 0:
         pSink->BeginFigure(D2D1::Point2F(x, y), D2D1_FIGURE_BEGIN_FILLED);
         pSink->AddLine(D2D1::Point2F(x, y + arrowBlockSize));
         pSink->AddLine(
@@ -97,9 +85,17 @@ GAME_OBJECT_ITERATOR RenderService::GetOutput() {
   return game_objects_.begin();
 }
 
-void RenderService::Render() {
+void RenderService::Render(const int offset) {
+  int size = setting_.cell_size;
+  int width = setting_.height;
+  int height = setting_.width;
+  int top_padding = (setting_.screen_height - setting_.cell_size * height) / 2;
+  int lft_padding = (setting_.screen_width - setting_.cell_size * width) / 2;
+
   BeginDraw();
-  for (auto [x, y, type] : game_objects_) {
+  for (int i = 0; i < width * height; ++i) {
+    auto [x, y, type] = game_objects_[i];
+
     ID2D1SolidColorBrush* brush = nullptr;
     switch (type) {
       case 1:
@@ -121,8 +117,6 @@ void RenderService::Render() {
         brush = nullptr;
         break;
     }
-    int top_padding = 60;
-    int lft_padding = 20;
 
     int lft = lft_padding + x * size;
     int top = top_padding + y * size;
@@ -133,6 +127,14 @@ void RenderService::Render() {
       _pRT->FillRectangle(D2D1::RectF(lft, top, rht, btm), brush);
 
     _pRT->DrawRectangle(D2D1::RectF(lft, top, rht, btm), _pGrayBrush);
+  }
+
+  for (int x = 0; x < setting_.width; ++x) {
+    auto [snake_id, dir, type] = game_objects_[width * height + x];
+    int inp_x = lft_padding + size * (setting_.width - 1) - size * x;
+    int inp_y = top_padding - size;
+    DrawInput(inp_x, inp_y, type == 5 ? dir : -1, size * 0.7, x == offset,
+              _pGreenBrush);
   }
   EndDraw();
 }

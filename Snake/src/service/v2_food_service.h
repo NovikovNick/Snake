@@ -35,6 +35,12 @@ class FoodService {
     return !foods_sequence_.empty();
   }
 
+  void AddFoodIfAbsent(COORD& coord) {
+    if (foods_sequence_.empty() || foods_sequence_.top() != coord) {
+      foods_sequence_.push(coord);
+    }
+  }
+
  private:
   std::stack<COORD> GenerateFoods(const int width, const int height) {
     std::deque<COORD> f;

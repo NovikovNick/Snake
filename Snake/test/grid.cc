@@ -37,53 +37,37 @@ class TestRenderService {
 #if CASE_1
 BOOST_AUTO_TEST_CASE(case1) {
   // arrange
-  int width = 30, height = 15, snake_count = 2, winScore = 25, frame = 0;
-  SNAKE_DATA snake0{{2, 2, 2}, {2, 1, 2}, {2, 0, 2}};
-  SNAKE_DATA snake1{{5, 2, 2}, {5, 1, 2}, {5, 0, 2}};
+  int width = 16, height = 16, count = 2, winScore = 25, frame = 0;
 
   TestRenderService renderService(width, height);
-  FoodService foodService(width, height);
-  auto ai_service = std::make_shared<AIService>(width, height);
-  GameStateService ctx(width, height, ai_service);
+  auto ai_srv = std::make_shared<AIService>(width, height);
+  auto food_srv = std::make_shared<FoodService>(width, height);
+  GameStateService state_srv(width, height, ai_srv, food_srv);
 
   RingBuffer<GameState> buffer(3);
 
   // init fst state
-  buffer.add(GameState(frame, snake_count, Grid2d(width, height, snake_count)));
-  auto& state = buffer.head();
+  buffer.Add(GameState(frame, count, Grid2d(width, height, count)));
+  auto& state = buffer[0];
+  SNAKE_DATA snake0{{2, 2, 2}, {2, 1, 2}, {2, 0, 2}};
   state.grid.AddSnake(0, snake0.begin(), snake0.end());
+  SNAKE_DATA snake1{{5, 2, 2}, {5, 1, 2}, {5, 0, 2}};
   state.grid.AddSnake(1, snake1.begin(), snake1.end());
 
-  foodService.SetFood(state);
+  food_srv->SetFood(state);
 
   // act
   bool running = true;
   while (running) {
-    auto& prev = buffer.head();
-    buffer.add(
-        GameState(++frame, snake_count, Grid2d(width, height, snake_count)));
-    auto& next = buffer.head();
-    next.grid.food = prev.grid.food;
-    next.score = prev.score;
+    buffer.Add(GameState(++frame, count, Grid2d(width, height, count)));
+    auto& next = buffer[0];
+    auto& prev = buffer[1];
 
-    debug("Start processing {} frame\n", next.frame);
-    ctx.SetInputs(prev, next);
-    ctx.ApplyInputs(prev, next);
+    next.inputs[0] = ai_srv->FindPath(prev.grid.GetSnakeHead(0), prev.grid.food, prev.grid);
+    
+    state_srv.Move(prev, next);
 
-    if (next.is_collide) {
-      debug("Snake was collided\n");
-      running = false;
-    }
-
-    if (next.score[0] > winScore) {
-      debug("Score is reached!\n");
-      running = false;
-    }
-
-    if (next.is_food_consumed) {
-      bool is_food_left = foodService.SetFood(next);
-      running = running && is_food_left;
-    }
+    running = !next.is_collide;
 
     // assert (render to console)
     next.grid.copy(renderService.GetOutput());

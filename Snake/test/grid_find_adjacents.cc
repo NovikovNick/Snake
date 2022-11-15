@@ -1,5 +1,6 @@
 ﻿#define BOOST_TEST_MODULE SolutionTest
-#define CASE_4 1
+#define CASE_5 1
+#define CASE_4 0
 #define CASE_3 0
 #define CASE_2 0
 #define CASE_1 0
@@ -60,7 +61,7 @@ BOOST_AUTO_TEST_CASE(case2) {
 #endif
 
 #if CASE_3
-BOOST_AUTO_TEST_CASE(case2) {
+BOOST_AUTO_TEST_CASE(case3) {
   // arrange
   GridCell o1{2, 5}, o2{5, 2};
 
@@ -80,7 +81,7 @@ BOOST_AUTO_TEST_CASE(case2) {
 #endif
 
 #if CASE_4
-BOOST_AUTO_TEST_CASE(case2) {
+BOOST_AUTO_TEST_CASE(case4) {
   // arrange
   RingBuffer<int> buf(16);
 
@@ -94,6 +95,20 @@ BOOST_AUTO_TEST_CASE(case2) {
     }
     debug("and head is {}\n", buf[0]);
   }
+
+  // assert
+}
+#endif
+
+#if CASE_5
+BOOST_AUTO_TEST_CASE(case5) {
+  // arrange
+  // GameStateService state_srv;
+
+  // RingBuffer<int> buf(16);
+
+  // act
+  debug("test case 5\n");
 
   // assert
 }
