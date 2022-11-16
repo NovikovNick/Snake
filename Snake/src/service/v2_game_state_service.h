@@ -1,35 +1,72 @@
 #ifndef SNAKE_SNAKE_STATE_SERVICE_H_
 #define SNAKE_SNAKE_STATE_SERVICE_H_
+#include <type_traits>
 #include <vector>
 
 #include "../model/game_state.h"
 #include "../model/grid.h"
 #include "../util.h"
 #include "v2_ai_service.h"
-#include "v2_food_service.h"
 
 namespace snake {
 
+template <class T>
+typename std::add_lvalue_reference<T>::type makeval();
+
+template <typename N>
+concept food_srv = requires(N n) {
+                     n.SetFood(makeval<GameState>());
+                     n.AddFoodIfAbsent(makeval<GridCell>());
+                     { n.HasFood() } -> std::same_as<bool>;
+                   };
+
+template <food_srv FOOD_SRV>
 class GameStateService {
   using COORD = GridCell;
   using STATE = GameState;
+  using STATE_HOLDER = RingBuffer<GameState>;
+
+  // static_assert(food_srv<FOOD_SRV>(), "Food service doesn't contain requered
+  // methods");
 
  private:
   SNAKE_DATA snake_;
   std::shared_ptr<AIService> ai_srv;
-  std::shared_ptr<FoodService> food_srv;
+  std::shared_ptr<FOOD_SRV> food_srv;
 
  public:
   GameStateService(const int& width, const int& height,
                    std::shared_ptr<AIService> ai_srv,
-                   std::shared_ptr<FoodService> food_srv)
+                   std::shared_ptr<FOOD_SRV> food_srv)
       : snake_(SNAKE_DATA(width * height)),
         ai_srv(ai_srv),
         food_srv(food_srv){};
 
+  void Move(const int offset, STATE_HOLDER& buf) {
+    if (offset == 0) {
+      Move(buf[offset + 1], buf[offset]);
+      return;
+    }
+    
+    // 1. pull food
+    for (int i = 0; i < offset; ++i) {
+      if (buf[i].is_food_consumed) food_srv->AddFoodIfAbsent(buf[i].grid.food);
+    }
+
+    // 2. change input for offset state
+    Move(buf[offset + 1], buf[offset]);
+
+    // 3. update state of all subsequent -> if state is not invalid
+    for (int i = (offset - 1); i >= 0; --i) {
+      Move(i, buf);
+    }
+  }
+
   void Move(const STATE& prev, STATE& next) {
     next.grid.food = prev.grid.food;
     next.score = prev.score;
+    next.is_collide = prev.is_collide;
+    next.is_score_reached = prev.is_score_reached;
     if (!prev.is_collide) {
       SetInputs(prev, next);
       ApplyInputs(prev, next);
@@ -51,19 +88,21 @@ class GameStateService {
       prev.grid.CopySnake(snake_id, snake_.begin());
       int length = prev.grid.GetSnakeLength(snake_id);
       auto& [head_x_ref, head_y_ref, head_dir_ref] = snake_[0];
-      COORD head(head_x_ref, head_y_ref);
       auto prev_tail = snake_[length - 1];
+
       // movement
       head_dir_ref =
           out.inputs[snake_id] >= 0 ? out.inputs[snake_id] : head_dir_ref;
       MoveSnake(snake_.begin(), snake_.end(), snake_.begin());
+
       // check collision
       out.is_collide = out.is_collide ||
                        out.grid.IsOutOfBound(head_x_ref, head_y_ref) ||
                        prev.grid.IsSnake(head_x_ref, head_y_ref);
+
       // check food consumption
-      if (out.grid.food.GetX() == head_x_ref &&
-          out.grid.food.GetY() == head_y_ref) {
+      COORD head(head_x_ref, head_y_ref);
+      if (out.grid.food == head) {
         out.is_food_consumed = true;
         snake_[length] = prev_tail;
         ++out.score[snake_id];

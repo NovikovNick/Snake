@@ -32,7 +32,7 @@ class FoodService {
             state.grid.food.GetX(), state.grid.food.GetY(),
             foods_sequence_.size());
     }
-    return !foods_sequence_.empty();
+    return HasFood();
   }
 
   void AddFoodIfAbsent(COORD& coord) {
@@ -40,6 +40,8 @@ class FoodService {
       foods_sequence_.push(coord);
     }
   }
+
+  inline bool HasFood() const { return !foods_sequence_.empty(); }
 
  private:
   std::stack<COORD> GenerateFoods(const int width, const int height) {

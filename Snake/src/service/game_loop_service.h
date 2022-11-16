@@ -21,12 +21,12 @@ class GameLoopService final {
  public:
   void Start();
   void Stop();
-  GameLoopService(const GameSettigs& settings,
-                  std::shared_ptr<InputService> input_service,
-                  std::shared_ptr<RenderService> render_service,
-                  std::shared_ptr<FoodService> food_srv,
-                  std::shared_ptr<AIService> ai_service,
-                  std::shared_ptr<GameStateService> game_state_service)
+  GameLoopService(
+      const GameSettigs& settings, std::shared_ptr<InputService> input_service,
+      std::shared_ptr<RenderService> render_service,
+      std::shared_ptr<FoodService> food_srv,
+      std::shared_ptr<AIService> ai_service,
+      std::shared_ptr<GameStateService<FoodService>> game_state_service)
       : settings_(settings),
         input_service_(input_service),
         render_service_(render_service),
@@ -40,7 +40,7 @@ class GameLoopService final {
   std::shared_ptr<RenderService> render_service_;
   std::shared_ptr<FoodService> food_srv_;
   std::shared_ptr<AIService> ai_service_;
-  std::shared_ptr<GameStateService> game_state_service_;
+  std::shared_ptr<GameStateService<FoodService>> game_state_service_;
 
   // move to nameless
   std::thread render_thread_;

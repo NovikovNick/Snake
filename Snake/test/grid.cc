@@ -34,15 +34,46 @@ class TestRenderService {
   };
 };
 
+class TestFoodService {
+  using STATE = GameState;
+  using COORD = GridCell;
+  std::stack<COORD, std::deque<COORD>> foods_sequence_;
+
+ public:
+  TestFoodService(std::deque<GridCell> coords)
+      : foods_sequence_(std::stack<COORD, std::deque<COORD>>(coords)) {}
+
+  bool SetFood(STATE& state) {
+    bool is_food_not_added = true;
+    while (is_food_not_added && !foods_sequence_.empty()) {
+      state.grid.food = foods_sequence_.top();
+      foods_sequence_.pop();
+
+      is_food_not_added =
+          state.grid.IsSnake(state.grid.food.GetX(), state.grid.food.GetY());
+    }
+    return !foods_sequence_.empty();
+
+  }
+
+  void AddFoodIfAbsent(COORD& coord) {
+    if (foods_sequence_.empty() || foods_sequence_.top() != coord) {
+      foods_sequence_.push(coord);
+    }
+  }
+
+  inline bool HasFood() const { return !foods_sequence_.empty(); }
+};
+
 #if CASE_1
 BOOST_AUTO_TEST_CASE(case1) {
   // arrange
   int width = 16, height = 16, count = 2, winScore = 25, frame = 0;
-
+  std::deque<GridCell> coords{{0, 0}, {0, 15}, {15,0}, {15, 15}};
   TestRenderService renderService(width, height);
   auto ai_srv = std::make_shared<AIService>(width, height);
-  auto food_srv = std::make_shared<FoodService>(width, height);
-  GameStateService state_srv(width, height, ai_srv, food_srv);
+  auto food_srv = std::make_shared<TestFoodService>(coords);
+  GameStateService<TestFoodService> state_srv(width, height, ai_srv, food_srv);
 
   RingBuffer<GameState> buffer(3);
 
@@ -51,7 +82,7 @@ BOOST_AUTO_TEST_CASE(case1) {
   auto& state = buffer[0];
   SNAKE_DATA snake0{{2, 2, 2}, {2, 1, 2}, {2, 0, 2}};
   state.grid.AddSnake(0, snake0.begin(), snake0.end());
-  SNAKE_DATA snake1{{5, 2, 2}, {5, 1, 2}, {5, 0, 2}};
+  SNAKE_DATA snake1{{10, 2, 2}, {10, 1, 2}, {10, 0, 2}};
   state.grid.AddSnake(1, snake1.begin(), snake1.end());
 
   food_srv->SetFood(state);
@@ -63,11 +94,11 @@ BOOST_AUTO_TEST_CASE(case1) {
     auto& next = buffer[0];
     auto& prev = buffer[1];
 
-    next.inputs[0] = ai_srv->FindPath(prev.grid.GetSnakeHead(0), prev.grid.food, prev.grid);
-    
-    state_srv.Move(prev, next);
+    next.inputs[0] =
+        ai_srv->FindPath(prev.grid.GetSnakeHead(0), prev.grid.food, prev.grid);
 
-    running = !next.is_collide;
+    state_srv.Move(prev, next);
+    running = food_srv->HasFood() && !next.is_collide;
 
     // assert (render to console)
     next.grid.copy(renderService.GetOutput());

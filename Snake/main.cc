@@ -30,8 +30,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine,
   auto render_srv = std::make_shared<snake::RenderService>(win.Window(), stg);
   auto food_srv = std::make_shared<snake::FoodService>(stg.width, stg.height);
   auto ai_srv = std::make_shared<snake::AIService>(stg.width, stg.height);
-  auto state_srv = std::make_shared<snake::GameStateService>(
-      stg.width, stg.height, ai_srv, food_srv);
+  auto state_srv =
+      std::make_shared<snake::GameStateService<snake::FoodService>>(
+          stg.width, stg.height, ai_srv, food_srv);
 
   auto game_loop_srv = std::make_shared<snake::GameLoopService>(
       stg, input_srv, render_srv, food_srv, ai_srv, state_srv);
