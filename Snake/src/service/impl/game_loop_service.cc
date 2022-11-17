@@ -92,22 +92,22 @@ void GameLoopService::StartGameLoop() {
                         Grid2d(stg.width, stg.height, stg.snake_count)));
 
       buf[frame_offset].inputs[0] = AdaptToV2(player_input.direction);
-      game_state_service_->Move(0, buf);
+      game_state_service_->Move(buf[1], buf[0]);
 
       paused = buf[0].is_collide;
 
     } else {
       if (player_input.command == SystemCommand::kStepBackward)
         frame_offset = std::clamp<int>(frame_offset + 1, 0,
-                                       std::min<int>(frame, buf_capacity) - 1);
+                                       std::min<int>(frame, buf_capacity) - 2);
 
       if (player_input.command == SystemCommand::kStepForward)
         frame_offset = std::clamp<int>(frame_offset - 1, 0,
-                                       std::min<int>(frame, buf_capacity) - 1);
+                                       std::min<int>(frame, buf_capacity) - 2);
 
       if (player_input.direction != Direction::kNone) {
         buf[frame_offset].inputs[0] = AdaptToV2(player_input.direction);
-        game_state_service_->Move(frame_offset, buf);
+        game_state_service_->RollbackAndMove(frame_offset, buf);
       }
     }
 

@@ -19,18 +19,12 @@ class FoodService {
 
   bool SetFood(STATE& state) {
     bool is_food_not_added = true;
-    while (is_food_not_added && !foods_sequence_.empty()) {
+    while (is_food_not_added && HasFood()) {
       state.grid.food = foods_sequence_.top();
       foods_sequence_.pop();
 
       is_food_not_added =
           state.grid.IsSnake(state.grid.food.GetX(), state.grid.food.GetY());
-
-      debug(state.is_food_consumed
-                ? "There is a snake on [{:2d},{:2d}] only {} foods has left\n"
-                : "Added food to [{:2d},{:2d}] only {} foods has left\n",
-            state.grid.food.GetX(), state.grid.food.GetY(),
-            foods_sequence_.size());
     }
     return HasFood();
   }

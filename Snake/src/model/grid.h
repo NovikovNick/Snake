@@ -44,7 +44,6 @@ class Grid2d final {
   std::unordered_map<int, COORD_SET> filled_;
   std::vector<SNAKE_DATA> snakes_;
   std::vector<int> snake_length_;
-  std::vector<COORD> grid_;
   int width_, height_;
 
  public:
@@ -57,13 +56,7 @@ class Grid2d final {
         snake_count(snake_count),
         snakes_(std::vector<SNAKE_DATA>(snake_count)),
         snake_length_(std::vector<int>(snake_count)),
-        grid_(GRID_DATA(width * height)),
         filled_(std::unordered_map<int, COORD_SET>()) {
-    for (int row = 0; row < height; ++row) {
-      for (int col = 0; col < width; ++col) {
-        grid_[row * width + col] = COORD(col, row);
-      }
-    }
   };
   int GetSnakeLength(const int& index) const { return snake_length_[index]; }
 
@@ -101,19 +94,19 @@ class Grid2d final {
     int index;
     if (y + 1 < height_ && !IsSnake(x, y + 1)) {
       index = width_ * (y + 1) + (x + 0);
-      *(out++) = grid_[index];
+      *(out++) = COORD(x + 0, y + 1);
     }
     if (x + 1 < width_ && !IsSnake(x + 1, y)) {
       index = width_ * (y + 0) + (x + 1);
-      *(out++) = grid_[index];
+      *(out++) = COORD(x + 1, y + 0);
     }
     if (y - 1 >= 0 && !IsSnake(x, y - 1)) {
       index = width_ * (y - 1) + (x + 0);
-      *(out++) = grid_[index];
+      *(out++) = COORD(x + 0, y - 1);
     }
     if (x - 1 >= 0 && !IsSnake(x - 1, y)) {
       index = width_ * (y + 0) + (x - 1);
-      *(out) = grid_[index];
+      *(out) = COORD(x - 1, y + 0);
     }
   }
 
@@ -151,10 +144,8 @@ class Grid2d final {
     } else {
       filled_[snake_id].clear();
     }
-    for (const auto& snake : snakes_) {
-      for (const auto [x, y, _] : snake) {
-        filled_[snake_id].emplace(x, y);
-      }
+    for (const auto [x, y, _] : snakes_[snake_id]) {
+      filled_[snake_id].emplace(x, y);
     }
   }
 

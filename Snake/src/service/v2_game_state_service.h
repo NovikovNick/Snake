@@ -1,33 +1,20 @@
 #ifndef SNAKE_SNAKE_STATE_SERVICE_H_
 #define SNAKE_SNAKE_STATE_SERVICE_H_
-#include <type_traits>
 #include <vector>
 
 #include "../model/game_state.h"
 #include "../model/grid.h"
 #include "../util.h"
+#include "../snake_api.h"
 #include "v2_ai_service.h"
 
 namespace snake {
-
-template <class T>
-typename std::add_lvalue_reference<T>::type makeval();
-
-template <typename N>
-concept food_srv = requires(N n) {
-                     n.SetFood(makeval<GameState>());
-                     n.AddFoodIfAbsent(makeval<GridCell>());
-                     { n.HasFood() } -> std::same_as<bool>;
-                   };
 
 template <food_srv FOOD_SRV>
 class GameStateService {
   using COORD = GridCell;
   using STATE = GameState;
   using STATE_HOLDER = RingBuffer<GameState>;
-
-  // static_assert(food_srv<FOOD_SRV>(), "Food service doesn't contain requered
-  // methods");
 
  private:
   SNAKE_DATA snake_;
@@ -42,23 +29,20 @@ class GameStateService {
         ai_srv(ai_srv),
         food_srv(food_srv){};
 
-  void Move(const int offset, STATE_HOLDER& buf) {
+  void RollbackAndMove(const int offset, STATE_HOLDER& buf) {
     if (offset == 0) {
-      Move(buf[offset + 1], buf[offset]);
+      Move(buf[1], buf[0]);
       return;
     }
     
     // 1. pull food
-    for (int i = 0; i < offset; ++i) {
+    for (int i = 0; i < offset + 1; ++i) {
       if (buf[i].is_food_consumed) food_srv->AddFoodIfAbsent(buf[i].grid.food);
     }
 
-    // 2. change input for offset state
-    Move(buf[offset + 1], buf[offset]);
-
     // 3. update state of all subsequent -> if state is not invalid
-    for (int i = (offset - 1); i >= 0; --i) {
-      Move(i, buf);
+    for (int i = offset; i >= 0; --i) {
+      Move(buf[i + 1], buf[i]);
     }
   }
 
@@ -67,6 +51,8 @@ class GameStateService {
     next.score = prev.score;
     next.is_collide = prev.is_collide;
     next.is_score_reached = prev.is_score_reached;
+    next.is_food_consumed = false;
+
     if (!prev.is_collide) {
       SetInputs(prev, next);
       ApplyInputs(prev, next);

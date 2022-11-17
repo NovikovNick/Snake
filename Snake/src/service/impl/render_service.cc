@@ -131,7 +131,7 @@ void RenderService::Render(const int offset) {
 
   for (int x = 0; x < setting_.width; ++x) {
     auto [snake_id, dir, type] = game_objects_[width * height + x];
-    int inp_x = lft_padding + size * (setting_.width - 1) - size * x;
+    int inp_x = 5 + lft_padding + size * (setting_.width - 1) - size * x;
     int inp_y = top_padding - size;
     DrawInput(inp_x, inp_y, type == 5 ? dir : -1, size * 0.7, x == offset,
               _pGreenBrush);

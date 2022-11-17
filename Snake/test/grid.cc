@@ -1,6 +1,6 @@
 ﻿#define BOOST_TEST_MODULE SolutionTest
 #define CASE_1 1
-#define SNAKE_DEBUG 0
+#define SNAKE_DEBUG 1
 
 #include "../src/model/grid.h"
 
@@ -53,7 +53,6 @@ class TestFoodService {
           state.grid.IsSnake(state.grid.food.GetX(), state.grid.food.GetY());
     }
     return !foods_sequence_.empty();
-
   }
 
   void AddFoodIfAbsent(COORD& coord) {
@@ -69,13 +68,13 @@ class TestFoodService {
 BOOST_AUTO_TEST_CASE(case1) {
   // arrange
   int width = 16, height = 16, count = 2, winScore = 25, frame = 0;
-  std::deque<GridCell> coords{{0, 0}, {0, 15}, {15,0}, {15, 15}};
+  std::deque<GridCell> coords{{0, 0}, {0, 15}, {15, 0}, {15, 15}};
   TestRenderService renderService(width, height);
   auto ai_srv = std::make_shared<AIService>(width, height);
   auto food_srv = std::make_shared<TestFoodService>(coords);
   GameStateService<TestFoodService> state_srv(width, height, ai_srv, food_srv);
 
-  RingBuffer<GameState> buffer(3);
+  RingBuffer<GameState> buffer(16);
 
   // init fst state
   buffer.Add(GameState(frame, count, Grid2d(width, height, count)));
@@ -102,6 +101,15 @@ BOOST_AUTO_TEST_CASE(case1) {
 
     // assert (render to console)
     next.grid.copy(renderService.GetOutput());
+    renderService.render();
+  }
+
+  int offset = 14;
+  debug("Update frame with new input {}!\n ", offset);
+  buffer[offset].inputs[0] = 2;
+  state_srv.RollbackAndMove(offset, buffer);
+  for (int i = offset; i >= 0; --i) {
+    buffer[i].grid.copy(renderService.GetOutput());
     renderService.render();
   }
 }
