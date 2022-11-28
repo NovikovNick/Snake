@@ -1,0 +1,45 @@
+﻿#ifndef SNAKE_UI_RESOURCE_MANAGER_H_
+#define SNAKE_UI_RESOURCE_MANAGER_H_
+
+#include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
+#include <iostream>
+
+#include "src/util.h"
+
+namespace snake {
+
+class ResourceManager {
+  sf::Font default_fnt, title_fnt;
+  sf::Texture snake_sprite_sheet;
+  sf::Texture key_arrows_texture;
+  sf::SoundBuffer click;
+
+ public:
+  ResourceManager() {
+    if (!title_fnt.loadFromFile("resources/title_fnt.ttf"))
+      debug("Unable to load font!\n");
+
+    if (!default_fnt.loadFromFile("resources/default_fnt.otf"))
+      debug("Unable to load default_fnt.otf!\n");
+
+    if (!snake_sprite_sheet.loadFromFile("resources/snake_sprite_sheet.png"))
+      debug("Unable to load running_sprite.png!\n");
+
+    if (!key_arrows_texture.loadFromFile("resources/key_arrows.png"))
+      debug("Unable to load key_arrows.png!\n");
+    key_arrows_texture.setSmooth(true);
+
+    if (!click.loadFromFile("resources/click.wav"))
+      debug("Unable to load click.wav!\n");
+  };
+
+  inline sf::Font& GetTitleFont() & { return title_fnt; }
+  inline sf::Font& GetDefaultFont() & { return default_fnt; }
+  inline sf::Texture& GetSnakeSpriteSheet() & { return snake_sprite_sheet; }
+  inline sf::SoundBuffer& GetClickSoundBuffer() & { return click; }
+  inline sf::Texture& GetKeyArrowsTexture() & { return key_arrows_texture; }
+};
+
+};      // namespace snake
+#endif  // SNAKE_UI_RESOURCE_MANAGER_H_
