@@ -5,6 +5,7 @@
 
 #include "../service/input_service.h"
 #include "cursor.cc"
+#include "layout_service.h"
 #include "resource_manager.h"
 
 namespace snake {
@@ -23,7 +24,7 @@ class UIService {
       : resource_mng(resource_mng),
         layout_srv(layout_srv),
         event_srv(event_srv),
-        game_finished (false) {}
+        game_finished(false) {}
 
   void startEventLoop() {
     sf::ContextSettings settings;

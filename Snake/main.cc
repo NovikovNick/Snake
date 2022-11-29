@@ -8,7 +8,6 @@
 #include "src/util.h"
 
 /*
-2. handle win/lose
 3. render state
 4. controls
 */
@@ -27,7 +26,7 @@ int main() {
       std::make_shared<snake::GameStateService<snake::FoodService>>(
           stg.width, stg.height, ai_srv, food_srv);
   auto game_loop_srv = std::make_shared<snake::GameLoopService>(
-      stg, input_srv, food_srv, ai_srv, state_srv/*, ui_srv*/);
+      stg, input_srv, food_srv, ai_srv, state_srv, ui_srv);
 
   // start the game
   game_loop_srv->Start();

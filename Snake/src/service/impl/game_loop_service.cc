@@ -90,7 +90,6 @@ void GameLoopService::StartGameLoop() {
     auto player_input = input_service_->pollEvent();
 
     debug("{} frame\n", frame);
-    // std::cout << frame << std::endl;
 
     if (player_input.command == SystemCommand::kStartGame) {
       started = true;
@@ -117,7 +116,7 @@ void GameLoopService::StartGameLoop() {
 
         if (buf[0].is_collide) {
           paused = true;
-          // ui_srv->game_finished = true;
+          ui_srv->game_finished = true;
         }
 
       } else {
