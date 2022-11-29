@@ -3,6 +3,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 
+#include "../service/input_service.h"
 #include "cursor.cc"
 #include "resource_manager.h"
 
@@ -11,12 +12,18 @@ namespace snake {
 class UIService {
   std::shared_ptr<ResourceManager> resource_mng;
   std::shared_ptr<LayoutService> layout_srv;
-  int event;
+  std::shared_ptr<GameEventService> event_srv;
 
  public:
+  bool game_finished;
+
   UIService(std::shared_ptr<ResourceManager> resource_mng,
-            std::shared_ptr<LayoutService> layout_srv)
-      : resource_mng(resource_mng), layout_srv(layout_srv) {}
+            std::shared_ptr<LayoutService> layout_srv,
+            std::shared_ptr<GameEventService> event_srv)
+      : resource_mng(resource_mng),
+        layout_srv(layout_srv),
+        event_srv(event_srv),
+        game_finished (false) {}
 
   void startEventLoop() {
     sf::ContextSettings settings;
@@ -36,18 +43,13 @@ class UIService {
     click_sound.setVolume(30.0f);
 
     // 5. event handling
-    layout_srv->start_btn->onHover = [&click_sound](const Button& b) {
-      click_sound.play();
-    };
+    layout_srv->exit_btn->onClick = [&]() { window.close(); };
+    layout_srv->exit_btn->onHover = [&](auto _) { click_sound.play(); };
+    layout_srv->start_btn->onHover = [&](auto _) { click_sound.play(); };
     layout_srv->start_btn->onClick = [&]() {
       click_sound.play();
       layout_srv->onStart();
     };
-
-    layout_srv->exit_btn->onHover = [&click_sound](const Button& b) {
-      click_sound.play();
-    };
-    layout_srv->exit_btn->onClick = [&window]() { window.close(); };
 
     while (window.isOpen()) {
       sf::Event event;
@@ -57,29 +59,51 @@ class UIService {
             window.close();
             break;
           case sf::Event::KeyPressed:
-            switch (event.key.code) {
-              case sf::Keyboard::Escape:
-                window.close();
-                break;
+            if (isInfoLayout()) {
+              layout_srv->onRulesRead();
+              event_srv->sendEvent(
+                  {Direction::kNone, SystemCommand::kStartGame});
+            } else {
+              switch (event.key.code) {
+                case sf::Keyboard::Escape:
+                  window.close();
+                  break;
+                case sf::Keyboard::Left:
+                  event_srv->sendEvent(
+                      {Direction::kLeft, SystemCommand::kNone});
+                  break;
+                case sf::Keyboard::Right:
+                  event_srv->sendEvent(
+                      {Direction::kRight, SystemCommand::kNone});
+                  break;
+                case sf::Keyboard::Up:
+                  event_srv->sendEvent({Direction::kUp, SystemCommand::kNone});
+                  break;
+                case sf::Keyboard::Down:
+                  event_srv->sendEvent(
+                      {Direction::kDown, SystemCommand::kNone});
+                  break;
+                case sf::Keyboard::W:
+                  if (layout_srv->game_layout->active) layout_srv->onWin();
+                  break;
+                case sf::Keyboard::L:
+                  if (layout_srv->game_layout->active) layout_srv->onLose();
+                  break;
+              }
             }
             break;
           case sf::Event::MouseButtonPressed:
-
-              if (layout_srv->game_rules->active ||
-                layout_srv->game_win->active || layout_srv->game_lose->active) {
+            if (isInfoLayout()) {
               layout_srv->onRulesRead();
+              event_srv->sendEvent(
+                  {Direction::kNone, SystemCommand::kStartGame});
             } else {
               if (event.mouseButton.button == sf::Mouse::Left) {
                 auto [_, x, y] = event.mouseButton;
                 for (const auto& btn : layout_srv->active_layout->buttons) {
                   if (btn->hover) btn->click();
                 }
-                debug(".setPosition({}, {});\n", x, y);
               }
-            }
-
-             if (event.mouseButton.button == sf::Mouse::Left) {
-              click_sound.play();
             }
             break;
           case sf::Event::MouseMoved:
@@ -93,6 +117,11 @@ class UIService {
         }
       }
 
+      // todo: poll game events;
+      if (game_finished) {
+        game_finished = false;
+        layout_srv->onLose();
+      }
       window.clear(layout_srv->background_clr);
       window.draw(*layout_srv->active_layout);
       window.draw(cursor);
@@ -100,12 +129,9 @@ class UIService {
     }
   };
 
-  void addEvent(int game_event) { int event = game_event; };
-
-  int pollEvent() {
-    int res = event;
-    event = -1;
-    return res;
+  bool isInfoLayout() {
+    return layout_srv->game_rules->active || layout_srv->game_win->active ||
+           layout_srv->game_lose->active;
   };
 };
 }  // namespace snake

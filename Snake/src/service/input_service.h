@@ -1,21 +1,28 @@
-#ifndef SNAKE_SNAKE_INPUT_SERVICE_H_
-#define SNAKE_SNAKE_INPUT_SERVICE_H_
+#ifndef SNAKE_GAME_EVENT_SERVICE_H_
+#define SNAKE_GAME_EVENT_SERVICE_H_
 #include <vector>
 
-#include "../model/player_input.h"
+#include "../model/game_event.h"
 #include "deque"
 
 namespace snake {
 
-class InputService final {
+class GameEventService final {
  public:
-  void AddInput(const PlayerInput& input);
-  PlayerInput PopInputs();
+  void sendEvent(const GameEvent& input) { queue_.push_front(input); }
+  GameEvent pollEvent() {
+    if (!queue_.empty()) {
+      auto res = queue_.front();
+      queue_.clear();
+      return res;
+    }
+    return GameEvent{};
+  }
 
  private:
-  std::deque<PlayerInput> input_queue_;
+  std::deque<GameEvent> queue_;
 };
 
 }  // namespace snake
 
-#endif  // SNAKE_SNAKE_INPUT_SERVICE_H_
+#endif  // SNAKE_GAME_EVENT_SERVICE_H_

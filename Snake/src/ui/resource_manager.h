@@ -5,7 +5,7 @@
 #include <SFML/Audio.hpp>
 #include <iostream>
 
-#include "src/util.h"
+#include "../util.h"
 
 namespace snake {
 

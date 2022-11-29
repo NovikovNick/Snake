@@ -22,6 +22,7 @@ enum class Direction : std::uint8_t {
 };
 
 enum class SystemCommand : std::int8_t {
+  kStartGame,
   kPause,
   kStepForward,
   kStepBackward,
@@ -30,7 +31,7 @@ enum class SystemCommand : std::int8_t {
   kNone
 };
 
-struct PlayerInput final {
+struct GameEvent final {
   Direction direction = Direction::kNone;
   SystemCommand command = SystemCommand::kNone;
 };
