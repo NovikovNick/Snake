@@ -29,7 +29,7 @@ file(GLOB SRC_UI_SFML "Snake/src/ui/**/*.h" "Snake/src/win32/**/*.cc")
 
 file(GLOB SRC_FILES "Snake/src/util.h" ${SRC_UI_SFML} ${SRC_SERVICE} ${SRC_MODEL})
 
-add_executable (Snake "Snake/main.cc" ${SRC_FILES} "Snake/src/ui/layout_service.h")
+add_executable (Snake "Snake/main.cc" ${SRC_FILES})
 target_link_libraries(Snake sfml-graphics sfml-window sfml-system sfml-network sfml-audio opengl32 winmm gdi32)
 
 
@@ -38,13 +38,13 @@ target_link_libraries(Snake sfml-graphics sfml-window sfml-system sfml-network s
 #target_include_directories(AStarAlgorithm PRIVATE Boost::unit_test_framework)
 #add_test(NAME test_AStarAlgorithm COMMAND AStarAlgorithm)
 
-add_executable(grid2d "Snake/test/grid.cc" ${SRC_FILES} "Snake/src/ui/layout_service.h")
-target_include_directories(grid2d PRIVATE Boost::unit_test_framework)
-add_test(NAME test_grid2d COMMAND grid2d)
+#add_executable(grid2d "Snake/test/grid.cc" "Snake/src/util.h" ${SRC_SERVICE} ${SRC_MODEL})
+#target_include_directories(grid2d PRIVATE Boost::unit_test_framework)
+#add_test(NAME test_grid2d COMMAND grid2d)
 
-add_executable(grid_find_adjacents "Snake/test/grid_find_adjacents.cc" ${SRC_FILES} "Snake/src/ui/layout_service.h")
-target_include_directories(grid_find_adjacents PRIVATE Boost::unit_test_framework)
-add_test(NAME test_grid_find_adjacents COMMAND grid_find_adjacents)
+#add_executable(grid_find_adjacents "Snake/test/grid_find_adjacents.cc" ${SRC_FILES})
+#target_include_directories(grid_find_adjacents PRIVATE Boost::unit_test_framework)
+#add_test(NAME test_grid_find_adjacents COMMAND grid_find_adjacents)
 
 
 message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")

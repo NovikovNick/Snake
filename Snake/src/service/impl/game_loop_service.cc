@@ -4,6 +4,7 @@
 
 #include <unordered_set>
 
+#include "../../model/game_object.h"
 #include "../../model/game_settings.h"
 #include "../../model/game_state.h"
 #include "../../model/ring_buffer.h"
@@ -62,15 +63,15 @@ GameLoopService::GAME_STATE_HOLDER GameLoopService::initGameStates() {
 
 void GameLoopService::Render(const int offset, GAME_STATE_HOLDER& holder) {
   auto& state = holder[offset];
+  auto out = ui_srv->layout_srv->map->getOutputIterator();
 
-  /*auto out = render_service_->GetOutput();
-  state.grid.copy(out);
-  out = out + settings_.width * settings_.height;
-  for (int i = 0; i < holder.Size(); ++i) {
-    *(out + i) = GAME_OBJECT(0, holder[i].inputs[0], 5);
+  for (int y = 0; y < settings_.height; ++y) {
+    for (int x = 0; x < settings_.width; ++x) {
+      *out = state.grid.GetType(x, y);
+      ++out;
+    }
   }
-
-  render_service_->Render(offset);*/
+  ui_srv->layout_srv->map->update();
 }
 
 void GameLoopService::Stop() {

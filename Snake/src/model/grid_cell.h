@@ -32,6 +32,14 @@ struct GridCell final {
     return GridCell(x - other_x, y - other_y);
   };
 
+  static bool equals(const GridCell& a, const GridCell& b) { return a == b; }
+
+  static size_t hash(const GridCell& a) {
+    auto h1 = std::hash<int>{}(a.GetX());
+    auto h2 = std::hash<int>{}(a.GetY());
+    return h1 == h2 ? h1 : h1 ^ h2;
+  };
+
   std::string ToString() const {
     return std::format("[{:2d},{:2d}]", GetX(), GetY());
   }
@@ -43,9 +51,7 @@ namespace std {
 template <>
 struct hash<snake::GridCell> {
   size_t operator()(const snake::GridCell& p) const {
-    auto h1 = std::hash<int>{}(p.GetX());
-    auto h2 = std::hash<int>{}(p.GetY());
-    return h1 == h2 ? h1 : h1 ^ h2;
+    return snake::GridCell::hash(p);
   }
 };
 }  // namespace std

@@ -17,7 +17,7 @@ struct GameSettigs final {
   int screen_height = 800;
   int snake_count = 2;
   int winScore = 30;
-  int speed = 100;
+  int speed = 150;
 };
 
 }  // namespace snake

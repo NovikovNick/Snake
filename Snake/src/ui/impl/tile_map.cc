@@ -2,48 +2,40 @@
 #include <iostream>
 
 #include "groupable.cc"
+#include "../../model/game_object.h"
 
 namespace snake {
 
-enum class SNAKE_INDEX {
-  APPLE = 15,
-  EMPTY = 6,
-
-  BODY_HOR = 1,
-  BODY_VER = 7,
-
-  HEAD_TOP = 3,
-  HEAD_BTM = 9,
-  HEAD_LFT = 8,
-  HEAD_RHT = 4,
-
-  TAIL_TOP = 19,
-  TAIL_BTM = 13,
-  TAIL_LFT = 14,
-  TAIL_RHT = 18,
-
-  TURN_TL = 0,
-  TURN_TR = 2,
-  TURN_BL = 5,
-  TURN_BR = 12
-};
 
 class TileMap : public Groupable {
   sf::VertexArray vertices_;
   sf::Texture tileset_;
+  sf::Vector2u ts;
+  uint32_t width, height;
+  std::vector<SNAKE_INDEX> tiles;
 
  public:
   TileMap(const sf::Texture& tileset, const sf::Vector2u ts,
-          const std::vector<SNAKE_INDEX>& tiles, const uint32_t width,
-          const uint32_t height)
-      : tileset_(tileset) {
-    tileset_.setSmooth(true);
+          const uint32_t width, const uint32_t height)
+      : ts(ts),
+        width(width),
+        height(height),
+        tileset_(tileset),
+        tiles(std::vector<SNAKE_INDEX>(width * height, SNAKE_INDEX::EMPTY)) {
+    //tileset_.setSmooth(true);
 
     // resize the vertex array to fit the level size
     vertices_.setPrimitiveType(sf::Quads);
     vertices_.resize(width * height * 4);
+  }
 
-    // populate the vertex array, with one quad per tile
+  std::vector<SNAKE_INDEX>::iterator getOutputIterator() {
+    return tiles.begin();
+  }
+
+  /* populate the vertex array, with one quad per tile
+   */
+  void update() {
     for (uint32_t i = 0; i < width; ++i) {
       for (uint32_t j = 0; j < height; ++j) {
         // get the current tile number

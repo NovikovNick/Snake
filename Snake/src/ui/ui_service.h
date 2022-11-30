@@ -12,11 +12,13 @@ namespace snake {
 
 class UIService {
   std::shared_ptr<ResourceManager> resource_mng;
-  std::shared_ptr<LayoutService> layout_srv;
   std::shared_ptr<GameEventService> event_srv;
-
- public:
+  
+  std::vector<GAME_OBJECT> game_objects;
+ 
+public:
   bool game_finished;
+  std::shared_ptr<LayoutService> layout_srv;
 
   UIService(std::shared_ptr<ResourceManager> resource_mng,
             std::shared_ptr<LayoutService> layout_srv,
@@ -84,11 +86,20 @@ class UIService {
                   event_srv->sendEvent(
                       {Direction::kDown, SystemCommand::kNone});
                   break;
-                case sf::Keyboard::W:
-                  if (layout_srv->game_layout->active) layout_srv->onWin();
+                case sf::Keyboard::A:
+                  event_srv->sendEvent(
+                      {Direction::kLeft, SystemCommand::kNone});
                   break;
-                case sf::Keyboard::L:
-                  if (layout_srv->game_layout->active) layout_srv->onLose();
+                case sf::Keyboard::D:
+                  event_srv->sendEvent(
+                      {Direction::kRight, SystemCommand::kNone});
+                  break;
+                case sf::Keyboard::W:
+                  event_srv->sendEvent({Direction::kUp, SystemCommand::kNone});
+                  break;
+                case sf::Keyboard::S:
+                  event_srv->sendEvent(
+                      {Direction::kDown, SystemCommand::kNone});
                   break;
               }
             }
