@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "impl/button.cc"
+#include "impl/grid.cc"
 #include "impl/groupable.cc"
 #include "impl/image.cc"
 #include "impl/label.cc"
@@ -17,7 +18,8 @@ struct I18n {
   const wchar_t* title{L"Змейка"};
   const wchar_t* version{L"v0.2.0"};
   const wchar_t* start_btn_lbl{L"Начать игру"};
-  const wchar_t* score_lbl{L"  / 10"};
+  const wchar_t* exit_btn_lbl{L"Выход"};
+  const wchar_t* score_lbl{L" / "};
   const wchar_t* control_lbl{L"Управление на стрелочки"};
   const wchar_t* press_any_btn_lbl{L"Нажмите на любую клавишу, чтобы начать"};
   const wchar_t* win_lbl{L"Победа!"};
@@ -30,6 +32,7 @@ namespace snake {
 class LayoutService {
   I18n i18n;
   int width, height;
+  GameSettigs settings;
   std::shared_ptr<ResourceManager> resource_mng;
 
  public:
@@ -39,18 +42,21 @@ class LayoutService {
   std::shared_ptr<Layout> active_layout;
   std::vector<SNAKE_INDEX> level;
   std::shared_ptr<TileMap> map;
-  // std::shared_ptr<Label> tmp;
+  std::shared_ptr<Label> game_score_lbl;
 
-  LayoutService(std::shared_ptr<ResourceManager> resource_mng)
+  LayoutService(const GameSettigs& settings,
+                std::shared_ptr<ResourceManager> resource_mng)
       : key_clr(sf::Color(255, 100, 0)),
         background_clr(sf::Color(35, 35, 35)),
         txt_clr(sf::Color::White),
-        width(1100),
-        height(730),
+        settings(settings),
+        width(settings.screen_width),
+        height(settings.screen_height),
         i18n({}),
         resource_mng(resource_mng),
         active_layout(nullptr),
-        level(std::vector<SNAKE_INDEX>(16 * 16, SNAKE_INDEX::EMPTY)){};
+        level(std::vector<SNAKE_INDEX>(settings.width * settings.height,
+                                       SNAKE_INDEX::EMPTY)){};
 
   void initLayouts(const int screen_width, const int screen_height) {
     initMenu(screen_width, screen_height, resource_mng);
@@ -67,6 +73,12 @@ class LayoutService {
   void onRulesRead() { changeLayout(game_layout); }
   void onWin() { changeLayout(game_win); }
   void onLose() { changeLayout(game_lose); }
+
+  void update(const int score) {
+    game_score_lbl->label.setString(std::to_string(score) + " / " +
+                                    std::to_string(settings.winScore));
+    map->update();
+  }
 
  private:
   void initMenu(const int screen_width, const int screen_height,
@@ -94,7 +106,8 @@ class LayoutService {
     start_btn->setPosition(100, 267);
 
     exit_btn = std::make_shared<Button>(
-        400, 105, sf::Text(L"Выход", resource_mng->GetDefaultFont(), 50));
+        400, 105,
+        sf::Text(i18n.exit_btn_lbl, resource_mng->GetDefaultFont(), 50));
     exit_btn->form.setFillColor(key_clr);
     exit_btn->on_hover_form.setFillColor(key_clr);
     exit_btn->on_hover_form.setOutlineColor(txt_clr);
@@ -117,23 +130,29 @@ class LayoutService {
 
   void initGameLayout(const int screen_width, const int screen_height,
                       std::shared_ptr<ResourceManager> resource_mng) {
-    auto game_score_lbl = std::make_shared<Label>(
-        sf::Text(i18n.score_lbl, resource_mng->GetTitleFont(), 100));
+    std::string score_str = "0 / " + std::to_string(settings.winScore);
+
+    game_score_lbl = std::make_shared<Label>(
+        sf::Text(score_str, resource_mng->GetTitleFont(), 100));
     game_score_lbl->label.setFillColor(key_clr);
     game_score_lbl->setPosition(760, 70);
-   
+    auto grid = std::make_shared<Grid>(settings.width, settings.height, 64);
     map = std::make_shared<TileMap>(resource_mng->GetSnakeSpriteSheet(),
-                                         sf::Vector2u(64, 64), 16, 16);
+                                    sf::Vector2u(64, 64), settings.width,
+                                    settings.height);
+
     game_layout = std::make_shared<Layout>();
     game_layout->setPosition((screen_width - width) / 2,
                              (screen_height - height) / 2);
+    Groupable::assign(game_layout, grid);
     Groupable::assign(game_layout, game_score_lbl);
     Groupable::assign(game_layout, map);
   }
 
   void initGameRulesLayout(const int screen_width, const int screen_height,
                            std::shared_ptr<ResourceManager> resource_mng) {
-    auto lbl_1 = std::make_shared<Label>(sf::Text(i18n.control_lbl, resource_mng->GetTitleFont(), 60));
+    auto lbl_1 = std::make_shared<Label>(
+        sf::Text(i18n.control_lbl, resource_mng->GetTitleFont(), 60));
     lbl_1->label.setFillColor(key_clr);
     lbl_1->setPosition(229, 71);
 
@@ -143,8 +162,7 @@ class LayoutService {
     img->setPosition(359, 214);
 
     auto lbl_2 = std::make_shared<Label>(
-        sf::Text(i18n.press_any_btn_lbl,
-                 resource_mng->GetTitleFont(), 50));
+        sf::Text(i18n.press_any_btn_lbl, resource_mng->GetTitleFont(), 50));
     lbl_2->label.setFillColor(key_clr);
     lbl_2->setPosition(105, 512);
     game_rules = std::make_shared<Layout>();

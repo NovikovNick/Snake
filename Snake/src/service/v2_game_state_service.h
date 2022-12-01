@@ -49,11 +49,10 @@ class GameStateService {
   void Move(const STATE& prev, STATE& next) {
     next.grid.food = prev.grid.food;
     next.score = prev.score;
-    next.is_collide = prev.is_collide;
-    next.is_score_reached = prev.is_score_reached;
+    next.collision = prev.collision;
     next.is_food_consumed = false;
 
-    if (!prev.is_collide) {
+    if (!prev.isCollide()) {
       SetInputs(prev, next);
       ApplyInputs(prev, next);
 
@@ -82,7 +81,7 @@ class GameStateService {
       MoveSnake(snake_.begin(), snake_.end(), snake_.begin());
 
       // check collision
-      out.is_collide = out.is_collide ||
+      out.collision[snake_id] = out.collision[snake_id] ||
                        out.grid.IsOutOfBound(head_x_ref, head_y_ref) ||
                        prev.grid.IsSnake(head_x_ref, head_y_ref);
 

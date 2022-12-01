@@ -13,7 +13,7 @@ int main() {
 
   // init services
   auto resource_srv = std::make_shared<ResourceManager>();
-  auto layout_srv = std::make_shared<LayoutService>(resource_srv);
+  auto layout_srv = std::make_shared<LayoutService>(stg, resource_srv);
   auto input_srv = std::make_shared<GameEventService>();
   auto ui_srv =
       std::make_shared<UIService>(resource_srv, layout_srv, input_srv);

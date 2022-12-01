@@ -18,6 +18,7 @@ class UIService {
  
 public:
   bool game_finished;
+  bool win;
   std::shared_ptr<LayoutService> layout_srv;
 
   UIService(std::shared_ptr<ResourceManager> resource_mng,
@@ -26,12 +27,13 @@ public:
       : resource_mng(resource_mng),
         layout_srv(layout_srv),
         event_srv(event_srv),
-        game_finished(false) {}
+        game_finished(false),
+        win(false) {}
 
   void startEventLoop() {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
-    auto mode = sf::VideoMode(1100, 730);
+    auto mode = sf::VideoMode(1200, 800);
     auto style = sf::Style::Default;
     sf::RenderWindow window(mode, L"Змейка v0.2", style, settings);
     window.setVerticalSyncEnabled(true);
@@ -39,13 +41,12 @@ public:
 
     layout_srv->initLayouts(window.getSize().x, window.getSize().y);
 
-    // 3. init other elements
     // cursor
     Cursor cursor(40, sf::Color::Red);
     sf::Sound click_sound(resource_mng->GetClickSoundBuffer());
     click_sound.setVolume(30.0f);
 
-    // 5. event handling
+    // event handling
     layout_srv->exit_btn->onClick = [&]() { window.close(); };
     layout_srv->exit_btn->onHover = [&](auto _) { click_sound.play(); };
     layout_srv->start_btn->onHover = [&](auto _) { click_sound.play(); };
@@ -132,8 +133,13 @@ public:
       // todo: poll game events;
       if (game_finished) {
         game_finished = false;
-        layout_srv->onLose();
+        if (win) {
+          layout_srv->onWin();
+        } else {
+          layout_srv->onLose();
+        }
       }
+
       window.clear(layout_srv->background_clr);
       window.draw(*layout_srv->active_layout);
       window.draw(cursor);

@@ -1,5 +1,3 @@
-#define SNAKE_DEBUG 1
-
 #include "../game_loop_service.h"
 
 #include <unordered_set>
@@ -71,7 +69,7 @@ void GameLoopService::Render(const int offset, GAME_STATE_HOLDER& holder) {
       ++out;
     }
   }
-  ui_srv->layout_srv->map->update();
+  ui_srv->layout_srv->update(state.score[0]);
 }
 
 void GameLoopService::Stop() {
@@ -89,8 +87,6 @@ void GameLoopService::StartGameLoop() {
     auto t0 = std::chrono::steady_clock::now();
     // 1.
     auto player_input = input_service_->pollEvent();
-
-    debug("{} frame\n", frame);
 
     if (player_input.command == SystemCommand::kStartGame) {
       started = true;
@@ -115,9 +111,16 @@ void GameLoopService::StartGameLoop() {
         buf[frame_offset].inputs[0] = AdaptToV2(player_input.direction);
         game_state_service_->Move(buf[1], buf[0]);
 
-        if (buf[0].is_collide) {
+        if (buf[0].isScoreReached(settings_.winScore)) {
           paused = true;
           ui_srv->game_finished = true;
+          ui_srv->win = buf[0].score[0] == settings_.winScore;
+        }
+
+        if (buf[0].isCollide()) {
+          paused = true;
+          ui_srv->game_finished = true;
+          ui_srv->win = !buf[0].collision[0];
         }
 
       } else {
