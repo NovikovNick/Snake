@@ -73,14 +73,7 @@ class TileMap : public Groupable {
   }
 
   virtual void onDraw(sf::RenderTarget& target, sf::RenderStates states) const {
-    // apply the transform
-    states.transform *= getTransform();
-    // states.transform.scale(0.7f, 0.7f);
-
-    // apply the tileset texture
     states.texture = &tileset_;
-
-    // draw the vertex array
     target.draw(vertices_, states);
   }
 

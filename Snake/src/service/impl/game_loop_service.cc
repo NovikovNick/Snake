@@ -77,6 +77,7 @@ void GameLoopService::StartGameLoop() {
       frame = 0;
       frame_offset = 0;
       buf = initGameStates();
+      food_srv_->initFood();
     }
 
     if (player_input.command == SystemCommand::kPause) {

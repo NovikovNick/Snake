@@ -14,6 +14,7 @@ concept food_srv = requires(N n) {
                      n.SetFood(makeval<GameState>());
                      n.AddFoodIfAbsent(makeval<GridCell>());
                      { n.HasFood() } -> std::same_as<bool>;
+                     { n.initFood() } -> std::same_as<void>;
                    };
 
 }  // namespace snake

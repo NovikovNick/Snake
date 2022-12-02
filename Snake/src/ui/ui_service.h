@@ -34,7 +34,7 @@ public:
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
     auto mode = sf::VideoMode(1200, 800);
-    auto style = sf::Style::Default;
+    auto style = sf::Style::Fullscreen;
     sf::RenderWindow window(mode, L"Çìåéêà v0.2", style, settings);
     window.setVerticalSyncEnabled(true);
     window.setMouseCursorVisible(false);
@@ -122,6 +122,9 @@ public:
           case sf::Event::MouseMoved:
             auto [x, y] = event.mouseMove;
             cursor.setPosition(x, y);
+
+            //layout_srv->map->setPosition(x, y);
+            
             auto bounds = cursor.getBounds();
             for (const auto& btn : layout_srv->active_layout->buttons) {
               btn->setHover(btn->intersects(bounds));

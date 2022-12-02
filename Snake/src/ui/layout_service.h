@@ -31,7 +31,6 @@ namespace snake {
 
 class LayoutService {
   I18n i18n;
-  int width, height;
   GameSettigs settings;
   std::shared_ptr<ResourceManager> resource_mng;
 
@@ -50,8 +49,6 @@ class LayoutService {
         background_clr(sf::Color(35, 35, 35)),
         txt_clr(sf::Color::White),
         settings(settings),
-        width(settings.screen_width),
-        height(settings.screen_height),
         i18n({}),
         resource_mng(resource_mng),
         active_layout(nullptr),
@@ -83,15 +80,17 @@ class LayoutService {
  private:
   void initMenu(const int screen_width, const int screen_height,
                 std::shared_ptr<ResourceManager> resource_mng) {
+    int margin_x = 75, margin_y = 0;
+
     auto version_lbl = std::make_shared<Label>(
         sf::Text(i18n.version, resource_mng->GetDefaultFont(), 25));
-    version_lbl->setPosition(236, 180);
+    version_lbl->setPosition(236 + margin_x, 180 + margin_y);
     version_lbl->label.setFillColor(txt_clr);
 
     auto game_title_lbl = std::make_shared<Label>(
         sf::Text(i18n.title, resource_mng->GetTitleFont(), 150));
     game_title_lbl->label.setFillColor(key_clr);
-    game_title_lbl->setPosition(550, 230);
+    game_title_lbl->setPosition(550 + margin_x, 230 + margin_y);
     Groupable::assign(game_title_lbl, version_lbl);
 
     start_btn = std::make_shared<Button>(
@@ -103,7 +102,7 @@ class LayoutService {
     start_btn->on_hover_form.setOutlineThickness(5.f);
     start_btn->label.setPosition(37, 14);
     start_btn->label.setFillColor(txt_clr);
-    start_btn->setPosition(100, 267);
+    start_btn->setPosition(100 + margin_x, 267 + margin_y);
 
     exit_btn = std::make_shared<Button>(
         400, 105,
@@ -114,10 +113,11 @@ class LayoutService {
     exit_btn->on_hover_form.setOutlineThickness(5.f);
     exit_btn->label.setPosition(119, 14);
     exit_btn->label.setFillColor(txt_clr);
-    exit_btn->setPosition(100, 390);
+    exit_btn->setPosition(100 + margin_x, 390 + margin_y);
 
     menu = std::make_shared<Layout>();
-    menu->setPosition((screen_width - width) / 2, (screen_height - height) / 2);
+    menu->setPosition((screen_width - settings.screen_width) / 2,
+                      (screen_height - settings.screen_height) / 2);
 
     Groupable::assign(menu, start_btn);
     menu->buttons.push_back(start_btn);
@@ -135,15 +135,17 @@ class LayoutService {
     game_score_lbl = std::make_shared<Label>(
         sf::Text(score_str, resource_mng->GetTitleFont(), 100));
     game_score_lbl->label.setFillColor(key_clr);
-    game_score_lbl->setPosition(760, 70);
+    game_score_lbl->setPosition(492, 12);
     auto grid = std::make_shared<Grid>(settings.width, settings.height, 64);
+    grid->setPosition(279, 152);
     map = std::make_shared<TileMap>(resource_mng->GetSnakeSpriteSheet(),
                                     sf::Vector2u(64, 64), settings.width,
                                     settings.height);
-
+    map->setPosition(279, 152);
+    //map->setPosition(141, 45);
     game_layout = std::make_shared<Layout>();
-    game_layout->setPosition((screen_width - width) / 2,
-                             (screen_height - height) / 2);
+    game_layout->setPosition((screen_width - settings.screen_width) / 2,
+                             (screen_height - settings.screen_height) / 2);
     Groupable::assign(game_layout, grid);
     Groupable::assign(game_layout, game_score_lbl);
     Groupable::assign(game_layout, map);
@@ -151,23 +153,25 @@ class LayoutService {
 
   void initGameRulesLayout(const int screen_width, const int screen_height,
                            std::shared_ptr<ResourceManager> resource_mng) {
+    int margin_x = 75, margin_y = 50;
+
     auto lbl_1 = std::make_shared<Label>(
         sf::Text(i18n.control_lbl, resource_mng->GetTitleFont(), 60));
     lbl_1->label.setFillColor(key_clr);
-    lbl_1->setPosition(229, 71);
+    lbl_1->setPosition(229 + margin_x, 71 + margin_y);
 
     auto img = std::make_shared<Image>(resource_mng->GetKeyArrowsTexture());
     img->sprite.scale(0.2f, 0.2f);
     img->sprite.setColor(key_clr);
-    img->setPosition(359, 214);
+    img->setPosition(359 + margin_x, 214 + margin_y);
 
     auto lbl_2 = std::make_shared<Label>(
         sf::Text(i18n.press_any_btn_lbl, resource_mng->GetTitleFont(), 50));
     lbl_2->label.setFillColor(key_clr);
-    lbl_2->setPosition(105, 512);
+    lbl_2->setPosition(105 + margin_x, 512 + margin_y);
     game_rules = std::make_shared<Layout>();
-    game_rules->setPosition((screen_width - width) / 2,
-                            (screen_height - height) / 2);
+    game_rules->setPosition((screen_width - settings.screen_width) / 2,
+                            (screen_height - settings.screen_height) / 2);
     Groupable::assign(game_rules, lbl_2);
     Groupable::assign(game_rules, lbl_1);
     Groupable::assign(game_rules, img);
@@ -178,10 +182,10 @@ class LayoutService {
     auto lbl = std::make_shared<Label>(
         sf::Text(i18n.lose_lbl, resource_mng->GetTitleFont(), 150));
     lbl->label.setFillColor(key_clr);
-    lbl->setPosition(233, 249);
+    lbl->setPosition(300, 275);
     game_lose = std::make_shared<Layout>();
-    game_lose->setPosition((screen_width - width) / 2,
-                           (screen_height - height) / 2);
+    game_lose->setPosition((screen_width - settings.screen_width) / 2,
+                           (screen_height - settings.screen_height) / 2);
     Groupable::assign(game_lose, lbl);
   }
 
@@ -190,10 +194,10 @@ class LayoutService {
     auto lbl = std::make_shared<Label>(
         sf::Text(i18n.win_lbl, resource_mng->GetTitleFont(), 150));
     lbl->label.setFillColor(key_clr);
-    lbl->setPosition(319, 246);
+    lbl->setPosition(370, 275);
     game_win = std::make_shared<Layout>();
-    game_win->setPosition((screen_width - width) / 2,
-                          (screen_height - height) / 2);
+    game_win->setPosition((screen_width - settings.screen_width) / 2,
+                          (screen_height - settings.screen_height) / 2);
     Groupable::assign(game_win, lbl);
   }
 
