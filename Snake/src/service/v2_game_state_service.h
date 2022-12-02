@@ -2,11 +2,32 @@
 #define SNAKE_SNAKE_STATE_SERVICE_H_
 #include <vector>
 
+#include "../model/direction.h"
 #include "../model/game_state.h"
 #include "../model/grid.h"
-#include "../util.h"
 #include "../snake_api.h"
+#include "../util.h"
 #include "v2_ai_service.h"
+
+namespace {
+std::vector<snake::Direction> dir_enum{
+    snake::Direction::kNone, snake::Direction::kRight, snake::Direction::kLeft,
+    snake::Direction::kDown, snake::Direction::kUp};
+
+std::vector<std::pair<int, int>> dir_int{
+    {1, 0},   // right
+    {-1, 0},  // left
+    {0, 1},   // bottom
+    {0, -1}   // top
+};
+
+std::pair<int, int> add(const int x, const int y, snake::Direction dir) {
+  auto [offset_x, offset_y] = dir_int[static_cast<int>(dir)];
+  return std::make_pair(x + offset_x, y + offset_y);
+}
+
+snake::Direction convert(const int dir) { return dir_enum[dir + 1]; }
+}  // namespace
 
 namespace snake {
 
@@ -34,7 +55,7 @@ class GameStateService {
       Move(buf[1], buf[0]);
       return;
     }
-    
+
     // 1. pull food
     for (int i = 0; i < offset + 1; ++i) {
       if (buf[i].is_food_consumed) food_srv->AddFoodIfAbsent(buf[i].grid.food);
@@ -62,8 +83,9 @@ class GameStateService {
 
   void SetInputs(const STATE& prev, STATE& out) {
     for (int botId = 1; botId < out.inputs.size(); ++botId) {
-      out.inputs[botId] = ai_srv->FindPath(prev.grid.GetSnakeHead(botId),
-                                           prev.grid.food, prev.grid);
+      auto dir = ai_srv->FindPath(prev.grid.GetSnakeHead(botId), prev.grid.food,
+                                  prev.grid);
+      out.inputs[botId] = convert(dir);
     }
   }
 
@@ -76,14 +98,15 @@ class GameStateService {
       auto prev_tail = snake_[length - 1];
 
       // movement
-      head_dir_ref =
-          out.inputs[snake_id] >= 0 ? out.inputs[snake_id] : head_dir_ref;
+      head_dir_ref = out.inputs[snake_id] != Direction::kNone
+                         ? out.inputs[snake_id]
+                         : head_dir_ref;
       MoveSnake(snake_.begin(), snake_.end(), snake_.begin());
 
       // check collision
       out.collision[snake_id] = out.collision[snake_id] ||
-                       out.grid.IsOutOfBound(head_x_ref, head_y_ref) ||
-                       prev.grid.IsSnake(head_x_ref, head_y_ref);
+                                out.grid.IsOutOfBound(head_x_ref, head_y_ref) ||
+                                prev.grid.IsSnake(head_x_ref, head_y_ref);
 
       // check food consumption
       COORD head(head_x_ref, head_y_ref);
@@ -101,15 +124,10 @@ class GameStateService {
 
   void MoveSnake(SNAKE_DATA_ITERATOR begin, SNAKE_DATA_ITERATOR end,
                  SNAKE_DATA_ITERATOR out) {
-    std::vector<COORD> dirs{
-        {1, 0},   // right
-        {-1, 0},  // left
-        {0, 1},   // bottom
-        {0, -1}   // top
-    };
     for (auto [_, __, prevDir] = *begin; begin != end; ++begin) {
       auto [x, y, dir] = *begin;
-      *out = SNAKE_PART(x + dirs[dir].GetX(), y + dirs[dir].GetY(), prevDir);
+      auto [new_x, new_y] = add(x, y, dir);
+      *out = SNAKE_PART(new_x, new_y, prevDir);
       prevDir = dir;
       ++out;
     }

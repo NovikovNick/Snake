@@ -9,12 +9,12 @@
 #include <unordered_set>
 #include <vector>
 
+#include "direction.h"
 #include "game_object.h"
 #include "grid_cell.h"
 
 namespace snake {
-
-using SNAKE_PART = std::tuple<int, int, int>;
+using SNAKE_PART = std::tuple<int, int, Direction>;
 using GAME_OBJECT = std::tuple<int, int, SNAKE_INDEX, int>;
 using SNAKE_DATA = std::deque<SNAKE_PART>;
 using SNAKE_DATA_CONST_ITERATOR = SNAKE_DATA::const_iterator;
@@ -132,12 +132,7 @@ class Grid2d final {
   bool IsOutOfBound(const int& x, const int& y) const {
     return x < 0 || y < 0 || x >= width_ || y >= height_;
   }
-  /*
-    case Direction::kUp 3;
-    case Direction::kDown 2;
-    case Direction::kLeft 1;
-    case Direction::kRight 0;
-  */
+
   void RebuildFilled(const int snake_id) {
     auto set = GAME_OBJECT_SET(32, GameObjectHash{}, GameObjectEquals{});
 
@@ -148,15 +143,20 @@ class Grid2d final {
       const auto [_, __, ndir] = snake[i + 1];
       SNAKE_INDEX index;
       if (cdir == ndir) {
-        index = (cdir == 0 || cdir == 1) ? SNAKE_INDEX::BODY_HOR
-                                         : SNAKE_INDEX::BODY_VER;
-      } else if ((cdir == 0 && ndir == 3) || (cdir == 2 && ndir == 1)) {
+        index = (cdir == Direction::kRight || cdir == Direction::kLeft)
+                    ? SNAKE_INDEX::BODY_HOR
+                    : SNAKE_INDEX::BODY_VER;
+      } else if ((cdir == Direction::kRight && ndir == Direction::kUp) ||
+                 (cdir == Direction::kDown && ndir == Direction::kLeft)) {
         index = SNAKE_INDEX::TURN_TL;
-      } else if ((cdir == 1 && ndir == 3) || (cdir == 2 && ndir == 0)) {
+      } else if ((cdir == Direction::kLeft && ndir == Direction::kUp) ||
+                 (cdir == Direction::kDown && ndir == Direction::kRight)) {
         index = SNAKE_INDEX::TURN_TR;
-      } else if ((cdir == 0 && ndir == 2) || (cdir == 3 && ndir == 1)) {
+      } else if ((cdir == Direction::kRight && ndir == Direction::kDown) ||
+                 (cdir == Direction::kUp && ndir == Direction::kLeft)) {
         index = SNAKE_INDEX::TURN_BL;
-      } else if ((cdir == 1 && ndir == 2) || (cdir == 3 && ndir == 0)) {
+      } else if ((cdir == Direction::kLeft && ndir == Direction::kDown) ||
+                 (cdir == Direction::kUp && ndir == Direction::kRight)) {
         index = SNAKE_INDEX::TURN_BR;
       }
       set.insert({x, y, index, snake_id});
@@ -165,16 +165,16 @@ class Grid2d final {
     const auto [hx, hy, hdir] = snake[0];
     SNAKE_INDEX hindex;
     switch (hdir) {
-      case 3:
+      case Direction::kUp:
         hindex = SNAKE_INDEX::HEAD_TOP;
         break;
-      case 2:
+      case Direction::kDown:
         hindex = SNAKE_INDEX::HEAD_BTM;
         break;
-      case 1:
+      case Direction::kLeft:
         hindex = SNAKE_INDEX::HEAD_LFT;
         break;
-      case 0:
+      case Direction::kRight:
         hindex = SNAKE_INDEX::HEAD_RHT;
         break;
     }
@@ -183,16 +183,16 @@ class Grid2d final {
     const auto [tx, ty, tdir] = snake[size - 1];
     SNAKE_INDEX tindex;
     switch (tdir) {
-      case 3:
+      case Direction::kUp:
         tindex = SNAKE_INDEX::TAIL_BTM;
         break;
-      case 2:
+      case Direction::kDown:
         tindex = SNAKE_INDEX::TAIL_TOP;
         break;
-      case 1:
+      case Direction::kLeft:
         tindex = SNAKE_INDEX::TAIL_RHT;
         break;
-      case 0:
+      case Direction::kRight:
         tindex = SNAKE_INDEX::TAIL_LFT;
         break;
     }

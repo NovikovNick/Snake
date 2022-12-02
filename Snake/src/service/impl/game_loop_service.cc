@@ -10,25 +10,6 @@
 
 namespace snake {
 
-namespace {
-int AdaptToV2(const Direction dir) {
-  switch (dir) {
-    case Direction::kUp:
-      return 3;
-    case Direction::kDown:
-      return 2;
-    case Direction::kLeft:
-      return 1;
-    case Direction::kRight:
-      return 0;
-    case Direction::kNone:
-      return -1;
-    default:
-      return -1;
-  }
-}
-}  // namespace
-
 void GameLoopService::Start() {
   running_ = true;
   render_thread_ = std::thread(&GameLoopService::StartGameLoop, this);
@@ -41,7 +22,9 @@ GameLoopService::GAME_STATE_HOLDER GameLoopService::initGameStates() {
 
   std::vector<SNAKE_DATA> snakes;
   for (int i = 0; i < settings_.snake_count; ++i)
-    snakes.push_back(SNAKE_DATA{{i, 2, 2}, {i, 1, 2}, {i, 0, 2}});
+    snakes.push_back(SNAKE_DATA{{i, 2, Direction::kDown},
+                                {i, 1, Direction::kDown},
+                                {i, 0, Direction::kDown}});
 
   GAME_STATE_HOLDER buf(buf_capacity);
   buf.Add(GameState(
@@ -49,7 +32,7 @@ GameLoopService::GAME_STATE_HOLDER GameLoopService::initGameStates() {
       Grid2d(settings_.width, settings_.height, settings_.snake_count)));
 
   auto& init_game_state = buf[0];
-  init_game_state.inputs[0] = -1;
+  init_game_state.inputs[0] = Direction::kNone;
 
   for (int i = 0; i < settings_.snake_count; ++i)
     init_game_state.grid.AddSnake(i, snakes[i].begin(), snakes[i].end());
@@ -108,7 +91,7 @@ void GameLoopService::StartGameLoop() {
             ++frame, settings_.snake_count,
             Grid2d(settings_.width, settings_.height, settings_.snake_count)));
 
-        buf[frame_offset].inputs[0] = AdaptToV2(player_input.direction);
+        buf[frame_offset].inputs[0] = player_input.direction;
         game_state_service_->Move(buf[1], buf[0]);
 
         if (buf[0].isScoreReached(settings_.winScore)) {
@@ -133,11 +116,10 @@ void GameLoopService::StartGameLoop() {
               frame_offset - 1, 0, std::min<int>(frame, buf.getCapacity()) - 2);
 
         if (player_input.direction != Direction::kNone) {
-          buf[frame_offset].inputs[0] = AdaptToV2(player_input.direction);
+          buf[frame_offset].inputs[0] = player_input.direction;
           game_state_service_->RollbackAndMove(frame_offset, buf);
         }
       }
-
       Render(frame_offset, buf);
     }
 

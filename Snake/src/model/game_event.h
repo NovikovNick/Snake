@@ -1,25 +1,9 @@
-#ifndef SNAKE_SNAKE_GAME_PLAYER_INPUT_H_
-#define SNAKE_SNAKE_GAME_PLAYER_INPUT_H_
+#ifndef SNAKE_GAME_EVENT_H_
+#define SNAKE_GAME_EVENT_H_
 
-#include <format>
-#include <iostream>
-#include <queue>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-
-#include "grid_cell.h"
+#include "direction.h"
 
 namespace snake {
-
-enum class Direction : std::uint8_t {
-  kUp,
-  kDown,
-  kLeft,
-  kRight,
-  kNone,
-};
 
 enum class SystemCommand : std::int8_t {
   kStartGame,
@@ -37,4 +21,4 @@ struct GameEvent final {
 };
 
 }  // namespace snake
-#endif  // SNAKE_SNAKE_GAME_PLAYER_INPUT_H_
+#endif  // SNAKE_GAME_EVENT_H_

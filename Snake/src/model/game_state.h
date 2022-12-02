@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "grid.h"
+#include "direction.h"
 
 namespace snake {
 
@@ -16,7 +17,7 @@ struct GameState {
  public:
   int frame;
   GRID grid;
-  std::vector<int> inputs;
+  std::vector<Direction> inputs;
   std::vector<int> score;
   std::vector<bool> collision;
   bool is_food_consumed;
@@ -25,7 +26,7 @@ struct GameState {
       : snake_count(snake_count),
         frame(frame),
         grid(std::move(grid)),
-        inputs(std::vector<int>(snake_count)),
+        inputs(std::vector<Direction>(snake_count)),
         score(std::vector<int>(snake_count)),
         collision(std::vector<bool>(snake_count)),
         is_food_consumed(false) {}
