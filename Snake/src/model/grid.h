@@ -9,12 +9,13 @@
 #include <unordered_set>
 #include <vector>
 
+#include "direction.h"
+#include "game_object.h"
 #include "grid_cell.h"
 
 namespace snake {
-
-using SNAKE_PART = std::tuple<int, int, int>;
-using GAME_OBJECT = std::tuple<int, int, int>;
+using SNAKE_PART = std::tuple<int, int, Direction>;
+using GAME_OBJECT = std::tuple<int, int, SNAKE_INDEX, int>;
 using SNAKE_DATA = std::deque<SNAKE_PART>;
 using SNAKE_DATA_CONST_ITERATOR = SNAKE_DATA::const_iterator;
 using SNAKE_DATA_ITERATOR = SNAKE_DATA::iterator;
@@ -26,22 +27,24 @@ class Grid2d final {
   using GRID_DATA = std::vector<COORD>;
   using COORD_ITERATOR = GRID_DATA::iterator;
 
-  struct CoordHash {
-    int operator()(const COORD& o) const {
-      auto h1 = std::hash<int>{}(o.GetX());
-      auto h2 = std::hash<int>{}(o.GetY());
-      if (h1 == h2) return h1;
-      return h1 ^ h2;
+  struct GameObjectHash {
+    int operator()(const GAME_OBJECT& a) const {
+      auto [x, y, index, snake_id] = a;
+      auto h1 = std::hash<int>{}(x);
+      auto h2 = std::hash<int>{}(y);
+      return h1 == h2 ? h1 : h1 ^ h2;
     }
   };
-  struct CoordEquals {
-    bool operator()(const COORD& o1, const COORD& o2) const {
-      return o1.GetX() == o2.GetX() && o1.GetY() == o2.GetY();
+  struct GameObjectEquals {
+    bool operator()(const GAME_OBJECT& a, const GAME_OBJECT& b) const {
+      auto& [x1, y1, index1, snake_id1] = a;
+      auto& [x2, y2, index2, snake_id2] = b;
+      return (snake_id1 == snake_id2) && (x1 == x2) && (y1 == y2);
     }
   };
-  using COORD_SET = std::unordered_set<COORD, CoordHash, CoordEquals>;
-
-  std::unordered_map<int, COORD_SET> filled_;
+  using GAME_OBJECT_SET =
+      std::unordered_set<GAME_OBJECT, GameObjectHash, GameObjectEquals>;
+  std::vector<GAME_OBJECT_SET> game_objects_;
   std::vector<SNAKE_DATA> snakes_;
   std::vector<int> snake_length_;
   int width_, height_;
@@ -56,8 +59,8 @@ class Grid2d final {
         snake_count(snake_count),
         snakes_(std::vector<SNAKE_DATA>(snake_count)),
         snake_length_(std::vector<int>(snake_count)),
-        filled_(std::unordered_map<int, COORD_SET>()) {
-  };
+        game_objects_(std::vector<GAME_OBJECT_SET>(snake_count)){};
+
   int GetSnakeLength(const int& index) const { return snake_length_[index]; }
 
   void AddSnake(const int& index, auto begin, auto end) {
@@ -110,14 +113,6 @@ class Grid2d final {
     }
   }
 
-  void copy(GAME_OBJECT_ITERATOR out) {
-    for (int i = 0, size = width_ * height_; i < size; ++i) {
-      int row = i / width_;
-      int col = i % width_;
-      *(out++) = SNAKE_PART(col, row, GetType(col, row));
-    }
-  };
-
   bool IsSnake(const int& x, const int& y) const {
     for (int snake_id = 0; snake_id < snake_count; ++snake_id) {
       if (IsSnake(x, y, snake_id)) return true;
@@ -126,12 +121,12 @@ class Grid2d final {
   }
 
   bool IsSnake(const int& x, const int& y, const int snake_id) const {
-    auto it = filled_.find(snake_id);
-    if (it == filled_.end()) {
+    if (game_objects_[snake_id].empty()) {
       return false;
     }
-    auto snake_part_set = it->second;
-    return snake_part_set.find({x, y}) != snake_part_set.end();
+    auto snake_part_set = game_objects_[snake_id];
+    return snake_part_set.find({x, y, SNAKE_INDEX::EMPTY, snake_id}) !=
+           snake_part_set.end();
   }
 
   bool IsOutOfBound(const int& x, const int& y) const {
@@ -139,23 +134,90 @@ class Grid2d final {
   }
 
   void RebuildFilled(const int snake_id) {
-    if (filled_[snake_id].empty()) {
-      filled_[snake_id] = COORD_SET(32, CoordHash{}, CoordEquals{});
-    } else {
-      filled_[snake_id].clear();
+    auto set = GAME_OBJECT_SET(32, GameObjectHash{}, GameObjectEquals{});
+
+    const auto& snake = snakes_[snake_id];
+    int size = snake_length_[snake_id];
+    for (int i = 1; i < (size - 1); ++i) {
+      const auto [x, y, cdir] = snake[i];
+      const auto [_, __, ndir] = snake[i + 1];
+      SNAKE_INDEX index;
+      if (cdir == ndir) {
+        index = (cdir == Direction::kRight || cdir == Direction::kLeft)
+                    ? SNAKE_INDEX::BODY_HOR
+                    : SNAKE_INDEX::BODY_VER;
+      } else if ((cdir == Direction::kRight && ndir == Direction::kUp) ||
+                 (cdir == Direction::kDown && ndir == Direction::kLeft)) {
+        index = SNAKE_INDEX::TURN_TL;
+      } else if ((cdir == Direction::kLeft && ndir == Direction::kUp) ||
+                 (cdir == Direction::kDown && ndir == Direction::kRight)) {
+        index = SNAKE_INDEX::TURN_TR;
+      } else if ((cdir == Direction::kRight && ndir == Direction::kDown) ||
+                 (cdir == Direction::kUp && ndir == Direction::kLeft)) {
+        index = SNAKE_INDEX::TURN_BL;
+      } else if ((cdir == Direction::kLeft && ndir == Direction::kDown) ||
+                 (cdir == Direction::kUp && ndir == Direction::kRight)) {
+        index = SNAKE_INDEX::TURN_BR;
+      }
+      set.insert({x, y, index, snake_id});
     }
-    for (const auto [x, y, _] : snakes_[snake_id]) {
-      filled_[snake_id].emplace(x, y);
+
+    const auto [hx, hy, hdir] = snake[0];
+    SNAKE_INDEX hindex;
+    switch (hdir) {
+      case Direction::kUp:
+        hindex = SNAKE_INDEX::HEAD_TOP;
+        break;
+      case Direction::kDown:
+        hindex = SNAKE_INDEX::HEAD_BTM;
+        break;
+      case Direction::kLeft:
+        hindex = SNAKE_INDEX::HEAD_LFT;
+        break;
+      case Direction::kRight:
+        hindex = SNAKE_INDEX::HEAD_RHT;
+        break;
     }
+    set.insert({hx, hy, hindex, snake_id});
+
+    const auto [tx, ty, tdir] = snake[size - 1];
+    SNAKE_INDEX tindex;
+    switch (tdir) {
+      case Direction::kUp:
+        tindex = SNAKE_INDEX::TAIL_BTM;
+        break;
+      case Direction::kDown:
+        tindex = SNAKE_INDEX::TAIL_TOP;
+        break;
+      case Direction::kLeft:
+        tindex = SNAKE_INDEX::TAIL_RHT;
+        break;
+      case Direction::kRight:
+        tindex = SNAKE_INDEX::TAIL_LFT;
+        break;
+    }
+    set.insert({tx, ty, tindex, snake_id});
+
+    game_objects_[snake_id] = set;
   }
 
- private:
-  int GetType(const int& x, const int& y) const {
-    if (food.GetX() == x && food.GetY() == y) return 1;
+  SNAKE_INDEX GetType(const int& x, const int& y) const {
+    if (food.GetX() == x && food.GetY() == y) return SNAKE_INDEX::APPLE;
+
     for (int snake_id = 0; snake_id < snake_count; ++snake_id) {
-      if (IsSnake(x, y, snake_id)) return snake_id + 2;
+      if (game_objects_[snake_id].empty()) {
+        continue;
+      }
+      auto snake_part_set = game_objects_[snake_id];
+      auto it_snake = snake_part_set.find({x, y, SNAKE_INDEX::EMPTY, snake_id});
+      if (it_snake == snake_part_set.end()) {
+        continue;
+      }
+      const auto& [_, __, index, ___] = *it_snake;
+      return index;
     }
-    return 0;
+
+    return SNAKE_INDEX::EMPTY;
   }
 };
 }  // namespace snake

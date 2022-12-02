@@ -10,6 +10,7 @@
 #include "../src/service/ai/a_star.h"
 #include "../src/service/ai/impl/a_star_dp.cc"
 #include "../src/model/grid.h"
+#include "../src/util.h"
 
 namespace snake {
 

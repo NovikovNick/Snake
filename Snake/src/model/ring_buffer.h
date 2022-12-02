@@ -20,6 +20,7 @@ struct RingBuffer {
   };
 
   int Size() & { return buffer_.size(); };
+  int getCapacity() { return capacity_; };
 
   T& operator[](const int i) & {
     int offset = (cursor_ - i) % capacity_;

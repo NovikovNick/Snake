@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "../a_star.h"
-#include "../../../util.h"
 
 namespace {
 
@@ -117,10 +116,10 @@ bool AStarPathfinder<N, G, I>::FindPath(const N& start, const N& goal,
                                         const G& grid, I out, I sentinel) {
   int maxDistance = std::distance(out, sentinel);
 
-  debug(
+  /*debug(
       "A* pathfinding (with dp) from [{:2d},{:2d}] to [{:2d},{:2d}]. Max "
       "distance {}\n",
-      start.GetX(), start.GetY(), goal.GetX(), goal.GetY(), maxDistance);
+      start.GetX(), start.GetY(), goal.GetX(), goal.GetY(), maxDistance);*/
 
   N empty;
   NodePathComparator<N> comp;
@@ -146,25 +145,25 @@ bool AStarPathfinder<N, G, I>::FindPath(const N& start, const N& goal,
     reacheable.pop();
     auto node = path.GetHead();
 
-    debug("#{}. Checking {}\n", ++attempt, path.ToString());
+    // debug("#{}. Checking {}\n", ++attempt, path.ToString());
     grid.FindAdjacents(node.GetX(), node.GetY(), adjacents.begin());
 
     for (auto adjacent : adjacents) {
-      debug("Adjacent ");
+      // debug("Adjacent ");
 
       if (adjacent == empty) {
-        debug("is empty\n");
+        // debug("is empty\n");
         continue;
       }
-      debug("{} ", adjacent.ToString());
+      // debug("{} ", adjacent.ToString());
 
       if (explored.find(adjacent) != explored.end()) {
-        debug("is explored\n");
+        // debug("is explored\n");
         continue;
       }
 
       if (adjacent == goal) {
-        debug("is a goal!\n");
+        // debug("is a goal!\n");
         path.AddNode(adjacent);
 
         auto it = path.begin();
@@ -182,12 +181,12 @@ bool AStarPathfinder<N, G, I>::FindPath(const N& start, const N& goal,
           if (p == pathes.end() || p->second > nextPath.GetLength()) {
             reacheable.push(nextPath);
             pathes[nextPath] = nextPath.GetLength();
-            debug("is not a goal. Add it to reacheable!\n");
+            // debug("is not a goal. Add it to reacheable!\n");
           } else {
-            debug("is not a goal. There is a shorter way. Skiped\n");
+            // debug("is not a goal. There is a shorter way. Skiped\n");
           }
         } else {
-          debug("is not a goal. Out of range {}!\n", maxDistance);
+          //  debug("is not a goal. Out of range {}!\n", maxDistance);
         }
       }
     }

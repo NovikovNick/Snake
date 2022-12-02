@@ -11,11 +11,16 @@ namespace snake {
 class FoodService {
   using COORD = GridCell;
   using STATE = GameState;
+  int width, height;
   std::stack<COORD> foods_sequence_;
 
  public:
   FoodService(const int width, const int height)
-      : foods_sequence_(GenerateFoods(width, height)) {}
+      : width(width), height(height), foods_sequence_(GenerateFoods(width, height)) {}
+
+  void initFood() {
+      foods_sequence_ = GenerateFoods(width, height);
+  }
 
   bool SetFood(STATE& state) {
     bool is_food_not_added = true;
