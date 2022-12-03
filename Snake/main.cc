@@ -16,7 +16,7 @@ int main() {
   auto layout_srv = std::make_shared<LayoutService>(stg, resource_srv);
   auto input_srv = std::make_shared<GameEventService>();
   auto ui_srv =
-      std::make_shared<UIService>(resource_srv, layout_srv, input_srv);
+      std::make_shared<UIService>(stg, resource_srv, layout_srv, input_srv);
   auto food_srv = std::make_shared<FoodService>(stg.width, stg.height);
   auto ai_srv = std::make_shared<AIService>(stg.width, stg.height);
   auto state_srv = std::make_shared<GameStateService<FoodService>>(

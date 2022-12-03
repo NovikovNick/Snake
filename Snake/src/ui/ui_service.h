@@ -13,18 +13,20 @@ namespace snake {
 class UIService {
   std::shared_ptr<ResourceManager> resource_mng;
   std::shared_ptr<GameEventService> event_srv;
-  
+  GameSettigs stg;
   std::vector<GAME_OBJECT> game_objects;
- 
-public:
+
+ public:
   bool game_finished;
   bool win;
   std::shared_ptr<LayoutService> layout_srv;
 
-  UIService(std::shared_ptr<ResourceManager> resource_mng,
+  UIService(const GameSettigs& settings,
+            std::shared_ptr<ResourceManager> resource_mng,
             std::shared_ptr<LayoutService> layout_srv,
             std::shared_ptr<GameEventService> event_srv)
-      : resource_mng(resource_mng),
+      : stg(settings),
+        resource_mng(resource_mng),
         layout_srv(layout_srv),
         event_srv(event_srv),
         game_finished(false),
@@ -33,8 +35,8 @@ public:
   void startEventLoop() {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
-    auto mode = sf::VideoMode(1200, 800);
-    auto style = sf::Style::Fullscreen;
+    auto mode = sf::VideoMode(stg.screen_width, stg.screen_height);
+    auto style = sf::Style::Default;
     sf::RenderWindow window(mode, L"Змейка v0.2", style, settings);
     window.setVerticalSyncEnabled(true);
     window.setMouseCursorVisible(false);
@@ -123,8 +125,8 @@ public:
             auto [x, y] = event.mouseMove;
             cursor.setPosition(x, y);
 
-            //layout_srv->map->setPosition(x, y);
-            
+            // layout_srv->map->setPosition(x, y);
+
             auto bounds = cursor.getBounds();
             for (const auto& btn : layout_srv->active_layout->buttons) {
               btn->setHover(btn->intersects(bounds));
