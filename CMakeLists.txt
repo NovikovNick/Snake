@@ -7,20 +7,24 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory (Snake/resources)
 
-set(BOOST_ROOT "C:\\local\\boost_1_80_0")
-set(Boost_DEBUG OFF)
-
 # SFML for x64 with BUILD_SHARED_LIBS=false, SFML_USE_STATIC_STD_LIBS=false
 set(SFML_DIR "../SFML-2.5.1/SFML_build")
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "../SFML-2.5.1/extlibs/libs-msvc-universal/x64")
 set(SFML_STATIC_LIBRARIES TRUE)
 find_package(SFML COMPONENTS graphics window system audio REQUIRED)
 
+# Boost
+set(BOOST_ROOT "C:\\local\\boost_1_80_0")
+set(Boost_DEBUG OFF)
 find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 add_definitions( -DBOOST_ALL_NO_LIB )
 add_definitions( -DBOOST_ALL_DYN_LINK )
    
 include_directories(${Boost_INCLUDE_DIRS})
+
+# GGPO
+include_directories("./GGPO")
+
 
 file(GLOB SRC_MODEL "Snake/src/model/**/*.h" "Snake/src/model/**/*.cc")
 file(GLOB SRC_SERVICE "Snake/src/service/**/*.h" "Snake/src/service/**/*.cc")

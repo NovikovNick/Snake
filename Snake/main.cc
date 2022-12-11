@@ -1,4 +1,8 @@
-﻿#include <iostream>
+﻿#define SNAKE_DEBUG 1
+
+#include <ggponet.h>
+
+#include <iostream>
 
 #include "src/model/game_settings.h"
 #include "src/service/game_loop_service.h"
@@ -7,9 +11,33 @@
 #include "src/ui/ui_service.h"
 #include "src/util.h"
 
+/*
+1. Fixed food in game state
+2. ser/des game state
+3. game events to handle ggpo
+4. callback to ggpo rollback
+*/
 int main() {
   using namespace snake;
   GameSettigs stg;
+  auto type = GGPO_PLAYERTYPE_LOCAL;
+
+  // init sockets? WSAStartup(MAKEWORD(2, 2), &wd);
+
+  std::vector<GGPOPlayer> players(2);
+  for (int i = 0; auto& player : players) {
+    player.size = sizeof(player);
+    player.player_num = ++i;
+    player.type = GGPO_PLAYERTYPE_LOCAL; // GGPO_PLAYERTYPE_REMOTE
+  }
+  /*GGPOSessionCallbacks cb = {0};
+  cb.begin_game = vw_begin_game_callback;
+  cb.advance_frame = vw_advance_frame_callback;
+  cb.load_game_state = vw_load_game_state_callback;
+  cb.save_game_state = vw_save_game_state_callback;
+  cb.free_buffer = vw_free_buffer;
+  cb.on_event = vw_on_event_callback;
+  cb.log_game_state = vw_log_game_state;*/
 
   // init services
   auto resource_srv = std::make_shared<ResourceManager>();

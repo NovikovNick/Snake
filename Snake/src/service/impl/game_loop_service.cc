@@ -8,6 +8,10 @@
 #include "../../model/ring_buffer.h"
 #include "../../util.h"
 
+namespace {
+
+}
+
 namespace snake {
 
 void GameLoopService::Start() {
