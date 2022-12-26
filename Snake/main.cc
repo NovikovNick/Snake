@@ -13,7 +13,6 @@
 
 /*
 1. Fixed food in game state
-2. ser/des game state
 3. game events to handle ggpo
 4. callback to ggpo rollback
 */

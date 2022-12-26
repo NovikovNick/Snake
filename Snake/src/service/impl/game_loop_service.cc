@@ -9,7 +9,7 @@
 #include "../../util.h"
 
 namespace {
-
+// move thread here
 }
 
 namespace snake {

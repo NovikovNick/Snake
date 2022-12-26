@@ -50,6 +50,9 @@ target_link_libraries(Snake sfml-graphics sfml-window sfml-system sfml-network s
 #target_include_directories(grid_find_adjacents PRIVATE Boost::unit_test_framework)
 #add_test(NAME test_grid_find_adjacents COMMAND grid_find_adjacents)
 
+add_executable(grid_serialization "Snake/test/grid_serialization.cc" "Snake/src/util.h" ${SRC_MODEL} "Snake/src/serialization.h" )
+target_include_directories(grid_serialization PRIVATE Boost::unit_test_framework)
+
 
 message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
 message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")

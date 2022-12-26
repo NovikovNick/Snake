@@ -9,6 +9,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "../serialization.h"
 #include "direction.h"
 #include "game_object.h"
 #include "grid_cell.h"
@@ -20,6 +21,7 @@ using SNAKE_DATA = std::deque<SNAKE_PART>;
 using SNAKE_DATA_CONST_ITERATOR = SNAKE_DATA::const_iterator;
 using SNAKE_DATA_ITERATOR = SNAKE_DATA::iterator;
 using GAME_OBJECT_ITERATOR = std::vector<GAME_OBJECT>::iterator;
+using byte = unsigned char;
 
 // template <typename COORD>
 class Grid2d final {
@@ -44,12 +46,12 @@ class Grid2d final {
   };
   using GAME_OBJECT_SET =
       std::unordered_set<GAME_OBJECT, GameObjectHash, GameObjectEquals>;
+
+ public:
   std::vector<GAME_OBJECT_SET> game_objects_;
   std::vector<SNAKE_DATA> snakes_;
   std::vector<int> snake_length_;
   int width_, height_;
-
- public:
   COORD food;
   int snake_count;
 
@@ -219,6 +221,52 @@ class Grid2d final {
 
     return SNAKE_INDEX::EMPTY;
   }
+
+  static byte* serialize(const Grid2d& src, byte** dst);
+
+  static byte* deserialize(byte* src, Grid2d& dst);
+};
+
+byte* Grid2d::serialize(const Grid2d& src, byte** dst) {
+  byte* begin = *dst;
+  begin = serialisation::write(&begin, src.width_);
+  begin = serialisation::write(&begin, src.height_);
+  begin = serialisation::write(&begin, src.snake_count);
+  begin = serialisation::write(&begin, src.food);
+  begin = serialisation::write(&begin, src.snake_length_);
+
+  begin = serialisation::write(
+      &begin,
+      std::vector<SNAKE_PART>(src.snakes_[0].begin(), src.snakes_[0].end()));
+  begin = serialisation::write(
+      &begin,
+      std::vector<SNAKE_PART>(src.snakes_[1].begin(), src.snakes_[1].end()));
+
+  return begin;
+};
+
+byte* Grid2d::deserialize(byte* src, Grid2d& dst) {
+  src = serialisation::read(src, &dst.width_);
+  src = serialisation::read(src, &dst.height_);
+  src = serialisation::read(src, &dst.snake_count);
+  src = serialisation::read(src, &dst.food);
+  src = serialisation::readVector(src, &dst.snake_length_);
+
+  dst.snakes_.resize(2);
+  dst.game_objects_.resize(2);
+  std::vector<SNAKE_PART> snake;
+
+  src = serialisation::readVector(src, &snake);
+  dst.AddSnake(0, snake.begin(), snake.end());
+  dst.RebuildFilled(0);
+
+  snake.clear();
+
+  src = serialisation::readVector(src, &snake);
+  dst.AddSnake(1, snake.begin(), snake.end());
+  dst.RebuildFilled(1);
+
+  return src;
 };
 }  // namespace snake
 #endif  // SNAKE_SNAKE_GAME_GRID_2D_H_
