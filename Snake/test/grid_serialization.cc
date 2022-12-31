@@ -1,6 +1,6 @@
 ﻿#define BOOST_TEST_MODULE SolutionTest
-#define CASE_2 0
-#define CASE_1 1
+#define CASE_2 1
+#define CASE_1 0
 #define SNAKE_DEBUG 1
 
 #define CHECK_EQUAL(L, R, M) \
@@ -10,6 +10,7 @@
   }
 
 #include <boost/test/included/unit_test.hpp>
+#include <random>
 
 #include "../src/model/game_state.h"
 #include "../src/model/grid.h"
@@ -20,8 +21,9 @@ namespace snake {
 #if CASE_1
 BOOST_AUTO_TEST_CASE(case1) {
   // arrange
+  int count = 2;
   std::vector<SNAKE_DATA> snakes;
-  for (int i = 0; i < 2; ++i)
+  for (int i = 0; i < count; ++i)
     snakes.push_back(SNAKE_DATA{{i, 2, Direction::kDown},
                                 {i, 1, Direction::kDown},
                                 {i, 0, Direction::kDown}});
@@ -33,7 +35,7 @@ BOOST_AUTO_TEST_CASE(case1) {
   src.grid.snake_length_[0] = 3;
   src.grid.snake_length_[1] = 3;
 
-  for (int i = 0; i < 2; ++i)
+  for (int i = 0; i < count; ++i)
     src.grid.AddSnake(i, snakes[i].begin(), snakes[i].end());
 
   src.grid.RebuildFilled(0);
@@ -58,20 +60,6 @@ BOOST_AUTO_TEST_CASE(case1) {
   CHECK_EQUAL(src.grid.food.GetX(), dst.grid.food.GetX(), "grid.food x");
   CHECK_EQUAL(src.grid.food.GetY(), dst.grid.food.GetY(), "grid.food y");
 
-  for (int i = 0; i < src.score.size(); ++i)
-    CHECK_EQUAL(src.score[i], dst.score[i], "score " + i);
-
-  for (int i = 0; i < src.inputs.size(); ++i)
-    CHECK_EQUAL(static_cast<int>(src.inputs[i]),
-                static_cast<int>(dst.inputs[i]), "input " + i);
-
-  for (int i = 0; i < src.collision.size(); ++i)
-    CHECK_EQUAL(src.collision[i], dst.collision[i], "collision " + i);
-
-  for (int i = 0; i < src.grid.snake_length_.size(); ++i)
-    CHECK_EQUAL(src.grid.snake_length_[i], dst.grid.snake_length_[i],
-                "grid snake length " + i);
-
   for (int i = 0; i < src.foods.size(); ++i) {
     CHECK_EQUAL(src.foods[i].GetX(), dst.foods[i].GetX(), "food x " + i);
     CHECK_EQUAL(src.foods[i].GetY(), dst.foods[i].GetY(), "food y " + i);
@@ -80,10 +68,20 @@ BOOST_AUTO_TEST_CASE(case1) {
     for (int j = 0; j < src.grid.snakes_[i].size(); ++j) {
       auto [src_x, src_y, src_dir] = src.grid.snakes_[i][j];
       auto [dst_x, dst_y, dst_dir] = dst.grid.snakes_[i][j];
-      CHECK_EQUAL(static_cast<int>(src_x), static_cast<int>(dst_x), "snake x " + j);
-      CHECK_EQUAL(static_cast<int>(src_y), static_cast<int>(dst_y), "snake y " + j);
-      CHECK_EQUAL(static_cast<int>(src_dir), static_cast<int>(dst_dir), "snake dir " + j);
+      CHECK_EQUAL(static_cast<int>(src_x), static_cast<int>(dst_x),
+                  "snake x " + j);
+      CHECK_EQUAL(static_cast<int>(src_y), static_cast<int>(dst_y),
+                  "snake y " + j);
+      CHECK_EQUAL(static_cast<int>(src_dir), static_cast<int>(dst_dir),
+                  "snake dir " + j);
     }
+
+    CHECK_EQUAL(src.score[i], dst.score[i], "score " + i);
+    CHECK_EQUAL(static_cast<int>(src.inputs[i]),
+                static_cast<int>(dst.inputs[i]), "input " + i);
+    CHECK_EQUAL(src.collision[i], dst.collision[i], "collision " + i);
+    CHECK_EQUAL(src.grid.snake_length_[i], dst.grid.snake_length_[i],
+                "grid snake length " + i);
   }
 
   CHECK_EQUAL(src.grid.width_, dst.grid.width_, "src.grid.width_");
@@ -97,20 +95,13 @@ BOOST_AUTO_TEST_CASE(case1) {
 #if CASE_2
 BOOST_AUTO_TEST_CASE(case2) {
   // arrange
-  unsigned char *buf = new unsigned char[1024];
-  std::vector<int> arr{1, 2, 3, 4, 5, 6};
-  std::vector<int> res;
-
-  // act
-  auto begin = serialisation::write(&buf, arr);
-  serialisation::readVector(buf, &res);
-
-  // assert
-  for (int i = 0; i < arr.size(); ++i)
-    BOOST_CHECK_EQUAL_MESSAGE(res[i], arr[i], "arr " + i);
-
-  // clean
-  delete[] buf;
+  std::vector<std::pair<int, int>> matrix;
+  for (int i = 0; i < 10; ++i)
+    for (int j = 0; j < 10; ++j) matrix.push_back(std::make_pair(i, j));
+  debug("size = {}\n", matrix.size());
+  matrix.erase(matrix.begin());
+  debug("size = {}\n", matrix.size());
+  for (auto [x, y] : matrix) debug("[{}, {}], ", x, y);
 }
 #endif
 }  // namespace snake

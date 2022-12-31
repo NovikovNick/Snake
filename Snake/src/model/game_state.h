@@ -45,42 +45,38 @@ struct GameState {
     return std::find(score.begin(), score.end(), win_score) != score.end();
   }
 
-  static byte *serialize(const GameState &src, byte **dst);
-  static GameState deserialize(byte *src);
+  static byte *serialize(const GameState &src, byte **dst) {
+    byte *begin = *dst;
+    begin = serialisation::write(&begin, src.frame);
+    begin = serialisation::write(&begin, src.snake_count);
+    begin = serialisation::write(&begin, src.foods);
+
+    begin = Grid2d::serialize(src.grid, &begin);
+
+    begin = serialisation::write(&begin, src.score);
+    begin = serialisation::write(&begin, src.inputs);
+    begin = serialisation::write(&begin, src.collision);
+
+    return begin;
+  };
+
+  static GameState deserialize(byte *src) {
+    int frame, snake_count = 0;
+    std::vector<GridCell> foods;
+
+    src = serialisation::read(src, &frame);
+    src = serialisation::read(src, &snake_count);
+    src = serialisation::readVector(src, &foods);
+
+    Grid2d grid(0, 0, 2);
+    src = Grid2d::deserialize(src, grid);
+    GameState gs(frame, snake_count, std::move(grid), foods);
+
+    src = serialisation::readVector(src, &gs.score);
+    src = serialisation::readVector(src, &gs.inputs);
+    src = serialisation::readVector(src, &gs.collision);
+    return gs;
+  };
 };
-
-byte *GameState::serialize(const GameState &src, byte **dst) {
-  byte *begin = *dst;
-  begin = serialisation::write(&begin, src.frame);
-  begin = serialisation::write(&begin, src.snake_count);
-  begin = serialisation::write(&begin, src.foods);
-
-  begin = Grid2d::serialize(src.grid, &begin);
-
-  begin = serialisation::write(&begin, src.score);
-  begin = serialisation::write(&begin, src.inputs);
-  begin = serialisation::write(&begin, src.collision);
-
-  return begin;
-};
-
-GameState GameState::deserialize(byte *src) {
-  int frame, snake_count = 0;
-  std::vector<GridCell> foods;
-
-  src = serialisation::readInt(src, &frame);
-  src = serialisation::readInt(src, &snake_count);
-  src = serialisation::readVector(src, &foods);
-
-  Grid2d grid(0, 0, 2);
-  src = Grid2d::deserialize(src, grid);
-  GameState gs(frame, snake_count, std::move(grid), foods);
-
-  src = serialisation::readVector(src, &gs.score);
-  src = serialisation::readVector(src, &gs.inputs);
-  src = serialisation::readVector(src, &gs.collision);
-  return gs;
-};
-
 }  // namespace snake
 #endif  // SNAKE_SNAKE_GAME_STATE_H_

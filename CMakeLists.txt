@@ -29,11 +29,11 @@ include_directories("./GGPO")
 file(GLOB SRC_MODEL "Snake/src/model/**/*.h" "Snake/src/model/**/*.cc")
 file(GLOB SRC_SERVICE "Snake/src/service/**/*.h" "Snake/src/service/**/*.cc")
 
-file(GLOB SRC_UI_SFML "Snake/src/ui/**/*.h" "Snake/src/win32/**/*.cc")
+file(GLOB SRC_UI_SFML "Snake/src/ui/**/*.h")
 
-file(GLOB SRC_FILES "Snake/src/util.h" ${SRC_UI_SFML} ${SRC_SERVICE} ${SRC_MODEL})
+file(GLOB SRC_FILES "Snake/src/util.h" ${SRC_UI_SFML} ${SRC_SERVICE} ${SRC_MODEL} "Snake/src/serialization.h" )
 
-add_executable (Snake "Snake/main.cc" ${SRC_FILES})
+add_executable (Snake "Snake/main.cc" ${SRC_FILES} )
 target_link_libraries(Snake sfml-graphics sfml-window sfml-system sfml-network sfml-audio opengl32 winmm gdi32)
 
 

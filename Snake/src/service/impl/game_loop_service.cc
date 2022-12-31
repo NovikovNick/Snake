@@ -5,6 +5,7 @@
 #include "../../model/game_object.h"
 #include "../../model/game_settings.h"
 #include "../../model/game_state.h"
+#include "../../model/grid.h"
 #include "../../model/ring_buffer.h"
 #include "../../util.h"
 
@@ -33,15 +34,15 @@ GameLoopService::GAME_STATE_HOLDER GameLoopService::initGameStates() {
   GAME_STATE_HOLDER buf(buf_capacity);
   buf.Add(GameState(
       frame, settings_.snake_count,
-      Grid2d(settings_.width, settings_.height, settings_.snake_count)));
+      Grid2d(settings_.width, settings_.height, settings_.snake_count), food_srv_->foods));
+
+  food_srv_->SetFood(buf[0]);
 
   auto& init_game_state = buf[0];
   init_game_state.inputs[0] = Direction::kNone;
 
   for (int i = 0; i < settings_.snake_count; ++i)
     init_game_state.grid.AddSnake(i, snakes[i].begin(), snakes[i].end());
-
-  food_srv_->SetFood(init_game_state);
 
   return buf;
 }
@@ -80,8 +81,8 @@ void GameLoopService::StartGameLoop() {
       paused = false;
       frame = 0;
       frame_offset = 0;
-      buf = initGameStates();
       food_srv_->initFood();
+      buf = initGameStates();
     }
 
     if (player_input.command == SystemCommand::kPause) {
@@ -94,7 +95,8 @@ void GameLoopService::StartGameLoop() {
       if (!paused) {
         buf.Add(GameState(
             ++frame, settings_.snake_count,
-            Grid2d(settings_.width, settings_.height, settings_.snake_count)));
+            Grid2d(settings_.width, settings_.height, settings_.snake_count),
+            buf[0].foods));
 
         buf[frame_offset].inputs[0] = player_input.direction;
         game_state_service_->Move(buf[1], buf[0]);
@@ -135,3 +137,4 @@ void GameLoopService::StartGameLoop() {
   } while (running_);
 }
 }  // namespace snake
+

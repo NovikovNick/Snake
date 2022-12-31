@@ -12,9 +12,8 @@
 #include "src/util.h"
 
 /*
-1. Fixed food in game state
-3. game events to handle ggpo
-4. callback to ggpo rollback
+1. game events to handle ggpo
+2. callback to ggpo rollback
 */
 int main() {
   using namespace snake;
@@ -27,7 +26,7 @@ int main() {
   for (int i = 0; auto& player : players) {
     player.size = sizeof(player);
     player.player_num = ++i;
-    player.type = GGPO_PLAYERTYPE_LOCAL; // GGPO_PLAYERTYPE_REMOTE
+    player.type = GGPO_PLAYERTYPE_LOCAL;  // GGPO_PLAYERTYPE_REMOTE
   }
   /*GGPOSessionCallbacks cb = {0};
   cb.begin_game = vw_begin_game_callback;
